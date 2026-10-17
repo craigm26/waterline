@@ -1,0 +1,6 @@
+data/raw/
+*.tif
+*.tiff
+*.laz
+__pycache__/
+.env
