@@ -21,6 +21,13 @@ Provenance class: **O** = official, **D** = derived from official inputs, **A** 
 | Documented flooding (replay truth) | SF 311 cases, news photos | DataSF 311 dataset | O (qualitative) |
 | Infiltration / imperviousness | NLCD impervious surface (Earth Engine) | Public | D |
 
+## Findings from the first staging run (Oct 17, 2026; all 5 steps OK)
+
+- **King tides at 9414290 (predicted, ft MLLW):** Dec 23–25, 2026 (peak **7.23 ft**, Dec 24 10:37), Jan 20–22, 2027 (7.11 ft), and Nov 24–26, 2026 (7.03 ft). The Christmas-week king tide lining up with an El Niño storm is the coastal scenario to demo.
+- **Atlas 14 at 17th & Folsom, 24-hr depth:** 2-yr **2.27 in**, 100-yr **5.55 in**. For scale, Dec 31, 2022 was roughly 5.5 in downtown (verify from the gauge record), which puts it near a 100-yr 24-hr event. That's a strong replay story.
+- **DEM tiles:** use the **CA_SanFrancisco_B23** 1 m tiles (x55y418, 148 MB; x55y419, 86 MB). Ignore the older Wildfires and Alameda tiles.
+- Observed water level for Dec 30, 2022 – Jan 5, 2023 was staged for the replay.
+
 ## Demo site constants
 
 - 17th & Folsom, SF: approx. **37.7634, -122.4150** (confirm on the ground)

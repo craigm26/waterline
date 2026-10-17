@@ -28,7 +28,7 @@
 
 - [x] Concept, pitch and application answers
 - [ ] Data access requests sent (WeatherNext / Earth Engine, Argon keys)
-- [ ] Data staged locally (`scripts/stage_data.py`)
+- [x] Staging script verified against live NOAA/USGS endpoints (Oct 17); run it on your machine to keep a local copy
 - [ ] Replay storm chosen and verified (see `plan/schedule.md`)
 - [ ] On-site AR footage recorded at 17th & Folsom (backup video)
 
