@@ -4,7 +4,7 @@
 "It's a screening model, not HEC-RAS. We validate against Flood Hub and documented past flooding, and every guessed input is marked as a guess."
 
 **Why agents and not a cron job?**
-"The hard part is judgment: reconciling sources that disagree and deciding when a threshold is worth an alert. That's reasoning, not scheduling."
+"The schedule *is* a cron job. What runs on it is judgment: reconciling sources that disagree and deciding when a threshold is worth an alert. Each agent calls our data through an MCP server, and every tool result carries its provenance."
 
 **What does Argon do that last week's models couldn't?**
 "It writes the whole per-neighborhood model, including terrain handling, drainage approximation and the scene code, in one long run. Its 1M-token output makes 'generate the model for this block' a single step."

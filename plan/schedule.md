@@ -16,6 +16,8 @@ The Gemma Hardware Hackathon is **Oct 24** (Hillsborough). Assume Oct 24 is lost
 | P8 | ARCore Geospatial: get a hello-world anchor working on your phone (API key, VPS coverage at the site) | Tue Oct 20 | [ ] |
 | P9 | **Go to 17th & Folsom**, test VPS localization, and record backup AR footage (needs P8) | Wed Oct 21 | [ ] |
 | P10 | Rehearse the 2-minute pitch out loud twice, timed | Thu Oct 22 | [ ] |
+| P2b | Make one test `gemini-4-argon` call and one Managed Agents call with your own key (see `plan/argon-api-notes.md` checklist) | Tue Oct 20 | [ ] |
+| P7b | Sketch the MCP tool list and its JSON schemas (the code gets written on the day) | Thu Oct 22 | [ ] |
 | P11 | Pack: phone + cable/adapter for screen mirroring, charger, backup video on laptop *and* phone | Thu Oct 22 | [ ] |
 
 ## Day of: Sun Oct 25 (9:00 AM – 10:00 PM)

@@ -14,6 +14,7 @@
 | `pitch/application-answers.md` | Paste-ready application answers (2-sentence pitch, demo plan, proudest project) |
 | `pitch/pitch-2min.md` | 2-minute stage script, 60-second cut, fallback lines |
 | `pitch/judge-qa.md` | Likely judge questions with 10-second answers |
+| `plan/argon-api-notes.md` | Argon developer-guide facts, the Managed Agents call, and what they change in the build |
 | `plan/architecture.md` | Agent pipeline, data contracts, provenance rules |
 | `plan/schedule.md` | Prep checklist for Oct 17–24, plus an hour-by-hour plan for Oct 25 |
 | `plan/risks-and-fallbacks.md` | What breaks, and what we do when it does |

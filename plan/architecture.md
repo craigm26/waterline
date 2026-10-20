@@ -15,7 +15,9 @@ SF sewer / SFPUC flood map ─────────────────�
                                           ──▶  Waterline AR (ARCore Geospatial)
 ```
 
-## Agents (managed, long-running)
+## Agents (Gemini Managed Agents, re-run each forecast cycle)
+
+Implementation details are in `plan/argon-api-notes.md`. In short: `client.interactions.create(agent="antigravity-preview-09-2026", agent_config={"type":"antigravity","model":"gemini-4-argon"}, environment="remote")`. Data comes in through **our MCP server**. Argon is the coordinator; Flash subagents do the terrain, drainage and hydraulics work. State between cycles lives in `situation_report.json`, which we write ourselves.
 
 | Agent | Input | Output | Notes |
 |---|---|---|---|

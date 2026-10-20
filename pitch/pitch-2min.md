@@ -21,10 +21,10 @@ About 300 words at a steady pace. **[Brackets]** are actions; quoted text is wha
 > Note: 17th & Folsom floods from rainfall and combined-sewer capacity, not tides. If the tide toggle doesn't move the water there, demo the tide toggle at Islais Creek or Mission Creek instead, and say "here's where the tide matters."
 
 **1:15–1:40 — How it works** *[Watch Desk trace view]*
-"Behind that is a fleet of managed agents, one per watershed, that never stops running. Each one pulls WeatherNext ensembles, atmospheric-river forecasts, river gauges and tides, and keeps a living situation report. When the forecasts disagree, a coordinator agent flags it. 'The models disagree' is information too."
+"Behind that is a fleet of Gemini managed agents, one per watershed, re-running every forecast cycle. Each one pulls WeatherNext ensembles, atmospheric-river forecasts, river gauges and tides, and keeps a living situation report. When the forecasts disagree, a coordinator agent flags it. 'The models disagree' is information too."
 
 **1:40–1:55 — What's new this week**
-"Argon is what made this possible this week. It wrote the street-scale flood model for this neighborhood in one run, more than [N] thousand lines. Pick any city block in California and we can generate its model the same way."
+"Argon is what made this possible this week. We didn't tell it how to model the flood. We gave it a real storm and what actually flooded, and it wrote and rewrote the street-scale model, more than [N] thousand lines in one run, until its predictions matched reality. Pick any city block in California and we can do the same."
 
 **1:55–2:00 — Close**
 "Strong El Niño, this winter, at street level. That's Waterline."
