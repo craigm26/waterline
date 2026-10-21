@@ -197,11 +197,12 @@ def _render(name, las, cfg, water_levels_ft=None, out_png=None, az_deg=225, elev
             img[qy, qx] = rgb[order]
     fig = plt.figure(figsize=(16, 9), dpi=120)
     ax = fig.add_axes([0, 0, 1, 1]); ax.imshow(img); ax.axis("off")
-    ax.text(30, 60, cfg["title"], fontsize=26, weight="bold", color="#1f2933")
+    ax.text(30, 60, cfg["title"], fontsize=26, weight="bold", color="#1f2933",
+            bbox={"facecolor": "white", "edgecolor": "none", "pad": 4})
     sub = "USGS 3DEP lidar (2023), {:,} points, 2× vertical exaggeration".format(len(z))
     if water_levels_ft is not None:
         sub += f". Blue = ground/water points at or below {water_levels_ft:.1f} ft MLLW (elevation only, not a flood model)"
-    ax.text(30, 100, sub, fontsize=14, color="#3e4c59")
+    ax.text(30, 104, sub, fontsize=14, color="#3e4c59", bbox={"facecolor": "white", "edgecolor": "none", "pad": 3})
     p = ROOT / "assets" / "lidar" / (out_png or f"{name}.png")
     p.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(p); plt.close(fig)
@@ -223,16 +224,30 @@ def xsec(name, las, cfg, axis="ew", band_m=1.0):
     idx = np.digitize(a, bins)
     prof = np.array([[bins[i - 1] + 0.125, np.percentile(zz[idx == i], 20)] for i in np.unique(idx)
                      if (idx == i).sum() >= 3 and 0 < i < len(bins)])
-    road = prof[np.abs(prof[:, 0]) <= 5][:, 1]
-    crown = float(np.max(road)) if len(road) else float("nan")
-    gutter = float(np.min(prof[np.abs(prof[:, 0]) <= 13][:, 1]))
-    walk = prof[(np.abs(prof[:, 0]) >= 14) & (np.abs(prof[:, 0]) <= 17)][:, 1]
-    sidewalk = float(np.median(walk)) if len(walk) else float("nan")
-    res = {"crown_ft_navd88": round(crown, 2), "gutter_ft_navd88": round(gutter, 2),
-           "sidewalk_ft_navd88": round(sidewalk, 2),
-           "curb_height_in": round((sidewalk - gutter) * 12, 1),
-           "water_depth_at_gutter_to_top_curb_in": round((sidewalk - gutter) * 12, 1),
-           "points_used": int(m.sum())}
+    # find the crown (highest smoothed point), then the lowest point (gutter) on each side,
+    # then the sidewalk as the median 1.5-3.5 m beyond each gutter (away from the crown)
+    sm = np.convolve(prof[:, 1], np.ones(5) / 5, mode="same")
+    ic = int(np.argmax(sm[2:-2])) + 2
+    xc, crown = float(prof[ic, 0]), float(sm[ic])
+    sides = {}
+    for name, sel, sgn in (("west", prof[:, 0] < xc, -1), ("east", prof[:, 0] > xc, 1)):
+        pr = prof[sel]
+        if len(pr) < 8:
+            continue
+        ig = int(np.argmin(pr[:, 1]))
+        xg, zg = float(pr[ig, 0]), float(pr[ig, 1])
+        walk = prof[(sgn * (prof[:, 0] - xg) >= 1.5) & (sgn * (prof[:, 0] - xg) <= 3.5)][:, 1]
+        sw = float(np.median(walk)) if len(walk) >= 3 else float("nan")
+        sides[name] = {"gutter_x_m": round(xg, 2), "gutter_ft_navd88": round(zg, 2),
+                       "sidewalk_ft_navd88": round(sw, 2), "curb_height_in": round((sw - zg) * 12, 1)}
+    curbs = [s["curb_height_in"] for s in sides.values() if not math.isnan(s["curb_height_in"])]
+    res = {"crown_ft_navd88": round(crown, 2), "crown_x_m": round(xc, 2),
+           "street_width_gutter_to_gutter_m": round(abs(sides.get("east", {}).get("gutter_x_m", xc) -
+                                                        sides.get("west", {}).get("gutter_x_m", xc)), 1),
+           "sides": sides, "min_curb_height_in": min(curbs) if curbs else None,
+           "points_used": int(m.sum()),
+           "meaning": "water deeper than the lower curb at the gutter spills onto the sidewalk toward doorways"}
+    sidewalk = min((s["sidewalk_ft_navd88"] for s in sides.values()), default=float("nan"))
     fig, ax = plt.subplots(figsize=(16, 9), dpi=120)
     fig.subplots_adjust(left=0.07, right=0.97, top=0.80, bottom=0.14)
     ax.scatter(a, zz, s=2, color="#9aa5b1", alpha=0.5, label="lidar ground points (±1 m band)")
@@ -241,14 +256,18 @@ def xsec(name, las, cfg, axis="ew", band_m=1.0):
         ax.fill_between(prof[:, 0], prof[:, 1], np.minimum(sidewalk, prof[:, 1].max()),
                         where=prof[:, 1] < sidewalk, color="#2f80c1", alpha=0.35, label="water up to curb top")
         ax.axhline(sidewalk, color="#2f80c1", lw=1.2, ls="--")
-    ax.set_xlabel("Distance across the street (m, west → east)" if axis == "ew" else "Distance (m)")
+    ax.set_xlabel("Distance across Folsom St (m, west → east)" if axis == "ew" else "Distance (m)")
+    ax.axvline(xc, color="#7b8794", lw=1, ls=":")
+    ax.text(xc, crown + 0.05, "crown", ha="center", color="#7b8794", fontsize=12)
     ax.set_ylabel("Elevation (ft NAVD88)")
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(color="#e4e7eb")
     ax.legend(frameon=False, loc="lower left", fontsize=12)
     fig.suptitle(cfg["title"], x=0.07, ha="left", y=0.95, fontsize=24, weight="bold", color="#1f2933")
-    fig.text(0.07, 0.86, f"Curb height ≈ {res['curb_height_in']} in. Water in the gutter deeper than that "
-             f"reaches sidewalks and doorways.  Crown {crown:.1f} ft · gutter {gutter:.1f} ft · sidewalk {sidewalk:.1f} ft NAVD88",
+    sw_txt = "  ·  ".join(f"{k} curb {v['curb_height_in']:.0f} in" for k, v in sides.items())
+    gut_txt = " / ".join(f"{v['gutter_ft_navd88']:.1f}" for v in sides.values())
+    fig.text(0.07, 0.86, f"Crown {crown:.1f} ft NAVD88, gutters {gut_txt} ft.  "
+             f"{sw_txt}. Shaded: water up to the lower curb top, the point where it reaches sidewalks and doorways.",
              fontsize=14, color="#1f2933")
     fig.text(0.07, 0.03, "USGS 3DEP lidar CA_SanFrancisco_1_B23 (2023), ground class only. "
              "Measured, not modeled.", fontsize=11, color="#7b8794")
@@ -301,9 +320,8 @@ def main():
             export_bin(name, las, cfg)
             _render(name, las, cfg)
             if name == "coast_scene" and stack:
-                for lab, lv, _ in stack["scenarios"]:
-                    tag = lab.split("(")[0].strip().lower().replace("+ ", "plus_").replace(" ", "_")
-                    _render(name, las, cfg, water_levels_ft=lv, out_png=f"coast_scene_{tag}.png")
+                lab, lv, _ = stack["scenarios"][-1]   # stress test; realistic cases leave all ground dry
+                _render(name, las, cfg, water_levels_ft=lv, out_png="coast_scene_stress_test.png")
             if name == "coast_scene":
                 checks["dem_vs_lidar_coast"] = dem_check(las, {
                     "Ferry Bldg front plaza": (37.7953, -122.3940, spots.get("Ferry Bldg front plaza")),
