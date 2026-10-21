@@ -266,8 +266,8 @@ def xsec(name, las, cfg, axis="ew", band_m=1.0):
     fig.suptitle(cfg["title"], x=0.07, ha="left", y=0.95, fontsize=24, weight="bold", color="#1f2933")
     sw_txt = "  ·  ".join(f"{k} curb {v['curb_height_in']:.0f} in" for k, v in sides.items())
     gut_txt = " / ".join(f"{v['gutter_ft_navd88']:.1f}" for v in sides.values())
-    fig.text(0.07, 0.86, f"Crown {crown:.1f} ft NAVD88, gutters {gut_txt} ft.  "
-             f"{sw_txt}. Shaded: water up to the lower curb top, the point where it reaches sidewalks and doorways.",
+    fig.text(0.07, 0.83, f"Crown {crown:.1f} ft NAVD88, gutters {gut_txt} ft.  "
+             f"{sw_txt}.\nShaded: water up to the lower curb top, where it starts reaching sidewalks and doorways.",
              fontsize=14, color="#1f2933")
     fig.text(0.07, 0.03, "USGS 3DEP lidar CA_SanFrancisco_1_B23 (2023), ground class only, 25 cm bins. Measured, "
              "not modeled. Curbs, bike-lane buffers and parking lanes blur at this resolution: tape-measure on site.", fontsize=11, color="#7b8794")
