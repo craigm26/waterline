@@ -1,0 +1,41 @@
+/* Waterline design tokens: shared by the trace view, dashboard and AR overlays.
+   Provenance is encoded by FILL STYLE (solid / outline / hatch), never by hue alone. */
+:root {
+  --ink: #1f2933;
+  --muted: #7b8794;
+  --grid: #e4e7eb;
+  --paper: #ffffff;
+  --water: #2f80c1;
+  --water-dark: #1b4f7a;
+  --water-surface: rgba(47, 128, 193, 0.45);   /* AR plane, P50 */
+  --water-band: rgba(47, 128, 193, 0.18);      /* AR band, P10–P90 */
+  --alert-minor: #d9a21b;
+  --alert-moderate: #d66a1f;
+  --alert-major: #b3261e;
+  --ground: #8d6e63;
+  --font: "Inter", "DejaVu Sans", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #e4e7eb; --muted: #9aa5b1; --grid: #323f4b; --paper: #121a21;
+    --water: #5aa7e0; --water-dark: #9cc9ee;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #e4e7eb; --muted: #9aa5b1; --grid: #323f4b; --paper: #121a21;
+  --water: #5aa7e0; --water-dark: #9cc9ee;
+}
+
+/* provenance chips */
+.prov { display: inline-block; padding: 2px 8px; border-radius: 999px; font: 600 12px/1.6 var(--font);
+        border: 1.5px solid var(--water-dark); color: var(--ink); }
+.prov--official { background: var(--water); color: #fff; border-color: var(--water); }
+.prov--derived  { background: transparent; }
+.prov--assumed  { background: repeating-linear-gradient(135deg, transparent 0 4px,
+                    color-mix(in srgb, var(--water-dark) 55%, transparent) 4px 6px); }
+
+/* banners */
+.banner--replay, .banner--stress { font: 700 13px/1 var(--font); letter-spacing: .08em; padding: 6px 10px; }
+.banner--replay { background: var(--muted); color: #fff; }
+.banner--stress { background: var(--alert-major); color: #fff; }

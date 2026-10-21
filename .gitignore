@@ -4,3 +4,6 @@ data/raw/
 *.laz
 __pycache__/
 .env
+.venv/
+.setup.log
+!data/terrain/*.tif
