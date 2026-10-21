@@ -31,11 +31,25 @@
   }
  },
  "folsom_xsec": {
-  "crown_ft_navd88": 21.49,
-  "gutter_ft_navd88": 20.57,
-  "sidewalk_ft_navd88": 20.84,
-  "curb_height_in": 3.3,
-  "water_depth_at_gutter_to_top_curb_in": 3.3,
-  "points_used": 2619
+  "crown_ft_navd88": 21.53,
+  "crown_x_m": -6.38,
+  "street_width_gutter_to_gutter_m": 16.8,
+  "sides": {
+   "west": {
+    "gutter_x_m": -17.38,
+    "gutter_ft_navd88": 20.44,
+    "sidewalk_ft_navd88": 20.73,
+    "curb_height_in": 3.5
+   },
+   "east": {
+    "gutter_x_m": -0.62,
+    "gutter_ft_navd88": 20.57,
+    "sidewalk_ft_navd88": 21.33,
+    "curb_height_in": 9.1
+   }
+  },
+  "min_curb_height_in": 3.5,
+  "points_used": 2619,
+  "meaning": "water deeper than the lower curb at the gutter spills onto the sidewalk toward doorways"
  }
 }
