@@ -2,14 +2,28 @@
 
 Following Google's guide: align on intent first, give a verification target, run a pre-flight check, then let it run.
 
-## 0. Pre-flight (thinking_level: medium)
+## 0. Pre-flight (thinking_level: medium). The first prompt of the day, in Antigravity
 
 ```
-You are building Waterline, a screening-level street flood visualizer. Before writing code:
-1. Read plan/architecture.md, plan/compound-risk.md, plan/verification-harness.md, plan/mcp-tools.md.
-2. List the data files in data/raw/ you will use and confirm each one loads.
-3. Ask me up to 5 clarifying questions about edge cases or success criteria.
-4. Confirm you can run Python with numpy, rasterio (or GDAL), shapely, pyproj.
+You are the lead engineer on Waterline, a screening-level street flood tool for this winter's strong
+El Niño in San Francisco. Two users: a resident (phone AR water line on their street) and a city
+emergency manager (dashboard: block-by-block timeline against NOAA flood thresholds, drafted alert).
+Two sites: 17th & Folsom (rain + combined sewer) and the Ferry Building / Embarcadero (king tide +
+Kelvin-wave baseline + storm surge). The runtime is a fleet of Gemini Managed Agents
+(agent "antigravity-preview-09-2026", model gemini-4-argon) that reach data only through an MCP server.
+
+Everything in this repo was prepared before today: specs, staged data, charts. All application code
+gets written today. Before writing any code:
+1. Read README.md, then plan/architecture.md, plan/compound-risk.md, plan/verification-harness.md,
+   plan/mcp-tools.md, plan/argon-api-notes.md and plan/schedule.md.
+2. Inventory the data: data/raw/ (staged), data/terrain/, data/lidar/, data/ground_truth/,
+   data/derived/, data/forecast/. Load one file of each kind and report its shape, CRS, units and
+   vertical datum. Flag anything missing or inconsistent with DATA_SOURCES.md.
+3. Confirm the Python env (.venv: numpy, rasterio, shapely, pyproj, scipy, laspy) and that
+   GEMINI_API_KEY is set.
+4. Propose the build order for today with a checkpoint at 1:30 PM (end-to-end replay works) and
+   4:30 PM (something filmable), matching plan/schedule.md.
+5. Ask me up to 5 clarifying questions about edge cases or success criteria.
 Do not write code yet.
 ```
 
