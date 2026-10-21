@@ -8,3 +8,4 @@ __pycache__/
 .setup.log
 !data/terrain/*.tif
 .build.log
+!data/lidar/*.laz
