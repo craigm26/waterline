@@ -67,7 +67,7 @@ td.n { font-variant-numeric: tabular-nums; font-family: var(--mono); }
       <h1>Waterline Demo Kit</h1>
     </div>
     <p class="lede">Everything prepared before the Gemini 4 Argon hackathon at SHACK15 on Sunday, Oct 25: charts and maps built from live public data, terrain and ground truth for both demo sites, and the visual language for provenance. App code is written on the day.</p>
-    <p class="meta">Data pulled Oct 21, 2026 · NOAA CO-OPS 9414290 · NOAA Atlas 14 · GHCN-D · USGS 3DEP 1 m · SFPUC · DataSF 311 · Open-Meteo ensembles</p>
+    <p class="meta">Data pulled Oct 21, 2026 · NOAA CO-OPS 9414290 · NOAA Atlas 14 · GHCN-D · USGS 3DEP 1 m · SFPUC · DataSF 311 · USGS 3DEP lidar (AWS EPT) · Open-Meteo ensembles</p>
   </header>
 
   <div class="numbers" aria-label="Key numbers">
@@ -110,6 +110,22 @@ td.n { font-variant-numeric: tabular-nums; font-family: var(--mono); }
   </section>
 
   <section>
+    <h2><small>Lidar · USGS 3DEP 2023 point cloud</small>Measured geometry for the 3D scene</h2>
+    <figure>
+      <img src="lidar/coast_scene.png" alt="Oblique point-cloud render of the Ferry Building, its clock tower, the downtown towers behind it, the piers and the Bay in front." loading="lazy">
+      <figcaption><p>661,599 points streamed from the public USGS archive on AWS. It's the Three.js backdrop for the trace view and dashboard, with no Maps key needed. Lidar and the bare-earth DEM agree within 0.3 ft at all four checkpoints.</p><p class="use">The 3D establishing shot (F7) and the city-manager scene.</p></figcaption>
+    </figure>
+    <figure>
+      <img src="lidar/coast_scene_stress_test.png" alt="Same Ferry Building render with ground points at or below 10.3 feet tinted blue, mostly along the plaza front and the Embarcadero roadway." loading="lazy">
+      <figcaption><p>Ground at or below the stress-test level (10.3 ft MLLW) tinted blue. At the realistic levels no ground points are tinted, which is why those scenarios aren't rendered.</p><p class="use">Backup for "what would it take to flood the plaza?"</p></figcaption>
+    </figure>
+    <figure>
+      <img src="lidar/rain_xsec.png" alt="Cross-section of Folsom Street from lidar ground points: crown 21.5 ft, gutters 20.4 and 20.6 ft, with water shaded up to the lower curb top." loading="lazy">
+      <figcaption><p>Folsom St just south of 17th: the crown sits about 1 ft above the gutters, and about 4 in of gutter water reaches the west sidewalk. Tape-measure on Thursday to confirm.</p><p class="use">Turns a depth number into "over the curb" for residents.</p></figcaption>
+    </figure>
+  </section>
+
+  <section>
     <h2><small>Forecast fallback</small>Every ensemble member, next seven days</h2>
     <figure>
       <img src="charts/ensemble_fan.png" alt="Thirty-one cumulative rainfall traces for the next seven days at 17th and Folsom, mostly between 0.1 and 0.5 inches." loading="lazy">
@@ -133,6 +149,7 @@ td.n { font-variant-numeric: tabular-nums; font-family: var(--mono); }
       <thead><tr><th>Asset</th><th>Path</th><th>What it is</th></tr></thead>
       <tbody>
         <tr><td>Terrain, both sites</td><td class="path">data/terrain/</td><td>Clipped 1 m DEM GeoTIFFs, 16-bit heightmaps and hillshades for Three.js, with georeferencing JSON</td></tr>
+        <tr><td>Lidar point clouds</td><td class="path">data/lidar/</td><td>Cropped LAZ plus Three.js binaries (14-byte points) for both sites; checks in data/derived/lidar_checks.json</td></tr>
         <tr><td>Ground truth</td><td class="path">data/ground_truth/</td><td>311 reports, SFPUC zone clips, dry controls (GeoJSON)</td></tr>
         <tr><td>Coastal stack</td><td class="path">data/derived/coastal_stack.json</td><td>Each scenario layer, the thresholds and the plaza grade</td></tr>
         <tr><td>Gauge series</td><td class="path">data/derived/kelvin_gauge_series.json</td><td>Daily residuals 2025 and 2026, October peak</td></tr>
