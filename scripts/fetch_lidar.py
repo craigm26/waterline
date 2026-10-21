@@ -37,9 +37,9 @@ NAVD88_TO_MLLW_FT = 0.06
 
 # crops: (lon, lat) center, half-size in metres, max EPT depth (deeper = denser)
 CROPS = {
-    "coast_scene": {"center": (-122.3935, 37.7955), "half_m": 220, "depth": 9,
+    "coast_scene": {"center": (-122.3935, 37.7955), "half_m": 220, "depth": 7,
                     "title": "Ferry Building & Embarcadero seawall"},
-    "rain_scene": {"center": (-122.4150, 37.7634), "half_m": 180, "depth": 9,
+    "rain_scene": {"center": (-122.4150, 37.7634), "half_m": 180, "depth": 7,
                    "title": "17th & Folsom"},
     "rain_xsec": {"center": (-122.4150, 37.7631), "half_m": 30, "depth": 12,
                   "title": "Folsom St cross-section, just south of 17th"},
@@ -278,6 +278,7 @@ def dem_check(las, points):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", nargs="*", choices=list(CROPS))
+    ap.add_argument("--depth", type=int, help="override max EPT depth for scene crops (7 ≈ 1M pts; 9 ≈ 15M)")
     a = ap.parse_args()
     ept = Ept()
     print(f"EPT: {ept.meta['points']:,} points, srs EPSG:{ept.meta['srs'].get('horizontal')}")
@@ -292,7 +293,9 @@ def main():
     except FileNotFoundError:
         pass
     for name in a.only or CROPS:
-        cfg = CROPS[name]
+        cfg = dict(CROPS[name])
+        if a.depth and name.endswith("_scene"):
+            cfg["depth"] = a.depth
         las = fetch_crop(ept, name, cfg)
         if name.endswith("_scene"):
             export_bin(name, las, cfg)
