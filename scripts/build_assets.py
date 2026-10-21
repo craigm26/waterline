@@ -237,7 +237,8 @@ def chart_replay_rain():
     ax2.plot(t, cum, color=WATER, lw=3.4)
     for k, c in [("2", MUTED), ("25", ALERT2), ("100", ALERT3)]:
         ax2.axhline(a14[k], color=c, lw=1.4, ls="--")
-        ax2.text(t[-1], a14[k], f"  {k}-yr 24-hr {a14[k]:.2f} in", color=c, va="center", fontsize=13)
+        ax2.text(t[-1], a14[k] + 0.06, f"{k}-yr 24-hr {a14[k]:.2f} in", color=c, va="bottom", ha="right",
+                 fontsize=13, bbox={"facecolor": "white", "edgecolor": "none", "pad": 1})
     ax2.set_ylabel("Cumulative (in)")
     ax2.spines["right"].set_visible(True)
     ax2.grid(False)
