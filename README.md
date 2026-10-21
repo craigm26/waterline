@@ -51,6 +51,7 @@
 - [x] Concept, pitch, application answers, two-persona demo plan
 - [x] All data staged and verified (tides, thresholds, Kelvin anomaly, Atlas 14, rainfall, 311, SFPUC, DEM index)
 - [x] Replay storm chosen and verified: Dec 31, 2022
+- [x] Demo assets built from live data (Oct 21): 4 charts, 2 maps, terrain clips, ground truth, 10 pre-registered dry controls, GEFS/ECMWF ensemble snapshots, EN/ES alert copy, brand kit. Gallery: `assets/index.html`
 - [ ] WeatherNext request sent (if not already, assume NOAA fallback)
 - [ ] `scripts/smoke_test_argon.py` passes
 - [ ] Event rules checked (pre-built code?)

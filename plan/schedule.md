@@ -10,11 +10,11 @@ Updated Wed Oct 21. The Gemma Hardware Hackathon is **Sat Oct 24** (AGI House, H
 | P2 | Argon access: paid Gemini API tier or AI Ultra. Confirm whether the event provides credits | Today | [ ] |
 | P2b | Run `scripts/smoke_test_argon.py` (one Argon call + one managed-agent call). Note the latency | **Today** | [ ] |
 | P3 | Find the event rules (check the event page / ask the organizers): can an AR prototype or MCP server be pre-built? Default assumption: **no**, only data + specs | Thu Oct 22 | [ ] |
-| P4 | `python scripts/stage_data.py --download-dem` on the laptop you'll bring (all 12 steps verified Oct 21) | Thu Oct 22 | [ ] |
+| P4 | ~~Stage data + DEM~~ **Done Oct 21** on the desktop (`~\code\waterline-argon-hackathon`, venv in `.venv`). If you bring a different laptop: clone, `pip install numpy rasterio shapely pyproj matplotlib pillow scipy`, run `stage_data.py --download-dem` | — | [x] |
 | P5 | ~~Pick the replay storm~~ **Done:** Dec 31, 2022 (5.46 in downtown; 17 311 flooding reports within 600 m; 17th & Folsom is inside the SFPUC 100-yr zone) | — | [x] |
 | P6 | ~~Observed rainfall~~ **Done:** daily GHCN-D + SFO hourly shape staged | — | [x] |
 | P7 | ~~Validation layer~~ **Done:** SFPUC 100-yr zone + Dec 2024 flood elevations staged (SFCD → NAVD88 +11.35 ft) | — | [x] |
-| P7b | Pick and commit the 10 R2 dry-control points (`plan/verification-harness.md`) | Thu Oct 22 | [ ] |
+| P7b | ~~Pick dry controls~~ **Done:** 10 points committed in `data/ground_truth/dry_controls_rain.geojson` (seed 20261025) | — | [x] |
 | P8 | Decide AR approach: native iOS ARCore Geospatial vs 3D Tiles on the laptop (see `plan/argon-prompts.md` §3). Create the Google Cloud project + enable the ARCore API and Maps (3D Tiles) keys | Thu Oct 22 | [ ] |
 | P9 | **Film 17th & Folsom B-roll** (shots M1–M4 in `plan/demo-film-plan.md`) | Thu Oct 22 | [ ] |
 | P10 | Test a tunnel (cloudflared/ngrok) for the MCP server from home | Fri Oct 23 | [ ] |
@@ -25,7 +25,7 @@ Updated Wed Oct 21. The Gemma Hardware Hackathon is **Sat Oct 24** (AGI House, H
 
 | Time | Block | Done when |
 |---|---|---|
-| 8:30 | Arrive early. Re-run `stage_data.py --only kelvin_anomaly flood_levels`; update the pitch numbers. Walk the seawall for 5 min and pick the filming spot | Numbers updated |
+| 8:30 | Arrive early. Re-run `stage_data.py --only kelvin_anomaly flood_levels` and `build_assets.py --only charts forecast`; update the pitch numbers. Walk the seawall for 5 min and pick the filming spot | Numbers updated |
 | 9:00–9:45 | Check-in, talks. Confirm the **submission deadline, judging format and video rules** | Known |
 | 9:45–10:00 | Argon pre-flight prompt (`argon-prompts.md` §0) | Questions answered |
 | 10:00–10:45 | MCP server (tunnel); kick off **hydraulics + verifier** (§1) as a background run | Run started |

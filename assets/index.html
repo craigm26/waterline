@@ -1,0 +1,145 @@
+<title>Waterline Demo Kit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column of figures, each figure followed by "where it goes in the pitch". Civic-signage display face, technical body. */
+:root {
+  --bg: #f6f8fa; --surface: #ffffff; --fg: #1f2933; --muted: #5f6b78; --rule: #dde3e9;
+  --water: #2f80c1; --water-dark: #1b4f7a; --minor: #b8860b; --major: #b3261e;
+  --display: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f161c; --surface: #17212a; --fg: #e6ebf0; --muted: #9aa7b4; --rule: #2a3742;
+  --water: #5aa7e0; --water-dark: #9cc9ee; --minor: #e3b341; --major: #f0776e; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f161c; --surface: #17212a; --fg: #e6ebf0; --muted: #9aa7b4; --rule: #2a3742;
+  --water: #5aa7e0; --water-dark: #9cc9ee; --minor: #e3b341; --major: #f0776e; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 48px; }
+header { display: grid; gap: 14px; }
+.mark { display: flex; align-items: center; gap: 14px; }
+.mark svg { width: 44px; height: 44px; flex: none; }
+h1 { font: 700 clamp(2.4rem, 6vw, 3.6rem)/1 var(--display); letter-spacing: -.01em; margin: 0; }
+.lede { max-width: 64ch; margin: 0; color: var(--fg); font-size: 1.08rem; }
+.meta { font: 500 .8rem/1.4 var(--mono); color: var(--muted); letter-spacing: .02em; }
+.numbers { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1px; background: var(--rule);
+  border: 1px solid var(--rule); }
+.num { background: var(--surface); padding: 16px 18px; display: grid; gap: 4px; min-width: 0; }
+.num b { font: 700 1.9rem/1.05 var(--display); font-variant-numeric: tabular-nums; color: var(--water-dark); }
+.num.alert b { color: var(--major); }
+.num span { font-size: .9rem; color: var(--muted); }
+section { display: grid; gap: 18px; }
+h2 { font: 700 1.6rem/1.1 var(--display); margin: 0; text-wrap: balance; }
+h2 small { display: block; font: 500 .75rem/1.6 var(--mono); color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+figure { margin: 0; display: grid; gap: 10px; }
+figure img { width: 100%; height: auto; display: block; border: 1px solid var(--rule); background: #fff; }
+figcaption { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; font-size: .95rem; }
+figcaption p { margin: 0; min-width: 0; }
+figcaption .use { color: var(--muted); }
+figcaption .use::before { content: "In the demo  "; font: 600 .72rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--water); }
+code, .path { font: .85rem var(--mono); }
+.path { color: var(--muted); }
+.prov { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { font: 600 .82rem/1.6 var(--body); padding: 3px 12px; border-radius: 999px; border: 1.5px solid var(--water-dark); }
+.chip.o { background: var(--water); border-color: var(--water); color: #fff; }
+.chip.a { background: repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in srgb, var(--water-dark) 50%, transparent) 4px 6px); }
+.alert-card { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--minor); padding: 16px 18px;
+  display: grid; gap: 8px; max-width: 64ch; }
+.alert-card p { margin: 0; }
+.alert-card .es { color: var(--muted); }
+.alert-card .disc { font-size: .82rem; color: var(--muted); font-style: italic; }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+.tbl { overflow-x: auto; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 .75rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.n { font-variant-numeric: tabular-nums; font-family: var(--mono); }
+@media (max-width: 640px) { figcaption { grid-template-columns: 1fr; gap: 6px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="mark">
+      <svg viewBox="0 0 72 112" aria-hidden="true"><defs><pattern id="h" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--water-dark)" stroke-width="2.5"/></pattern></defs><rect x="14" y="6" width="44" height="92" fill="none" stroke="var(--fg)" stroke-width="5"/><rect x="6" y="54" width="60" height="14" fill="url(#h)"/><rect x="6" y="68" width="60" height="30" fill="var(--water)"/><line x1="0" y1="68" x2="72" y2="68" stroke="var(--water-dark)" stroke-width="4"/></svg>
+      <h1>Waterline Demo Kit</h1>
+    </div>
+    <p class="lede">Everything prepared before the Gemini 4 Argon hackathon at SHACK15 on Sunday, Oct 25: charts and maps built from live public data, terrain and ground truth for both demo sites, and the visual language for provenance. App code is written on the day.</p>
+    <p class="meta">Data pulled Oct 21, 2026 · NOAA CO-OPS 9414290 · NOAA Atlas 14 · GHCN-D · USGS 3DEP 1 m · SFPUC · DataSF 311 · Open-Meteo ensembles</p>
+  </header>
+
+  <div class="numbers" aria-label="Key numbers">
+    <div class="num"><b>+0.98 ft</b><span>SF gauge above prediction, Oct 1–21 (vs +0.26 in 2025)</span></div>
+    <div class="num alert"><b>7.57 ft</b><span>Oct 11 peak, above NWS minor flood (7.04 ft MLLW)</span></div>
+    <div class="num"><b>8.2 ft</b><span>Christmas Eve king tide plus today's El Niño baseline</span></div>
+    <div class="num"><b>17</b><span>311 flooding reports within 600 m of 17th &amp; Folsom, Dec 31, 2022</span></div>
+  </div>
+
+  <section>
+    <h2><small>Slide 2 · the hook</small>The Kelvin wave is already in the tide gauge</h2>
+    <figure>
+      <img src="charts/kelvin_gauge.png" alt="Left: daily mean water level above prediction at San Francisco, Sep–Oct 2026 rising to about 1.3 ft versus about 0.3 ft in 2025. Right: October 2026 six-minute water level crossing the 7.04 ft NWS minor flood line on Oct 11 at 7.57 ft." loading="lazy">
+      <figcaption><p>Observed minus predicted water level, 2026 against 2025, and the October record with the flood threshold. Rebuild the morning of the event with <code>build_assets.py --only charts</code>.</p><p class="use">The opening 15 seconds: "about a foot above prediction all October."</p></figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><small>Resident cut · Ferry Building</small>Christmas Eve, stacked layer by layer</h2>
+    <figure>
+      <img src="charts/coastal_stack.png" alt="Bar chart of still water at the SF gauge: king tide 7.2 ft, plus El Niño baseline 8.2 ft, plus big storm 9.2 ft (hatched), stress test 10.3 ft (hatched), against NOAA flood thresholds and the Ferry Building plaza at about 10.2 ft." loading="lazy">
+      <figcaption><p>Solid bars are NOAA predictions and measurements; hatched bars are assumed surge. The realistic case sits about 2 ft below the plaza. Only the labeled stress test reaches it.</p><p class="use">The AR toggle sequence and the "so will it flood?" answer.</p></figcaption>
+    </figure>
+    <figure>
+      <img src="maps/coast_elevation_bands.png" alt="Hillshade map of the Embarcadero with ground below each scenario's water level shaded in four blues around the Ferry Building." loading="lazy">
+      <figcaption><p>Ground elevation bands only, with no connectivity check, seawall or waves. The hydraulics agent replaces this on the day.</p><p class="use">Picking the filming spot; a backup still if AR fails.</p></figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><small>Proof · 17th &amp; Folsom</small>The replay storm and what actually flooded</h2>
+    <figure>
+      <img src="charts/replay_rain.png" alt="Hourly rain on Dec 31, 2022, scaled to the 5.46 inch downtown total, with the cumulative curve reaching just under the 100-year 24-hour line of 5.55 inches." loading="lazy">
+      <figcaption><p>5.46 in at SF Downtown, just under the Atlas 14 100-year, 24-hour depth. Hourly shape comes from SFO, so it is hatched.</p><p class="use">Drives the replay run; the slide behind "we gave Argon a real storm."</p></figcaption>
+    </figure>
+    <figure>
+      <img src="maps/rain_ground_truth.png" alt="Hillshade map around 17th and Folsom with the SFPUC 100-year flood zone hatched, 311 flooding reports as red circles and orange squares, and ten green triangle dry-control points." loading="lazy">
+      <figcaption><p>SFPUC 100-year zone, 17 311 reports, and 10 dry-control points chosen before any modeling (seed 20261025). Not a model output.</p><p class="use">Argon's pass/fail target; the base layer for slide 5.</p></figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><small>Forecast fallback</small>Every ensemble member, next seven days</h2>
+    <figure>
+      <img src="charts/ensemble_fan.png" alt="Thirty-one cumulative rainfall traces for the next seven days at 17th and Folsom, mostly between 0.1 and 0.5 inches." loading="lazy">
+      <figcaption><p>NOAA GEFS (31 members) and ECMWF (51 members) through Open-Meteo, no key needed. A dry week right now, which is why the demo leads with the replay and the tides.</p><p class="use">Feeds <code>get_forecast_rain</code> until WeatherNext access arrives.</p></figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><small>Visual language</small>Provenance is a fill style, not a color</h2>
+    <div class="prov"><span class="chip o">Official</span><span class="chip">Derived</span><span class="chip a">Assumed</span></div>
+    <div class="alert-card">
+      <p><strong>High water near the Ferry Building, Thu Dec 24, 9:30–11:45 AM.</strong> Expect water 2 ft below the promenade; waves may splash over. Avoid the seawall edge.</p>
+      <p class="es">Marea alta cerca del Ferry Building, jue 24 dic, 9:30–11:45. El agua llegará a 2 pies del paseo; las olas pueden saltar. Aléjese del borde del malecón.</p>
+      <p class="disc">Example of the template. Waterline prototype, screening estimate only, not an official alert. For official warnings, follow AlertSF and the National Weather Service.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><small>In the repo</small>Data products ready for the build</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Asset</th><th>Path</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td>Terrain, both sites</td><td class="path">data/terrain/</td><td>Clipped 1 m DEM GeoTIFFs, 16-bit heightmaps and hillshades for Three.js, with georeferencing JSON</td></tr>
+        <tr><td>Ground truth</td><td class="path">data/ground_truth/</td><td>311 reports, SFPUC zone clips, dry controls (GeoJSON)</td></tr>
+        <tr><td>Coastal stack</td><td class="path">data/derived/coastal_stack.json</td><td>Each scenario layer, the thresholds and the plaza grade</td></tr>
+        <tr><td>Gauge series</td><td class="path">data/derived/kelvin_gauge_series.json</td><td>Daily residuals 2025 and 2026, October peak</td></tr>
+        <tr><td>Ensembles</td><td class="path">data/forecast/</td><td>GEFS and ECMWF snapshots for both sites</td></tr>
+        <tr><td>Alert copy</td><td class="path">assets/copy/alerts.md</td><td>Resident SMS and card, city ops brief, in English and Spanish</td></tr>
+        <tr><td>Brand</td><td class="path">assets/brand/</td><td>Logo and CSS tokens with the provenance styles</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
