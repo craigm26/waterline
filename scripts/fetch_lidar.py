@@ -230,7 +230,7 @@ def xsec(name, las, cfg, axis="ew", band_m=1.0):
     ic = int(np.argmax(sm[2:-2])) + 2
     xc, crown = float(prof[ic, 0]), float(sm[ic])
     sides = {}
-    for name, sel, sgn in (("west", prof[:, 0] < xc, -1), ("east", prof[:, 0] > xc, 1)):
+    for side, sel, sgn in (("west", prof[:, 0] < xc, -1), ("east", prof[:, 0] > xc, 1)):
         pr = prof[sel]
         if len(pr) < 8:
             continue
@@ -238,7 +238,7 @@ def xsec(name, las, cfg, axis="ew", band_m=1.0):
         xg, zg = float(pr[ig, 0]), float(pr[ig, 1])
         walk = prof[(sgn * (prof[:, 0] - xg) >= 1.5) & (sgn * (prof[:, 0] - xg) <= 3.5)][:, 1]
         sw = float(np.median(walk)) if len(walk) >= 3 else float("nan")
-        sides[name] = {"gutter_x_m": round(xg, 2), "gutter_ft_navd88": round(zg, 2),
+        sides[side] = {"gutter_x_m": round(xg, 2), "gutter_ft_navd88": round(zg, 2),
                        "sidewalk_ft_navd88": round(sw, 2), "curb_height_in": round((sw - zg) * 12, 1)}
     curbs = [s["curb_height_in"] for s in sides.values() if not math.isnan(s["curb_height_in"])]
     res = {"crown_ft_navd88": round(crown, 2), "crown_x_m": round(xc, 2),
@@ -269,8 +269,8 @@ def xsec(name, las, cfg, axis="ew", band_m=1.0):
     fig.text(0.07, 0.86, f"Crown {crown:.1f} ft NAVD88, gutters {gut_txt} ft.  "
              f"{sw_txt}. Shaded: water up to the lower curb top, the point where it reaches sidewalks and doorways.",
              fontsize=14, color="#1f2933")
-    fig.text(0.07, 0.03, "USGS 3DEP lidar CA_SanFrancisco_1_B23 (2023), ground class only. "
-             "Measured, not modeled.", fontsize=11, color="#7b8794")
+    fig.text(0.07, 0.03, "USGS 3DEP lidar CA_SanFrancisco_1_B23 (2023), ground class only, 25 cm bins. Measured, "
+             "not modeled. Curbs, bike-lane buffers and parking lanes blur at this resolution: tape-measure on site.", fontsize=11, color="#7b8794")
     p = ROOT / "assets" / "lidar" / f"{name}.png"
     p.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(p); plt.close(fig)
