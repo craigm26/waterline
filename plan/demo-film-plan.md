@@ -26,6 +26,7 @@
 | F3 | AR: toggle *stress test*: water reaches the plaza grade | Phone | Big "STRESS TEST, not a forecast" label stays visible |
 | F4 | Tap the hatched band: "overtopping likely, waves not modeled" | Phone | The honesty beat |
 | F5 | Talking head, 10 s: "This gauge is already running about 9 inches high because of the Kelvin wave." | Phone 2 | Say the number you get from the morning re-run |
+| F7 | 5-s orbit of the lidar Ferry Building scene with the water plane rising (screen capture) | Laptop | The 3D establishing shot if 3D Tiles has no key |
 | F6 | Laptop on a bench: city-manager view of the same scenario, alert drafted | Phone 2 filming laptop | Ties the two cuts together |
 
 ## Shot list: 17th & Folsom (film BEFORE the event, Wed Oct 21 / Thu Oct 22)
@@ -37,6 +38,7 @@ The app won't exist yet, so this is **B-roll only**: real street, real curb, rea
 | M1 | Wide of the 17th & Folsom intersection, street sign in frame | Establishing |
 | M2 | Close-up of a curb inlet / storm drain | For the "drain capacity" voice-over |
 | M3 | Slow pan along Folsom toward 14th | Matches the Dec 31, 2022 311 report locations |
+| M5 | Tape-measure both Folsom curbs just south of 17th, then iPhone LiDAR-scan the same 3 m of curb (`plan/lidar.md`) | Lidar says ~4 in west / ~9 in east; the measured number goes on the slide |
 | M4 | Note the GPS reading on the phone at the corner | Confirms the site coordinates (37.7634, -122.4150) |
 
 If the event rules allow a pre-built AR prototype (check P3), also test **VPS availability** at both sites with `GARSession.checkVPSAvailabilityAtCoordinate`. Otherwise do it at lunch on the day for the Ferry Building only.

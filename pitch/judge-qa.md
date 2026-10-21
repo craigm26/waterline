@@ -21,6 +21,9 @@ Answer truthfully on the day. If not approved: "WeatherNext access takes about a
 **Why do the coast and the Mission need different models?**
 "Different physics. 17th & Folsom is 21 feet up, so it's rain and sewer capacity. The Embarcadero is about 10 feet, so it's tide plus Kelvin-wave plus surge. One pipeline, two hazard stacks, and the coordinator flags when they coincide, because a king tide can slow sewer outfalls."
 
+**How good is your terrain?**
+"Two independent USGS products, the 2023 lidar point cloud and the bare-earth DEM, agree within a third of a foot at every checkpoint. We also tape-measured the Folsom curb against the lidar profile."
+
 **Why not just use Flood Hub?**
 "Flood Hub tells you a flood is coming to the area. We tell you the depth at your front step, and you see it through your camera. We use Flood Hub as a check, not a replacement."
 

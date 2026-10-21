@@ -17,6 +17,7 @@ Provenance class: **O** = official, **D** = derived from official inputs, **A** 
 | Official 100-yr flood extent | SFPUC 100-Year Storm Flood Risk Zone (July 2022) `jzu3-4yxp` | data.sf.gov GeoJSON | O |
 | Official 100-yr flood elevations | SFPUC Flood Elevations (Dec 2024) `wppz-u2hi`, fields `contourmin/contourmax`, **SF City Datum** | data.sf.gov GeoJSON | O |
 | Terrain | USGS **3DEP 1 m DEM** CA_SanFrancisco_B23 | TNM Access API | O |
+| **Lidar point cloud** | USGS 3DEP **CA_SanFrancisco_1_B23** (2023) via AWS EPT, 13.1 B points, Z m NAVD88; buildings unclassified (class 1) | `scripts/fetch_lidar.py` (streams only intersecting octree nodes) | O |
 | Spot elevations | USGS EPQS | epqs.nationalmap.gov | O |
 | 3D context | Google **Photorealistic 3D Tiles** | Maps Platform key | O |
 | AR anchoring | **ARCore Geospatial** (iOS: CocoaPods `ARCore/Geospatial ~> 1.56.0`; keyless auth preferred; check VPS with `checkVPSAvailabilityAtCoordinate`; ~5 m / 5° typical accuracy) | Google Cloud project | O |

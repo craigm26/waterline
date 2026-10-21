@@ -28,6 +28,8 @@
 | `plan/ar-anchoring.md` | Terrain-relative AR water placement, scenario offsets at the Ferry Building, pre-filming checks |
 | `scripts/build_assets.py` | Builds charts, terrain clips, ground-truth layers, dry controls, maps, ensemble snapshots |
 | `assets/` | Charts, maps, brand kit, EN/ES alert copy, gallery (`assets/index.html`) |
+| `plan/lidar.md` | USGS point cloud crops, lidar-vs-DEM checks, Folsom curb profile, iPhone LiDAR occlusion plan |
+| `scripts/fetch_lidar.py` | Streams USGS 3DEP point clouds from AWS EPT; Three.js bins, renders, cross-sections |
 | `plan/compound-risk.md` | **Kelvin wave + king tide + surge + rain** stack, thresholds, scenario table, coupling flags |
 | `plan/architecture.md` | Agent pipeline, data contracts, provenance rules |
 | `plan/argon-api-notes.md` | Argon developer-guide facts and the Managed Agents call |
@@ -52,6 +54,7 @@
 - [x] All data staged and verified (tides, thresholds, Kelvin anomaly, Atlas 14, rainfall, 311, SFPUC, DEM index)
 - [x] Replay storm chosen and verified: Dec 31, 2022
 - [x] Demo assets built from live data (Oct 21): 4 charts, 2 maps, terrain clips, ground truth, 10 pre-registered dry controls, GEFS/ECMWF ensemble snapshots, EN/ES alert copy, brand kit. Gallery: `assets/index.html`
+- [x] Lidar (Oct 21): USGS 2023 point clouds for both sites (Three.js-ready), lidar agrees with the DEM within 0.3 ft at 4 checkpoints, Folsom curb/crown profile
 - [ ] WeatherNext request sent (if not already, assume NOAA fallback)
 - [ ] `scripts/smoke_test_argon.py` passes
 - [ ] Event rules checked (pre-built code?)
