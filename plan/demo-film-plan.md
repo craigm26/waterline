@@ -14,10 +14,13 @@
 
 ## Shot list: Ferry Building / Embarcadero (film ON Oct 25)
 
-**Window:** the AR scene exists once the build works, around **4:30–6:00 PM**. **Sunset ≈ 6:15 PM PDT** on Oct 25 (check the morning of). Daylight matters for VPS tracking and readable footage. If the build slips past ~5:45, film whatever works before sunset.
+**Windows on Sun Oct 25:**
+- **10:45–11:20 AM, real high water (no app needed):** predicted high **6.23 ft MLLW at 11:07**. Plus the current ~+1 ft Kelvin-wave residual, the real Bay may reach about **7.2 ft**, at or above the **NWS minor flood threshold (7.04)**. Film the actual water at the seawall and screenshot the live CO-OPS reading. If it crosses, that's your opening shot: "This morning, outside this building, the Bay hit flood stage."
+- **4:30–6:00 PM, AR:** low tide **−0.34 ft at 5:34 PM**, so the real Bay is about 9.5 ft below the plaza and the Christmas Eve plane floats about 7.5 ft above the real water. Use that contrast. **Sunset 6:19 PM**, civil twilight ends 6:46. Anchoring method and numbers: `plan/ar-anchoring.md`.
 
 | # | Shot | Device | Notes |
 |---|---|---|---|
+| F0 | **11:00 AM**: real high water at the seawall + phone screenshot of the live CO-OPS 9414290 reading | Phone | Real footage, no app. Strongest proof the threat is now |
 | F1 | Wide: you walk out of the Ferry Building toward the Embarcadero seawall | Phone 2 / friend | 5 s establishing shot. Clock tower in frame = instantly "San Francisco" |
 | F2 | AR: point at the seawall face, toggle *king tide* → *+ El Niño baseline* → *+ storm* | Phone (screen record) | Water line rises on the seawall; a label shows "2.0 ft below promenade" etc. |
 | F3 | AR: toggle *stress test*: water reaches the plaza grade | Phone | Big "STRESS TEST, not a forecast" label stays visible |

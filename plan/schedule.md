@@ -28,11 +28,13 @@ Updated Wed Oct 21. The Gemma Hardware Hackathon is **Sat Oct 24** (AGI House, H
 | 8:30 | Arrive early. Re-run `stage_data.py --only kelvin_anomaly flood_levels`; update the pitch numbers. Walk the seawall for 5 min and pick the filming spot | Numbers updated |
 | 9:00–9:45 | Check-in, talks. Confirm the **submission deadline, judging format and video rules** | Known |
 | 9:45–10:00 | Argon pre-flight prompt (`argon-prompts.md` §0) | Questions answered |
-| 10:00–12:00 | MCP server (tunnel) + **hydraulics + verifier** (§1, background run). Meanwhile, have Argon build slide 2 | Baseline verify score logged |
+| 10:00–10:45 | MCP server (tunnel); kick off **hydraulics + verifier** (§1) as a background run | Run started |
+| **10:45–11:20** | **Step outside: film F0 (real high water, 11:07 AM, ~7.2 ft vs 7.04 flood threshold)** while Argon works | Footage + gauge screenshot |
+| 11:20–12:00 | Review the verifier loop; have Argon refresh slide 2 with this morning's gauge data | Baseline verify score logged |
 | 12:00–1:30 | Managed-agent fleet wired to MCP; coastal stack; first full replay cycle. **Checkpoint 1:30: end-to-end replay works?** If not, drop live agents and run the pipeline locally, keeping the MCP trace | Replay depth grid + score ≥ target |
 | 1:30–3:30 | Trace view + city-manager dashboard (§2) | Both tabs screenshot-clean |
 | 3:30–4:30 | AR scene (§3) **or** the 3D Tiles fallback. **Checkpoint 4:30: is AR anchoring?** If not, go to the fallback | Something filmable |
-| **4:30–6:00** | **Film outside** (F1–F6). Sunset ≈ 6:15 PM | Raw footage on the laptop |
+| **4:30–6:00** | **Film outside** (F1–F6); low tide 5:34 PM gives the real-water vs Christmas-Eve contrast. Sunset 6:19 PM | Raw footage on the laptop |
 | 6:00–7:00 | Edit the 2-min video (CapCut/iMovie). Run one cached + one live agent cycle | Video exported |
 | 7:00–7:30 | Freeze features. Fill `pitch/submission-template.md`. Submit | Submitted |
 | 7:30–8:30 | Rehearse 3×; reflection prompt (§4) | |

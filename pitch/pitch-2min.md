@@ -38,6 +38,9 @@ About 300 words. **[Brackets]** are actions; quoted text is what you say. The de
 - **Live agent run didn't finish:** "This is the run from 4 PM; agents take minutes per cycle, and we cache every one."
 - **Asked about the 2-ft gap ("so it won't flood?"):** "Still water stays below the promenade in the realistic case. Waves on top of it are what flooded the Embarcadero in June. That's why it's hatched, not hidden."
 
+## Optional opener (if F0 shows the Bay at flood stage at 11 AM)
+"At 11 this morning, right outside this building, San Francisco Bay hit flood stage. It's October." Then go straight into the gauge slide.
+
 ## Fill in on the day
 
 - [ ] Morning residual ("nearly a foot" = Oct mean +0.98 ft as of Oct 21)

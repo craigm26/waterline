@@ -56,9 +56,9 @@ Verify by taking browser screenshots of both tabs and fixing layout issues until
 
 ```
 Build an iOS (Swift, ARCore Geospatial via CocoaPods 'ARCore/Geospatial') screen that:
-- checks VPS availability at the current coordinate, localizes, and anchors a translucent water plane
-  at the P50 elevation from depth_grid.json (convert ft MLLW to the anchor's WGS84 ellipsoid altitude
-  via the geoid; document the conversion and its uncertainty)
+- checks VPS availability, localizes, and places a TERRAIN anchor at a surveyed point P; renders the
+  water plane at offset Δ = (W_ft_MLLW - 0.06) - G_P_ft_NAVD88 relative to that anchor (see
+  plan/ar-anchoring.md); do NOT rely on absolute altitude
 - shows the P10-P90 band, a label "X.X ft below promenade" at the coastal site, and toggles
   tide / +El Niño baseline / +storm / stress test
 - hatches any region whose provenance is assumed, with a tap-to-explain card

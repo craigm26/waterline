@@ -25,6 +25,9 @@
 | `pitch/submission-template.md` | Fill-in-the-blanks submission text |
 | `plan/schedule.md` | Prep checklist to Fri Oct 23 + the hour-by-hour day plan with checkpoints |
 | `plan/demo-film-plan.md` | **Outdoor recorded demo**: two personas, shot lists (Ferry Building + 17th & Folsom), sunset window, gear |
+| `plan/ar-anchoring.md` | Terrain-relative AR water placement, scenario offsets at the Ferry Building, pre-filming checks |
+| `scripts/build_assets.py` | Builds charts, terrain clips, ground-truth layers, dry controls, maps, ensemble snapshots |
+| `assets/` | Charts, maps, brand kit, EN/ES alert copy, gallery (`assets/index.html`) |
 | `plan/compound-risk.md` | **Kelvin wave + king tide + surge + rain** stack, thresholds, scenario table, coupling flags |
 | `plan/architecture.md` | Agent pipeline, data contracts, provenance rules |
 | `plan/argon-api-notes.md` | Argon developer-guide facts and the Managed Agents call |
