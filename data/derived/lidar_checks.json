@@ -1,0 +1,41 @@
+{
+ "seawall_edge": {
+  "ground_p95_ft_navd88": 11.29,
+  "ground_p50_ft_navd88": 11.12,
+  "water_class_points": 24293,
+  "water_surface_at_flight_ft_navd88": -0.23,
+  "note": "class 2 = ground; this survey leaves buildings unclassified (class 1)"
+ },
+ "dem_vs_lidar_coast": {
+  "Ferry Bldg front plaza": {
+   "lidar_ground_ft": 10.4,
+   "dem_ft": 10.1,
+   "n": 7
+  },
+  "Embarcadero at Market": {
+   "lidar_ground_ft": 11.25,
+   "dem_ft": 11.3,
+   "n": 10
+  },
+  "Ferry Plaza bayside": {
+   "lidar_ground_ft": 11.17,
+   "dem_ft": 10.9,
+   "n": 4
+  }
+ },
+ "dem_vs_lidar_rain": {
+  "17th & Folsom": {
+   "lidar_ground_ft": 20.87,
+   "dem_ft": 21.0,
+   "n": 10
+  }
+ },
+ "folsom_xsec": {
+  "crown_ft_navd88": 21.49,
+  "gutter_ft_navd88": 20.57,
+  "sidewalk_ft_navd88": 20.84,
+  "curb_height_in": 3.3,
+  "water_depth_at_gutter_to_top_curb_in": 3.3,
+  "points_used": 2619
+ }
+}

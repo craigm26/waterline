@@ -1,0 +1,28 @@
+{
+ "title": "17th & Folsom",
+ "points": 348548,
+ "stride_bytes": 14,
+ "layout": "float32 x,y,z (m) | uint8 class | uint8 intensity (0-255, p99-scaled)",
+ "origin_utm10n_nad83": [
+  551521.0,
+  4179719.0
+ ],
+ "z": "metres NAVD88 (USGS 3DEP)",
+ "classes": {
+  "1": 276282,
+  "2": 70730,
+  "7": 1530,
+  "18": 6
+ },
+ "asprs_classes": {
+  "1": "unclassified (includes buildings in this survey)",
+  "2": "ground",
+  "6": "building",
+  "9": "water",
+  "17": "bridge deck",
+  "3-5": "vegetation",
+  "7/18": "noise"
+ },
+ "source": "USGS 3DEP CA_SanFrancisco_1_B23 via AWS EPT",
+ "provenance": "official"
+}

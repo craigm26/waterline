@@ -1,0 +1,30 @@
+{
+ "title": "Ferry Building & Embarcadero seawall",
+ "points": 661599,
+ "stride_bytes": 14,
+ "layout": "float32 x,y,z (m) | uint8 class | uint8 intensity (0-255, p99-scaled)",
+ "origin_utm10n_nad83": [
+  553348.0,
+  4183273.0
+ ],
+ "z": "metres NAVD88 (USGS 3DEP)",
+ "classes": {
+  "1": 470591,
+  "2": 93204,
+  "7": 7448,
+  "9": 83386,
+  "18": 6261,
+  "20": 709
+ },
+ "asprs_classes": {
+  "1": "unclassified (includes buildings in this survey)",
+  "2": "ground",
+  "6": "building",
+  "9": "water",
+  "17": "bridge deck",
+  "3-5": "vegetation",
+  "7/18": "noise"
+ },
+ "source": "USGS 3DEP CA_SanFrancisco_1_B23 via AWS EPT",
+ "provenance": "official"
+}
