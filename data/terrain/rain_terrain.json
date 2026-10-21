@@ -1,0 +1,21 @@
+{
+ "site": "17th & Folsom",
+ "crs": "EPSG:26910",
+ "vertical": "NAVD88 meters (\u2248 MLLW - 0.018 m at SF)",
+ "transform": [
+  1.0,
+  0.0,
+  550913.381518778,
+  0.0,
+  -1.0,
+  4180350.5740001905
+ ],
+ "width": 1225,
+ "height": 1228,
+ "res_m": 1.0,
+ "z_min_m": 3.9836771488189697,
+ "z_max_m": 29.21002769470215,
+ "heightmap16": "z = z_min + (v / 65535) * (z_max - z_min)",
+ "source": "USGS 3DEP 1 m CA_SanFrancisco_B23",
+ "provenance": "official"
+}

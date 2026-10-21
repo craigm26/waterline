@@ -1,0 +1,175 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.420006,
+     37.759178
+    ]
+   },
+   "properties": {
+    "id": "D01",
+    "ground_ft_navd88": 52.8,
+    "rule": "outside SFPUC 100-yr zone (+~80 m), >150 m from any 311 report, above bbox median ground",
+    "chosen": "2026-10-21",
+    "seed": 20261025
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.408197,
+     37.767868
+    ]
+   },
+   "properties": {
+    "id": "D02",
+    "ground_ft_navd88": 35.1,
+    "rule": "outside SFPUC 100-yr zone (+~80 m), >150 m from any 311 report, above bbox median ground",
+    "chosen": "2026-10-21",
+    "seed": 20261025
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40949,
+     37.758008
+    ]
+   },
+   "properties": {
+    "id": "D03",
+    "ground_ft_navd88": 37.3,
+    "rule": "outside SFPUC 100-yr zone (+~80 m), >150 m from any 311 report, above bbox median ground",
+    "chosen": "2026-10-21",
+    "seed": 20261025
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.421588,
+     37.768953
+    ]
+   },
+   "properties": {
+    "id": "D04",
+    "ground_ft_navd88": 40.7,
+    "rule": "outside SFPUC 100-yr zone (+~80 m), >150 m from any 311 report, above bbox median ground",
+    "chosen": "2026-10-21",
+    "seed": 20261025
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.411299,
+     37.76326
+    ]
+   },
+   "properties": {
+    "id": "D05",
+    "ground_ft_navd88": 42.2,
+    "rule": "outside SFPUC 100-yr zone (+~80 m), >150 m from any 311 report, above bbox median ground",
+    "chosen": "2026-10-21",
+    "seed": 20261025
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41474,
+     37.758552
+    ]
+   },
+   "properties": {
+    "id": "D06",
+    "ground_ft_navd88": 41.2,
+    "rule": "outside SFPUC 100-yr zone (+~80 m), >150 m from any 311 report, above bbox median ground",
+    "chosen": "2026-10-21",
+    "seed": 20261025
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.418968,
+     37.764297
+    ]
+   },
+   "properties": {
+    "id": "D07",
+    "ground_ft_navd88": 32.9,
+    "rule": "outside SFPUC 100-yr zone (+~80 m), >150 m from any 311 report, above bbox median ground",
+    "chosen": "2026-10-21",
+    "seed": 20261025
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.408081,
+     37.761427
+    ]
+   },
+   "properties": {
+    "id": "D08",
+    "ground_ft_navd88": 48.9,
+    "rule": "outside SFPUC 100-yr zone (+~80 m), >150 m from any 311 report, above bbox median ground",
+    "chosen": "2026-10-21",
+    "seed": 20261025
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.411754,
+     37.767053
+    ]
+   },
+   "properties": {
+    "id": "D09",
+    "ground_ft_navd88": 34.9,
+    "rule": "outside SFPUC 100-yr zone (+~80 m), >150 m from any 311 report, above bbox median ground",
+    "chosen": "2026-10-21",
+    "seed": 20261025
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.421951,
+     37.762397
+    ]
+   },
+   "properties": {
+    "id": "D10",
+    "ground_ft_navd88": 45.6,
+    "rule": "outside SFPUC 100-yr zone (+~80 m), >150 m from any 311 report, above bbox median ground",
+    "chosen": "2026-10-21",
+    "seed": 20261025
+   }
+  }
+ ]
+}

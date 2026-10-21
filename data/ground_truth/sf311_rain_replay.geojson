@@ -1,0 +1,294 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4161099,
+     37.7620395
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T10:31:08.000",
+    "address": "Intersection of 18TH ST and SHOTWELL ST",
+    "kind": "On_street",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4130183,
+     37.7641157
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T11:27:00.000",
+    "address": "Intersection of 17TH ST and HARRISON ST",
+    "kind": "On_street",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4151047,
+     37.7679391
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T12:06:27.000",
+    "address": "1835 FOLSOM ST, SAN FRANCISCO, CA, 94103",
+    "kind": "On_street",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4149153,
+     37.7645136
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T12:14:52.000",
+    "address": "2055 FOLSOM ST, SAN FRANCISCO, CA, 94110",
+    "kind": "On_property",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.412943506863,
+     37.762704757311
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T12:31:23.000",
+    "address": "2170 HARRISON ST, SAN FRANCISCO, CA, 94110",
+    "kind": "On_property",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4142516,
+     37.7684033
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T12:51:00.000",
+    "address": "25 14TH ST, SAN FRANCISCO, CA, 94103",
+    "kind": "On_street",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4150702,
+     37.7683565
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T13:10:00.000",
+    "address": "81 14TH ST, SAN FRANCISCO, CA, 94103",
+    "kind": "On_street",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4126932,
+     37.7606217
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T13:16:00.000",
+    "address": "Intersection of 19TH ST and HARRISON ST",
+    "kind": "On_street",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.416046,
+     37.767107
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T13:19:43.000",
+    "address": "1408 15TH ST, SAN FRANCISCO, CA, 94103",
+    "kind": "On_property",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.412675513859,
+     37.76063478396
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T13:23:00.000",
+    "address": "Intersection of 19TH ST and HARRISON ST",
+    "kind": "On_street",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4167392,
+     37.7684796
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T14:21:38.000",
+    "address": "Intersection of 14TH ST and SHOTWELL ST",
+    "kind": "On_street",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41382,
+     37.763275
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T14:30:58.000",
+    "address": "440 TREAT AVE, SAN FRANCISCO, CA, 94110",
+    "kind": "On_property",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.419716,
+     37.7624605
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T14:32:00.000",
+    "address": "2154 MISSION ST, SAN FRANCISCO, CA, 94110",
+    "kind": "On_property",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.416709263563,
+     37.767010906409
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T16:52:41.000",
+    "address": "1450 15TH ST, SAN FRANCISCO, CA, 94103",
+    "kind": "On_property",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.416799749729,
+     37.766954005885
+    ]
+   },
+   "properties": {
+    "time": "2022-12-31T18:05:30.000",
+    "address": "1450 15TH ST, SAN FRANCISCO, CA, 94103",
+    "kind": "On_property",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.414587371629,
+     37.762683874964
+    ]
+   },
+   "properties": {
+    "time": "2023-01-01T13:51:40.000",
+    "address": "2169 FOLSOM ST, SAN FRANCISCO, CA, 94110",
+    "kind": "On_property",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.419716,
+     37.7624605
+    ]
+   },
+   "properties": {
+    "time": "2023-01-01T18:25:12.000",
+    "address": "2154 MISSION ST, SAN FRANCISCO, CA, 94110",
+    "kind": "On_property",
+    "provenance": "official",
+    "source": "SF 311 vw6y-z8j6, service_subtype=Flooding"
+   }
+  }
+ ]
+}

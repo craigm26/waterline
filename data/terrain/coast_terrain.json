@@ -1,0 +1,21 @@
+{
+ "site": "Ferry Building / Embarcadero",
+ "crs": "EPSG:26910",
+ "vertical": "NAVD88 meters (\u2248 MLLW - 0.018 m at SF)",
+ "transform": [
+  1.0,
+  0.0,
+  552916.1953270514,
+  0.0,
+  -1.0,
+  4183801.347471678
+ ],
+ "width": 962,
+ "height": 1060,
+ "res_m": 1.0,
+ "z_min_m": -2.4253437519073486,
+ "z_max_m": 8.22260856628418,
+ "heightmap16": "z = z_min + (v / 65535) * (z_max - z_min)",
+ "source": "USGS 3DEP 1 m CA_SanFrancisco_B23",
+ "provenance": "official"
+}

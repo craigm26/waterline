@@ -1,0 +1,39 @@
+{
+ "king_tide": {
+  "t": "2026-12-24 10:37",
+  "v": "7.232",
+  "type": "H"
+ },
+ "baseline_ft": 0.98,
+ "storm_typ_ft": 2.0,
+ "stress_ft": 3.07,
+ "plaza_ft_mllw": 10.16,
+ "scenarios": [
+  [
+   "King tide alone",
+   7.23,
+   "official"
+  ],
+  [
+   "+ El Ni\u00f1o baseline (today's gauge)",
+   8.21,
+   "official"
+  ],
+  [
+   "+ big storm (+2.0 ft surge)",
+   9.23,
+   "assumed"
+  ],
+  [
+   "Stress test (Feb 1998 peak)",
+   10.3,
+   "assumed"
+  ]
+ ],
+ "thresholds": {
+  "nos_minor": 7.71,
+  "nos_moderate": 8.64,
+  "nos_major": 9.91,
+  "nws_minor": 7.04
+ }
+}
