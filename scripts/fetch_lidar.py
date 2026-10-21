@@ -153,7 +153,7 @@ def export_bin(name, las, cfg):
     json.dump({"title": cfg["title"], "points": int(len(e)), "stride_bytes": 14,
                "layout": "float32 x,y,z (m) | uint8 class | uint8 intensity (0-255, p99-scaled)",
                "origin_utm10n_nad83": o, "z": "metres NAVD88 (USGS 3DEP)", "classes": classes,
-               "asprs_classes": {"1": "unclassified", "2": "ground", "6": "building", "9": "water",
+               "asprs_classes": {"1": "unclassified (includes buildings in this survey)", "2": "ground", "6": "building", "9": "water",
                                  "17": "bridge deck", "3-5": "vegetation", "7/18": "noise"},
                "source": "USGS 3DEP CA_SanFrancisco_1_B23 via AWS EPT", "provenance": "official"},
               open(ROOT / "data" / "lidar" / f"{name}.json", "w"), indent=1)
@@ -217,7 +217,7 @@ def xsec(name, las, cfg, axis="ew", band_m=1.0):
     from pyproj import Transformer
     ce, cn = Transformer.from_crs("EPSG:4326", "EPSG:26910", always_xy=True).transform(*cfg["center"])
     along, across = (e - ce, n - cn) if axis == "ew" else (n - cn, e - ce)
-    m = (np.abs(across) <= band_m) & np.isin(c, [1, 2]) & (np.abs(along) <= cfg["half_m"])
+    m = (np.abs(across) <= band_m) & (c == 2) & (np.abs(along) <= cfg["half_m"])
     a, zz = along[m], z[m] * M_TO_FT
     bins = np.arange(-cfg["half_m"], cfg["half_m"] + 0.25, 0.25)
     idx = np.digitize(a, bins)
@@ -250,7 +250,7 @@ def xsec(name, las, cfg, axis="ew", band_m=1.0):
     fig.text(0.07, 0.86, f"Curb height ≈ {res['curb_height_in']} in. Water in the gutter deeper than that "
              f"reaches sidewalks and doorways.  Crown {crown:.1f} ft · gutter {gutter:.1f} ft · sidewalk {sidewalk:.1f} ft NAVD88",
              fontsize=14, color="#1f2933")
-    fig.text(0.07, 0.03, "USGS 3DEP lidar CA_SanFrancisco_1_B23 (2023), classes ground + unclassified. "
+    fig.text(0.07, 0.03, "USGS 3DEP lidar CA_SanFrancisco_1_B23 (2023), ground class only. "
              "Measured, not modeled.", fontsize=11, color="#7b8794")
     p = ROOT / "assets" / "lidar" / f"{name}.png"
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -313,10 +313,13 @@ def main():
             checks["folsom_xsec"] = xsec(name, las, cfg, axis="ew")
         elif name == "coast_edge":
             e, n, z, c, _ = to_local(las)
-            gz = z[np.isin(c, [1, 2])] * M_TO_FT
+            gz = z[c == 2] * M_TO_FT
+            wz = z[c == 9] * M_TO_FT
             checks["seawall_edge"] = {"ground_p95_ft_navd88": round(float(np.percentile(gz, 95)), 2),
                                       "ground_p50_ft_navd88": round(float(np.percentile(gz, 50)), 2),
-                                      "water_class_points": int((c == 9).sum())}
+                                      "water_class_points": int((c == 9).sum()),
+                                      "water_surface_at_flight_ft_navd88": round(float(np.median(wz)), 2) if len(wz) else None,
+                                      "note": "class 2 = ground; this survey leaves buildings unclassified (class 1)"}
             print(f"  seawall edge: {checks['seawall_edge']}")
     p = ROOT / "data" / "derived" / "lidar_checks.json"
     p.parent.mkdir(parents=True, exist_ok=True)
