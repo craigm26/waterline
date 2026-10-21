@@ -1,37 +1,41 @@
 # Schedule
 
-## Prep: Oct 17–24
+Updated Wed Oct 21. The Gemma Hardware Hackathon is **Sat Oct 24** (AGI House, Hillsborough), so treat Oct 24 as lost. **Hard deadline for prep: Fri Oct 23.**
 
-The Gemma Hardware Hackathon is **Oct 24** (Hillsborough). Assume Oct 24 is lost, so everything below must be done by **Thu Oct 22**.
+## Prep
 
-| # | Task | By | Done |
+| # | Task | By | Status |
 |---|---|---|---|
-| P1 | Request WeatherNext access (Earth Engine / Google Cloud). Access may need approval. | Sat Oct 17 | [ ] |
-| P2 | Confirm Argon API keys or credits are provided at the event; otherwise check access on your own account | Sat Oct 17 | [ ] |
-| P3 | Read the event rules: what may be built in advance (data staging is usually fine; code usually isn't) | Sun Oct 18 | [ ] |
-| P4 | Run `scripts/stage_data.py` (tides, Atlas 14, lidar index) and download the DEM tiles | Sun Oct 18 | [ ] |
-| P5 | **Pick the replay storm.** Candidates: Dec 31, 2022 (record SF rain, widely reported flooding) and Dec 11, 2014. Confirm *documented flooding at 17th & Folsom* (311, news photos, SFPUC). | Mon Oct 19 | [ ] |
-| P6 | Pull hourly observed rainfall for the replay storm (SF downtown gauge) | Mon Oct 19 | [ ] |
-| P7 | Find SF sewer/inlet data, or the SFPUC 100-year storm flood risk map, as a validation layer | Tue Oct 20 | [ ] |
-| P8 | ARCore Geospatial: get a hello-world anchor working on your phone (API key, VPS coverage at the site) | Tue Oct 20 | [ ] |
-| P9 | **Go to 17th & Folsom**, test VPS localization, and record backup AR footage (needs P8) | Wed Oct 21 | [ ] |
-| P10 | Rehearse the 2-minute pitch out loud twice, timed | Thu Oct 22 | [ ] |
-| P2b | Make one test `gemini-4-argon` call and one Managed Agents call with your own key (see `plan/argon-api-notes.md` checklist) | Tue Oct 20 | [ ] |
-| P7b | Sketch the MCP tool list and its JSON schemas (the code gets written on the day) | Thu Oct 22 | [ ] |
-| P11 | Pack: phone + cable/adapter for screen mirroring, charger, backup video on laptop *and* phone | Thu Oct 22 | [ ] |
+| P1 | **WeatherNext access.** It's now WeatherNext 3; Google says approval typically takes **5–7 business days**. If the form wasn't sent on Oct 17, it **won't arrive in time**: plan on NOAA (NBM/GFS) and say "WeatherNext slots in here" | Today | [ ] Sent? date: ____ |
+| P2 | Argon access: paid Gemini API tier or AI Ultra. Confirm whether the event provides credits | Today | [ ] |
+| P2b | Run `scripts/smoke_test_argon.py` (one Argon call + one managed-agent call). Note the latency | **Today** | [ ] |
+| P3 | Find the event rules (check the event page / ask the organizers): can an AR prototype or MCP server be pre-built? Default assumption: **no**, only data + specs | Thu Oct 22 | [ ] |
+| P4 | `python scripts/stage_data.py --download-dem` on the laptop you'll bring (all 12 steps verified Oct 21) | Thu Oct 22 | [ ] |
+| P5 | ~~Pick the replay storm~~ **Done:** Dec 31, 2022 (5.46 in downtown; 17 311 flooding reports within 600 m; 17th & Folsom is inside the SFPUC 100-yr zone) | — | [x] |
+| P6 | ~~Observed rainfall~~ **Done:** daily GHCN-D + SFO hourly shape staged | — | [x] |
+| P7 | ~~Validation layer~~ **Done:** SFPUC 100-yr zone + Dec 2024 flood elevations staged (SFCD → NAVD88 +11.35 ft) | — | [x] |
+| P7b | Pick and commit the 10 R2 dry-control points (`plan/verification-harness.md`) | Thu Oct 22 | [ ] |
+| P8 | Decide AR approach: native iOS ARCore Geospatial vs 3D Tiles on the laptop (see `plan/argon-prompts.md` §3). Create the Google Cloud project + enable the ARCore API and Maps (3D Tiles) keys | Thu Oct 22 | [ ] |
+| P9 | **Film 17th & Folsom B-roll** (shots M1–M4 in `plan/demo-film-plan.md`) | Thu Oct 22 | [ ] |
+| P10 | Test a tunnel (cloudflared/ngrok) for the MCP server from home | Fri Oct 23 | [ ] |
+| P11 | Rehearse the pitch twice, timed (with placeholder numbers) | Fri Oct 23 | [ ] |
+| P12 | Pack (gear list in `plan/demo-film-plan.md`); charge everything | Fri Oct 23 | [ ] |
 
-## Day of: Sun Oct 25 (9:00 AM – 10:00 PM)
+## Day of: Sun Oct 25, SHACK15 (1 Ferry Plaza), 9:00 AM – 10:00 PM
 
-| Time | Block |
-|---|---|
-| 9:00–9:45 | Check-in, talks, confirm submission deadline and judging format |
-| 9:45–11:30 | **Argon one-shot:** generate the hydraulics module and trace view from `plan/architecture.md`. Get one depth grid end-to-end in replay mode |
-| 11:30–1:30 | Stand up managed agents (forecast → terrain → drainage → hydraulics → coordinator) on the replay storm |
-| 1:30–2:00 | Lunch; **checkpoint: is the end-to-end replay working?** If not, cut AR and polish the trace view |
-| 2:00–4:30 | Wire the live forecast (WeatherNext if access arrived; otherwise any public QPF) and the provenance hatching |
-| 4:30–6:30 | AR: load the depth grid into the geospatial anchor scene; use the backup video if VPS won't work indoors |
-| 6:30–7:30 | Freeze features. Record the demo video. Write the README and submission |
-| 7:30–8:30 | Rehearse the pitch 3×; fill in the real numbers |
-| 8:30+ | Judging |
+| Time | Block | Done when |
+|---|---|---|
+| 8:30 | Arrive early. Re-run `stage_data.py --only kelvin_anomaly flood_levels`; update the pitch numbers. Walk the seawall for 5 min and pick the filming spot | Numbers updated |
+| 9:00–9:45 | Check-in, talks. Confirm the **submission deadline, judging format and video rules** | Known |
+| 9:45–10:00 | Argon pre-flight prompt (`argon-prompts.md` §0) | Questions answered |
+| 10:00–12:00 | MCP server (tunnel) + **hydraulics + verifier** (§1, background run). Meanwhile, have Argon build slide 2 | Baseline verify score logged |
+| 12:00–1:30 | Managed-agent fleet wired to MCP; coastal stack; first full replay cycle. **Checkpoint 1:30: end-to-end replay works?** If not, drop live agents and run the pipeline locally, keeping the MCP trace | Replay depth grid + score ≥ target |
+| 1:30–3:30 | Trace view + city-manager dashboard (§2) | Both tabs screenshot-clean |
+| 3:30–4:30 | AR scene (§3) **or** the 3D Tiles fallback. **Checkpoint 4:30: is AR anchoring?** If not, go to the fallback | Something filmable |
+| **4:30–6:00** | **Film outside** (F1–F6). Sunset ≈ 6:15 PM | Raw footage on the laptop |
+| 6:00–7:00 | Edit the 2-min video (CapCut/iMovie). Run one cached + one live agent cycle | Video exported |
+| 7:00–7:30 | Freeze features. Fill `pitch/submission-template.md`. Submit | Submitted |
+| 7:30–8:30 | Rehearse 3×; reflection prompt (§4) | |
+| 8:30+ | Judging | |
 
-**Cut order if behind:** live forecast (stay on replay) → AR (use video) → the coordinator's disagreement flags. **Never cut:** the provenance hatching and the replay-vs-reality comparison. Those are what make it credible.
+**Cut order if behind:** live forecast (stay on replay) → native AR (use 3D Tiles fallback) → Spanish alert → coordinator disagreement flags. **Never cut:** provenance hatching, the replay vs 311 proof, the Kelvin-wave gauge slide, the outdoor footage.

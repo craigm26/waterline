@@ -1,50 +1,45 @@
 # Stage pitch
 
-About 300 words at a steady pace. **[Brackets]** are actions; quoted text is what you say.
+About 300 words. **[Brackets]** are actions; quoted text is what you say. The demo segment plays the **recorded outdoor video** (`plan/demo-film-plan.md`). Narrate over it live; don't let the video's audio carry the pitch.
+
+**Morning-of:** re-run `python scripts/stage_data.py --only kelvin_anomaly flood_levels` and update the **[bracketed numbers]**.
 
 ## 2-minute version
 
-**0:00–0:15 — Hook** *[Title slide: NOAA ENSO plume]*
-"Eight days ago NOAA put the odds at seventy percent that this winter's El Niño will be the strongest since record-keeping began in 1950. The last two big ones, 1983 and 1998, put California underwater. This one is already here."
+**0:00–0:15 — Hook** *[Slide: SF tide gauge, observed vs predicted, October 2026]*
+"This is San Francisco's tide gauge, a few miles up the shoreline at the Golden Gate. All October it's run **[nearly a foot]** above prediction. That's the Kelvin wave from this El Niño, which NOAA says could be the strongest since 1950. On October 11 it crossed the flood threshold, and king-tide season hasn't started."
 
-> Adjust "eight days ago" to the actual gap from NOAA's latest ENSO update (the Oct 8 update is 17 days before the event; the November update lands Nov 12). Safer wording: "This month NOAA put the odds..."
+**0:15–0:30 — Problem**
+"Forecasts tell a county it's getting three inches of rain or a high tide. They don't tell a resident whether water reaches their door, or a city manager which block to send crews to and when. People act at street level."
 
-**0:15–0:35 — Problem**
-"Forecasts today tell you a county is getting three inches of rain. They don't tell you whether there'll be water over your front step at 17th and Folsom on Thursday night. Nobody acts on 'the region.' People act on 'my street.'"
+**0:30–1:00 — Resident** *[Video: walking out of the Ferry Building, AR on the seawall]*
+"This is Waterline, filmed right outside this building this afternoon. Christmas Eve king tide: here. Add today's El Niño baseline: here, about two feet below the promenade. Add a 1998-size storm and it's at the edge." *[Tap hatch]* "Hatched means estimated: wave overtopping isn't modeled, and the app says so."
 
-**0:35–1:15 — Demo** *[Phone mirrored to screen, or the on-site video]*
-"This is Waterline. I'm pointing my phone down Folsom Street." *[Water plane appears]*
-"That's the forecast water surface for the next atmospheric river, placed at the right height against the real buildings. Google's Geospatial API anchors it."
-*[Toggle: king tide]* "Add a December king tide and it gets worse here." *[Toggle: storm + tide]* "Here's both at once, which is the scenario El Niño makes likely."
-*[Tap a hatched area]* "Hatched means estimated. We didn't have the pipe invert here, so the app says so. Solid means official data."
+**1:00–1:30 — City manager** *[Trace view + dashboard]*
+"Same scenario, city side. A fleet of Gemini managed agents, one per site, re-runs every forecast cycle: rain, tides, terrain, sewer capacity, all through one MCP server where every number carries its source. The coordinator turns it into a timeline against NOAA's flood thresholds and drafts the ops brief and the public alert, in English and Spanish."
 
-> Note: 17th & Folsom floods from rainfall and combined-sewer capacity, not tides. If the tide toggle doesn't move the water there, demo the tide toggle at Islais Creek or Mission Creek instead, and say "here's where the tide matters."
+**1:30–1:50 — Proof** *[Replay: 17th & Folsom, model vs 311 dots]*
+"Inland, in the Mission, we replayed New Year's Eve 2022, 5.46 inches. We didn't tell Argon how to model the flood. We gave it that storm and the 17 flooding reports from that night, and it rewrote its model until it agreed. Score went from **[0.4x]** to **[0.7x]**. The city's tunnel for this neighborhood isn't finished until 2030. This El Niño arrives first."
 
-**1:15–1:40 — How it works** *[Watch Desk trace view]*
-"Behind that is a fleet of Gemini managed agents, one per watershed, re-running every forecast cycle. Each one pulls WeatherNext ensembles, atmospheric-river forecasts, river gauges and tides, and keeps a living situation report. When the forecasts disagree, a coordinator agent flags it. 'The models disagree' is information too."
-
-**1:40–1:55 — What's new this week**
-"Argon is what made this possible this week. We didn't tell it how to model the flood. We gave it a real storm and what actually flooded, and it wrote and rewrote the street-scale model, more than [N] thousand lines in one run, until its predictions matched reality. Pick any city block in California and we can do the same."
-
-**1:55–2:00 — Close**
-"Strong El Niño, this winter, at street level. That's Waterline."
+**1:50–2:00 — Close**
+"A Kelvin wave already raising the Bay, a strong El Niño behind it, and a street-level answer for both the people who live there and the people who respond. That's Waterline."
 
 ---
 
 ## 60-second version
 
-"NOAA says this winter's El Niño has a seventy percent chance of being the strongest on record. Forecasts stop at the county line; people act at their street. *[Phone]* This is Waterline: the forecast water surface for the next storm at 17th and Folsom, anchored to the real buildings. Hatched means estimated, solid means official. *[Trace view]* Behind it, Gemini 4 Argon managed agents turn WeatherNext rainfall, lidar terrain and sewer capacity into a depth for each block, and flag when the forecasts disagree. *[Replay]* Here's the same pipeline replaying a real past storm, next to what actually flooded. Strong El Niño, this winter, at street level. That's Waterline."
+"The San Francisco tide gauge has run nearly a foot above prediction all October. That's this El Niño's Kelvin wave, and it already crossed the flood threshold on October 11. *[Video]* This is Waterline, filmed outside this building: the Christmas Eve king tide plus today's El Niño baseline, two feet below the promenade, hatched where we're estimating. *[Dashboard]* For the city: Gemini managed agents turn rain, tides, terrain and sewer capacity into a block-by-block timeline against NOAA's thresholds and draft the alert. *[Replay]* We proved it on New Year's Eve 2022: Argon rewrote its model until it matched 17 real flooding reports. Strong El Niño, street level, this winter. That's Waterline."
 
 ---
 
 ## Fallback lines
 
-- **AR won't anchor indoors (expected):** "Recorded at 17th & Folsom this morning." Play the video. Don't fight live AR on stage.
-- **No storm in the forecast:** run the Watch Desk in replay mode and keep the "REPLAY" label visible on screen.
-- **Argon latency during the demo:** show cached agent runs from earlier in the day, and say they're cached.
+- **Video won't play:** "Here's the same scenario in 3D," then fly the trace view to the Ferry Building.
+- **Live agent run didn't finish:** "This is the run from 4 PM; agents take minutes per cycle, and we cache every one."
+- **Asked about the 2-ft gap ("so it won't flood?"):** "Still water stays below the promenade in the realistic case. Waves on top of it are what flooded the Embarcadero in June. That's why it's hatched, not hidden."
 
 ## Fill in on the day
 
-- [ ] The real line count Argon produced (or drop the sentence)
-- [ ] The next forecast storm date, if there is one
-- [ ] The replay storm's name and date
+- [ ] Morning residual ("nearly a foot" = Oct mean +0.98 ft as of Oct 21)
+- [ ] Verify score baseline → final
+- [ ] Argon line count / tokens (if you mention them)

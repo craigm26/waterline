@@ -1,40 +1,62 @@
 # Waterline: prep package
 
-**Event:** Gemini 4 Argon hackathon, Google DeepMind, San Francisco
+**Event:** Gemini 4 Argon hackathon, Google DeepMind · **SHACK15, 1 Ferry Plaza (Ferry Building), San Francisco**
 **When:** Sun Oct 25, 2026, 9:00 AM – 10:00 PM PDT
-**Prizes:** $7.5K / $5K / $2.5K, plus **$5K Best use of Managed Agents** (we're targeting both a placing prize and the Managed Agents prize)
+**Prizes:** $7.5K / $5K / $2.5K, plus **$5K Best use of Managed Agents** (we're targeting a placing prize and the Managed Agents prize)
 
-> NOAA (Oct 8, 2026): El Niño Advisory, with a strong-to-very-strong event likely through Jan–Mar 2027. NOAA puts the chance that it beats every El Niño since 1950 at 70–83%.
-> Waterline is a fleet of Gemini 4 Argon managed agents. It turns Google WeatherNext forecasts, tides and 1 m lidar into flood depths for a single city block, and shows them as a water line on your street through your phone's camera.
+> Waterline is street-level flood screening for this winter's strong El Niño. A fleet of Gemini 4 Argon managed agents stacks rain, tides, the El Niño **Kelvin-wave** baseline, storm surge, terrain and sewer capacity into a depth for each block. Residents see it as a water line through their phone's camera; city managers get a block-by-block timeline against NOAA's flood thresholds with a drafted alert.
+
+## The numbers that carry the pitch (pulled Oct 21, 2026)
+
+- NOAA: El Niño Advisory; strong-to-very-strong likely through Jan–Mar 2027; 70–83% chance it's the strongest since 1950.
+- **SF tide gauge, Oct 1–21, 2026: +0.98 ft above prediction on average** (Oct 2025: +0.26). That's the Kelvin wave, already here. **Oct 11: 7.57 ft MLLW, above the NWS minor flood threshold (7.04).**
+- **Christmas Eve king tide: 7.23 ft MLLW** predicted. Plus today's baseline: **8.2 ft** (NOS minor). Plus a big storm: **9.2 ft** (moderate). Ferry Building plaza grade: **≈ 10.1 ft**.
+- **Dec 31, 2022 replay:** 5.46 in at SF Downtown (Atlas 14 100-yr 24-hr = 5.55 in); **17 SF 311 flooding reports within 600 m of 17th & Folsom**, 614 citywide; 17th & Folsom is inside the SFPUC 100-year flood zone.
+- The SFPUC fix for 17th & Folsom (tunnel + box sewers) runs **through 2030**. This El Niño arrives first.
 
 ## What's in here
 
 | Path | What |
 |---|---|
-| `pitch/application-answers.md` | Paste-ready application answers (2-sentence pitch, demo plan, proudest project) |
-| `pitch/pitch-2min.md` | 2-minute stage script, 60-second cut, fallback lines |
+| `pitch/application-answers.md` | Paste-ready application answers |
+| `pitch/pitch-2min.md` | 2-min and 60-s stage scripts (resident + city-manager), fallback lines |
 | `pitch/judge-qa.md` | Likely judge questions with 10-second answers |
-| `plan/argon-api-notes.md` | Argon developer-guide facts, the Managed Agents call, and what they change in the build |
+| `pitch/slides-outline.md` | 5 slides + backup |
+| `pitch/submission-template.md` | Fill-in-the-blanks submission text |
+| `plan/schedule.md` | Prep checklist to Fri Oct 23 + the hour-by-hour day plan with checkpoints |
+| `plan/demo-film-plan.md` | **Outdoor recorded demo**: two personas, shot lists (Ferry Building + 17th & Folsom), sunset window, gear |
+| `plan/compound-risk.md` | **Kelvin wave + king tide + surge + rain** stack, thresholds, scenario table, coupling flags |
 | `plan/architecture.md` | Agent pipeline, data contracts, provenance rules |
-| `plan/schedule.md` | Prep checklist for Oct 17–24, plus an hour-by-hour plan for Oct 25 |
+| `plan/argon-api-notes.md` | Argon developer-guide facts and the Managed Agents call |
+| `plan/mcp-tools.md` | MCP data-server tool contracts |
+| `plan/verification-harness.md` | Argon's pass/fail target: 311 replay + blind SFPUC check |
+| `plan/argon-prompts.md` | Paste-ready prompts for the day |
 | `plan/risks-and-fallbacks.md` | What breaks, and what we do when it does |
-| `data/DATA_SOURCES.md` | Every data source: endpoint, access steps, provenance class |
-| `scripts/stage_data.py` | Pre-stages tide, Atlas 14 and lidar-index data for the demo site |
+| `data/DATA_SOURCES.md` | Every source: endpoint, access, provenance class, findings |
+| `scripts/stage_data.py` | Stages all data for both sites (12 steps; all verified live Oct 21) |
+| `scripts/smoke_test_argon.py` | Pre-event check: one Argon call + one managed-agent call |
 
-## Demo site
+## Demo sites
 
-**17th & Folsom, Mission District, SF** (approx. 37.7634, -122.4150; confirm on the ground). This is a well-known flooding hotspot in a combined-sewer area. Backup sites for the sea-level-rise angle are Islais Creek and Mission Creek.
+| Site | Hazard | Role in the demo |
+|---|---|---|
+| **Ferry Building / Embarcadero** (outside the venue) | Coastal: king tide + Kelvin-wave baseline + storm surge | Resident AR cut, **filmed on the day** |
+| **17th & Folsom, Mission** | Rain + combined-sewer capacity (ground at 21 ft, so not tidal) | Replay proof (Dec 31, 2022 vs 311) and city-manager cut |
 
 ## Status
 
-- [x] Concept, pitch and application answers
-- [ ] Data access requests sent (WeatherNext / Earth Engine, Argon keys)
-- [x] Staging script verified against live NOAA/USGS endpoints (Oct 17); run it on your machine to keep a local copy
-- [ ] Replay storm chosen and verified (see `plan/schedule.md`)
-- [ ] On-site AR footage recorded at 17th & Folsom (backup video)
+- [x] Concept, pitch, application answers, two-persona demo plan
+- [x] All data staged and verified (tides, thresholds, Kelvin anomaly, Atlas 14, rainfall, 311, SFPUC, DEM index)
+- [x] Replay storm chosen and verified: Dec 31, 2022
+- [ ] WeatherNext request sent (if not already, assume NOAA fallback)
+- [ ] `scripts/smoke_test_argon.py` passes
+- [ ] Event rules checked (pre-built code?)
+- [ ] 17th & Folsom B-roll filmed
+- [ ] Pitch rehearsed
 
-## Ground rules for ourselves
+## Ground rules
 
-1. Every number on screen links to its source. Official data is drawn **solid**; anything interpolated or assumed is **hatched**.
-2. This is a screening model, not HEC-RAS, and the app says so on screen.
-3. No generated imagery of flooding that isn't constrained by the computed depth grid.
+1. Every number on screen links to its source. **Solid** = official, **outlined** = derived, **hatched** = assumed.
+2. Screening model, not HEC-RAS, and the app says so on screen.
+3. No generated flood imagery; the water surface comes only from the computed depth grid.
+4. A stress test is labeled as a stress test. The realistic case is shown even when it's less dramatic.

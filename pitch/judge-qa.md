@@ -9,6 +9,18 @@
 **What does Argon do that last week's models couldn't?**
 "It writes the whole per-neighborhood model, including terrain handling, drainage approximation and the scene code, in one long run. Its 1M-token output makes 'generate the model for this block' a single step."
 
+**What's a Kelvin wave, and how do you know it's here?**
+"A pulse of raised sea level that El Niño sends along the equator and then up our coast. We don't infer it; we measure it. The SF gauge has run about a foot above prediction this October versus a quarter-foot last October. The attribution comes from oceanographers at NC State and NASA JPL, and we label it derived."
+
+**So will the Ferry Building actually flood?**
+"In the realistic Christmas-Eve case, still water sits about two feet below the promenade. Flooding there comes from waves overtopping and drains backing up, which we flag rather than model. In a 1998-size storm on the king tide, it's at the edge. We show that as a labeled stress test, not a forecast."
+
+**Did you use WeatherNext?**
+Answer truthfully on the day. If not approved: "WeatherNext access takes about a week. The forecast tool has a WeatherNext slot and the run log shows NOAA as the source today."
+
+**Why do the coast and the Mission need different models?**
+"Different physics. 17th & Folsom is 21 feet up, so it's rain and sewer capacity. The Embarcadero is about 10 feet, so it's tide plus Kelvin-wave plus surge. One pipeline, two hazard stacks, and the coordinator flags when they coincide, because a king tide can slow sewer outfalls."
+
 **Why not just use Flood Hub?**
 "Flood Hub tells you a flood is coming to the area. We tell you the depth at your front step, and you see it through your camera. We use Flood Hub as a check, not a replacement."
 
