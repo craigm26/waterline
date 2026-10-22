@@ -39,6 +39,7 @@ def citywide():
     rgb[:] = land; rgb[wm] = (10, 16, 22)
     (ROOT / "demo/img").mkdir(parents=True, exist_ok=True)
     Image.fromarray(rgb).save(ROOT / "demo/img/sf_basemap.png", optimize=True)
+    Image.fromarray(rgb).save(ROOT / "assets/maps/sf_basemap.png", optimize=True)
     H, W = hs.shape
     tr = Transformer.from_crs("EPSG:4326", crs, always_xy=True); inv = ~T
     def px(lon, lat):
@@ -63,7 +64,27 @@ def citywide():
             "drains": drains, "hotspots": hot, "flood311": f311, "summary": rj(C / "summary.json")}
 
 
+def copy_only():
+    """Low-memory path: reuse the committed demo/story-data.json; just copy images + lidar into demo/."""
+    import shutil, base64
+    for k, _ in HOTSPOT_SCENES + [("coast_scene", ""), ("coast_scene_lite", "")]:
+        (ROOT / "demo/lidar").mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / f"data/lidar/{k}.bin", ROOT / f"demo/lidar/{k}.bin")
+    shutil.copytree(ROOT / "assets/nye311", ROOT / "demo/img/nye311", dirs_exist_ok=True)
+    for a in ["charts/replay_rain.png", "charts/kelvin_gauge.png", "maps/rain_ground_truth.png", "maps/drain_priority.png",
+              "lidar/rain_xsec.png", "lidar/coast_scene.png", "brand/logo.svg", "maps/sf_basemap.png"]:
+        shutil.copyfile(ROOT / "assets" / a, ROOT / "demo/img" / pathlib_name(a))
+    print("copied assets into demo/ (story-data.json unchanged)")
+
+
+def pathlib_name(a):
+    return a.split("/")[-1]
+
+
 def main():
+    import sys
+    if "--copy-only" in sys.argv:
+        return copy_only()
     k = rj(D / "kelvin_gauge_series.json")
     c = rj(D / "coastal_stack.json")
     t = rj(D / "christmas_tide.json")
