@@ -97,7 +97,21 @@ def d8_accumulation(f):
         j = tf[i]
         if j >= 0:
             acc[j] += acc[i]
-    return acc.reshape(h, w) * RES * RES   # m² contributing area
+    return acc.reshape(h, w) * RES * RES, order, tf   # m² contributing area
+
+
+def captured_area(order, tf, sinks, shape):
+    """Each inlet cell captures what reaches it and passes nothing downstream (inlet intercepts flow)."""
+    acc = np.ones(shape[0] * shape[1])
+    cap = {}
+    for i in order:
+        if i in sinks:
+            cap[i] = cap.get(i, 0) + acc[i]
+            continue
+        j = tf[i]
+        if j >= 0:
+            acc[j] += acc[i]
+    return {k: v * RES * RES for k, v in cap.items()}
 
 
 def main():
@@ -107,7 +121,7 @@ def main():
     from pyproj import Transformer
     z, t, crs = load_dem()
     print(f"DEM {z.shape[1]}x{z.shape[0]} at {RES} m; filling + D8 ...")
-    acc = d8_accumulation(priority_flood(z))
+    acc, order, tf = d8_accumulation(priority_flood(z))
     inlets = getj("https://data.sf.gov/resource/jtgq-b7c5.json",
                   {"$where": f"within_box(location,{BBOX[3]},{BBOX[0]},{BBOX[1]},{BBOX[2]})", "$limit": "5000"})
     print(f"{len(inlets)} inlets in bbox")
@@ -125,15 +139,26 @@ def main():
         if not (snap <= r < z.shape[0] - snap and snap <= c < z.shape[1] - snap):
             continue
         win = acc[r - snap:r + snap + 1, c - snap:c + snap + 1]
+        k = int(np.argmax(win)); rr, cc = r - snap + k // win.shape[1], c - snap + k % win.shape[1]
         area = float(win.max())
+        cell = rr * z.shape[1] + cc
         near311 = sum(1 for (lo, la) in nye if math.hypot((lo - lon) * 88000, (la - lat) * 111000) <= 60)
         feats.append({"type": "Feature", "geometry": {"type": "Point", "coordinates": [lon, lat]},
                       "properties": {"asset_id": d.get("puc_maximo_asset_id"), "drain_type": d.get("drain_type"),
                                      "system_use": d.get("system_use"), "contrib_area_m2": round(area),
                                      "nye2022_311_within_60m": near311,
-                                     "provenance": "derived",
+                                     "_cell": cell, "provenance": "derived",
                                      "source": "SFPUC inlets jtgq-b7c5 (official) + USGS 3DEP 1 m D8 contributing area (derived)"}})
-    feats.sort(key=lambda f: -f["properties"]["contrib_area_m2"])
+    cap = captured_area(order, tf, {f["properties"]["_cell"] for f in feats}, z.shape)
+    shared = {}
+    for f in feats:
+        shared.setdefault(f["properties"]["_cell"], []).append(f)
+    for cell, fs in shared.items():   # inlets snapped to the same cell split its catch
+        for f in fs:
+            f["properties"]["captured_area_m2"] = round(cap.get(cell, 0) / len(fs))
+            f["properties"]["upstream_area_m2"] = f["properties"].pop("contrib_area_m2")
+            f["properties"].pop("_cell")
+    feats.sort(key=lambda f: -f["properties"]["captured_area_m2"])
     for i, f in enumerate(feats):
         f["properties"]["rank"] = i + 1
     out = ROOT / "data" / "derived" / "drain_priority.geojson"
@@ -150,17 +175,18 @@ def main():
     for k, f in enumerate(walk, 1):
         lon, lat = f["geometry"]["coordinates"]; p = f["properties"]
         rows.append({"stop": k, "rank": p["rank"], "asset_id": p["asset_id"], "lat": round(lat, 6), "lon": round(lon, 6),
-                     "contrib_area_m2": p["contrib_area_m2"], "nye2022_311_within_60m": p["nye2022_311_within_60m"],
+                     "captured_area_m2": p["captured_area_m2"], "upstream_area_m2": p["upstream_area_m2"], "nye2022_311_within_60m": p["nye2022_311_within_60m"],
                      "map": f"https://www.google.com/maps/search/?api=1&query={lat:.6f},{lon:.6f}"})
-    with open(ROOT / "data" / "derived" / "drain_walk.csv", "w", newline="") as fh:
+    with open(ROOT / "data" / "derived" / "drain_walk.csv", "w", newline="", encoding="utf-8") as fh:
         wr = csv.DictWriter(fh, fieldnames=list(rows[0])); wr.writeheader(); wr.writerows(rows)
     md = ["# Drain walk: photograph each grate (top, straight down, plus one wide shot)", "",
-          "Ranked by upstream contributing area on the lidar terrain. Walk order starts at 17th & Folsom.", "",
-          "| Stop | Rank | Asset | Contributing area | 311 NYE-22 within 60 m | Map |", "|---|---|---|---|---|---|"]
-    md += [f"| {r['stop']} | {r['rank']} | {r['asset_id']} | {r['contrib_area_m2']:,} m² | {r['nye2022_311_within_60m']} | "
+          "Ranked by the surface area that drains straight to each grate on the lidar terrain (each inlet",
+          "intercepts what reaches it). Walk order starts at 17th & Folsom.", "",
+          "| Stop | Rank | Asset | Drains to it | 311 NYE-22 within 60 m | Map |", "|---|---|---|---|---|---|"]
+    md += [f"| {r['stop']} | {r['rank']} | {r['asset_id']} | {r['captured_area_m2']:,} m² | {r['nye2022_311_within_60m']} | "
            f"[{r['lat']}, {r['lon']}]({r['map']}) |" for r in rows]
-    (ROOT / "data" / "derived" / "drain_walk.md").write_text("\n".join(md) + "\n")
-    print(f"top {a.top}: " + ", ".join(f"#{f['properties']['rank']} {f['properties']['contrib_area_m2']:,}m²" for f in top))
+    (ROOT / "data" / "derived" / "drain_walk.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+    print(f"top {a.top}: " + ", ".join(f"#{f['properties']['rank']} {f['properties']['captured_area_m2']:,} m2" for f in top))
 
     # map
     import matplotlib
@@ -193,12 +219,12 @@ def main():
     fig.suptitle(f"The {a.top} drains that matter most around 17th & Folsom", x=0.02, ha="left", y=0.95,
                  fontsize=24, weight="bold", color="#1f2933")
     import matplotlib.lines as ml
-    leg = [ml.Line2D([], [], marker="o", ls="", color="#d9a21b", mec="#1f2933", ms=14, label=f"top {a.top} by water draining to it"),
+    leg = [ml.Line2D([], [], marker="o", ls="", color="#d9a21b", mec="#1f2933", ms=14, label=f"top {a.top} by water reaching the grate"),
            ml.Line2D([], [], marker="o", ls="", color="#5f6b78", ms=5, label=f"other inlets ({len(feats) - a.top})"),
            ml.Line2D([], [], marker="o", ls="", color="#b3261e", ms=8, label="311 flooding, Dec 31 2022"),
            ml.Line2D([], [], color="#2f80c1", lw=4, label="where surface water converges")]
     fig.legend(handles=leg, loc="center left", bbox_to_anchor=(0.71, 0.58), frameon=False, fontsize=14)
-    fig.text(0.71, 0.32, "Inlets: SFPUC / DataSF jtgq-b7c5 (Adopt-a-Drain).\nFlow: USGS 3DEP lidar bare earth, 2 m,\nD8 contributing area. Screening only:\nignores pipes, curbs and buildings.",
+    fig.text(0.71, 0.32, "Inlets: SFPUC / DataSF jtgq-b7c5 (Adopt-a-Drain).\nFlow: USGS 3DEP lidar bare earth, 2 m, D8;\neach inlet intercepts what reaches it.\nScreening only: ignores pipes, curbs, buildings.",
              fontsize=12, color="#7b8794", va="top")
     fig.savefig(ROOT / "assets" / "maps" / "drain_priority.png")
     print("wrote drain_priority.geojson, drain_walk.csv/.md, assets/maps/drain_priority.png")
