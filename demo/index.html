@@ -1,0 +1,484 @@
+<meta charset="utf-8">
+<title>Waterline</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: five full-width acts on a night-harbor ground, each a headline + one hero visual; data is always the star.
+   Deliberately single-theme (dark): this runs on a projector and a phone outdoors at dusk. */
+:root {
+  --night: #0a1016; --deep: #0f1922; --panel: #142230; --rule: #22374a;
+  --fg: #e8eef3; --muted: #8fa3b5; --water: #3aa0ff; --water-2: #1d5f99;
+  --amber: #f2b33d; --orange: #f08a3c; --red: #ff6b5b; --ground: #b79f7d;
+  --display: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--night); }
+body { background: var(--night); color: var(--fg); font: 17px/1.55 var(--body); margin: 0; }
+.wrap { max-width: 1160px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+a { color: var(--water); }
+.eyebrow { font: 500 .78rem/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--water); }
+h1, h2 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -.005em; }
+h2 { font-size: clamp(2rem, 4.6vw, 3.4rem); line-height: 1.02; }
+.lede { font-size: 1.15rem; max-width: 62ch; color: var(--fg); margin: 0; }
+.note { font-size: .9rem; color: var(--muted); max-width: 70ch; margin: 0; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* hero */
+.hero { position: relative; overflow: hidden; padding-block: 72px 0; background:
+  radial-gradient(1200px 500px at 70% -10%, #17324b 0%, transparent 60%), var(--night); }
+.hero .wrap { display: grid; gap: 22px; position: relative; z-index: 2; padding-block: 0 140px; }
+.brand { display: flex; align-items: center; gap: 12px; font: 700 1.4rem var(--display); letter-spacing: .02em; }
+.brand svg { width: 30px; height: 46px; }
+.hero h1 { font-size: clamp(2.6rem, 7vw, 5.6rem); line-height: .95; max-width: 15ch; }
+.big { font: 700 clamp(4.5rem, 14vw, 10rem)/.85 var(--display); color: var(--amber); font-variant-numeric: tabular-nums; }
+.big small { font-size: .32em; color: var(--fg); margin-left: .2em; }
+.waves { position: absolute; left: 0; right: 0; bottom: 0; height: 150px; z-index: 1; }
+.waves svg { position: absolute; bottom: 0; width: 200%; height: 100%; animation: drift 18s linear infinite; }
+.waves svg + svg { animation-duration: 28s; opacity: .55; }
+@keyframes drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .waves svg { animation: none; } }
+
+/* acts */
+.act { padding-block: 88px; border-top: 1px solid var(--rule); }
+.act:nth-of-type(even) { background: var(--deep); }
+.act .wrap { display: grid; gap: 28px; }
+.head { display: grid; gap: 12px; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 18px; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.stat { display: grid; gap: 2px; padding: 12px 16px; border-left: 3px solid var(--water); background: var(--panel); min-width: 0; }
+.stat b { font: 700 2rem/1 var(--display); font-variant-numeric: tabular-nums; }
+.stat span { font-size: .85rem; color: var(--muted); }
+.stat.alert { border-left-color: var(--amber); } .stat.alert b { color: var(--amber); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+svg text { font-family: var(--mono); }
+.chart { width: 100%; height: auto; display: block; }
+
+/* 3D */
+.scene { position: relative; aspect-ratio: 16 / 9; max-width: 100%; background: #070c11; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.scene canvas { width: 100% !important; height: 100% !important; display: block; cursor: grab; }
+.scene .hud { position: absolute; left: 14px; top: 12px; right: 14px; display: flex; justify-content: space-between; gap: 12px; pointer-events: none; font: 500 .8rem var(--mono); color: var(--muted); }
+.scene .readout { position: absolute; left: 14px; bottom: 14px; background: rgba(10,16,22,.82); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 14px; display: grid; gap: 2px; }
+.scene .readout b { font: 700 1.9rem/1 var(--display); color: var(--water); }
+.scene .readout span { font-size: .85rem; color: var(--fg); }
+.scene .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font: .9rem var(--mono); }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg button { font: 600 .9rem var(--body); color: var(--fg); background: transparent; border: 1.5px solid var(--rule); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--water); border-color: var(--water); color: #04121f; }
+.seg button.assumed[aria-pressed="true"] { background: repeating-linear-gradient(135deg, var(--water) 0 6px, var(--water-2) 6px 9px); color: #fff; }
+.seg button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.banner { display: inline-block; font: 700 .72rem/1 var(--mono); letter-spacing: .12em; padding: 6px 10px; background: var(--red); color: #1a0806; border-radius: 3px; }
+
+/* footage slots */
+.slot { position: relative; aspect-ratio: 16 / 9; max-width: 100%; border: 1px dashed #3b5670; border-radius: 6px; overflow: hidden; display: grid; align-content: end;
+  background: repeating-linear-gradient(90deg, transparent 0 22px, rgba(58,160,255,.05) 22px 23px), radial-gradient(600px 300px at 30% 30%, #15304a, #0b141c); }
+.slot::before { content: attr(data-shot); position: absolute; left: 18px; top: 14px; font: 700 clamp(2.4rem, 6vw, 4rem)/1 var(--display); color: rgba(58,160,255,.35); letter-spacing: .02em; }
+.slot video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.slot .cap { position: relative; margin: 12px; padding: 10px 12px; background: rgba(10,16,22,.85); border-radius: 4px; display: grid; gap: 2px; max-width: 46ch; }
+.slot .cap b { font: 600 .95rem var(--body); }
+.slot .cap span { font: .78rem var(--mono); color: var(--muted); }
+.slot.filled { border-style: solid; }
+.slot.filled .cap { display: none; }
+
+figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+figure img { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid var(--rule); }
+figcaption { font-size: .88rem; color: var(--muted); }
+
+/* brief */
+.brief { font: .86rem/1.55 var(--mono); white-space: pre-wrap; background: #08121a; border: 1px solid var(--rule); border-radius: 6px; padding: 16px; margin: 0; overflow-x: auto; color: #cfe0ee; }
+.brief .h { color: var(--amber); }
+.agents { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font: .82rem var(--mono); }
+.agent { padding: 6px 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--panel); }
+.agent.lead { border-color: var(--water); color: var(--water); }
+.arrow { color: var(--muted); }
+.prov { display: inline-flex; gap: 6px; align-items: center; font: .78rem var(--mono); color: var(--muted); }
+.sw { width: 14px; height: 10px; border: 1.5px solid var(--water); display: inline-block; }
+.sw.o { background: var(--water); } .sw.a { background: repeating-linear-gradient(135deg, var(--water) 0 3px, transparent 3px 5px); }
+
+/* drains */
+.drains { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .drains { grid-template-columns: 1fr; } }
+.dlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.dcard { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; display: grid; gap: 4px; min-width: 0; }
+.dcard .r { font: 700 1.5rem/1 var(--display); color: var(--amber); }
+.dcard .a { font: .76rem var(--mono); color: var(--muted); }
+.dcard .v { font: 600 .78rem var(--mono); padding: 3px 8px; border-radius: 999px; border: 1px dashed #3b5670; color: var(--muted); justify-self: start; }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.step { background: var(--panel); border-top: 3px solid var(--amber); padding: 14px 16px; border-radius: 0 0 6px 6px; display: grid; gap: 6px; min-width: 0; }
+.step b { font: 700 1.2rem var(--display); }
+.step p { margin: 0; font-size: .93rem; color: var(--muted); }
+
+/* close */
+.close { padding-block: 110px 80px; text-align: left; background: radial-gradient(900px 400px at 20% 120%, #17324b 0%, transparent 60%), var(--night); }
+.close h2 { font-size: clamp(2.4rem, 6vw, 4.6rem); max-width: 18ch; }
+footer { border-top: 1px solid var(--rule); padding-block: 28px 48px; font-size: .82rem; color: var(--muted); }
+footer .wrap { display: grid; gap: 8px; }
+</style>
+
+<header class="hero" aria-labelledby="h1">
+  <div class="wrap">
+    <div class="brand"><svg viewBox="0 0 72 112" aria-hidden="true"><defs><pattern id="hh" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="#3aa0ff" stroke-width="2.5"/></pattern></defs><rect x="14" y="6" width="44" height="92" fill="none" stroke="#e8eef3" stroke-width="5"/><rect x="6" y="54" width="60" height="14" fill="url(#hh)"/><rect x="6" y="68" width="60" height="30" fill="#3aa0ff"/><line x1="0" y1="68" x2="72" y2="68" stroke="#9cd0ff" stroke-width="4"/></svg>Waterline</div>
+    <p class="eyebrow">San Francisco · El Niño winter 2026–27</p>
+    <h1 id="h1">On October 11, San Francisco Bay crossed flood stage.</h1>
+    <div class="big num" id="heroPeak">7.57<small>ft</small></div>
+    <p class="lede">It's October, before king-tide season. A strong El Niño has the Bay running a foot above prediction. Waterline shows what this winter means on your street, and what to do before the storm arrives.</p>
+  </div>
+  <div class="waves" aria-hidden="true">
+    <svg viewBox="0 0 2400 150" preserveAspectRatio="none"><path d="M0 70 Q150 40 300 70 T600 70 T900 70 T1200 70 T1500 70 T1800 70 T2100 70 T2400 70 V150 H0Z" fill="#123553"/></svg>
+    <svg viewBox="0 0 2400 150" preserveAspectRatio="none"><path d="M0 95 Q200 70 400 95 T800 95 T1200 95 T1600 95 T2000 95 T2400 95 V150 H0Z" fill="#1d5f99"/></svg>
+  </div>
+</header>
+
+<main>
+  <!-- ACT 1 -->
+  <section class="act" aria-labelledby="a1">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Act 1 · It's already here</p>
+        <h2 id="a1">The El Niño Kelvin wave is already in the tide gauge.</h2>
+        <p class="lede">A Kelvin wave is a pulse of raised sea level that El Niño sends along the equator and up our coast. You can see it at the Golden Gate gauge: every day this October the Bay has run higher than predicted, and by much more than last year.</p>
+      </div>
+      <div class="panel"><svg class="chart" id="kelvin" viewBox="0 0 1100 420" role="img" aria-label="Daily water level above prediction at San Francisco, 2026 against 2025"></svg></div>
+      <div class="stats">
+        <div class="stat"><b class="num" id="s_oct26">+0.98 ft</b><span>October 2026 average above prediction</span></div>
+        <div class="stat"><b class="num" id="s_oct25">+0.26 ft</b><span>October 2025, same gauge</span></div>
+        <div class="stat alert"><b class="num">7.57 ft</b><span>Oct 11 peak, above the NWS minor flood line (7.04)</span></div>
+        <div class="stat"><b class="num">70–83%</b><span>NOAA's odds this El Niño is the strongest since 1950</span></div>
+      </div>
+      <div class="slot" data-shot="F0" data-src="media/f0_high_water.mp4" >
+        <div class="cap"><b>Footage F0 · the Bay outside this building, 11:07 AM today</b><span>Real high water at the Embarcadero seawall with the live gauge reading. Recorded Sun Oct 25.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT 2 -->
+  <section class="act" aria-labelledby="a2">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Act 2 · The resident</p>
+        <h2 id="a2">Christmas Eve, 10:37 AM, at the Ferry Building.</h2>
+        <p class="lede">The year's highest predicted tide lands on Christmas Eve morning. Stack this winter's conditions on top of it, layer by layer, on the measured shape of the waterfront: 661,599 lidar points from the USGS 2023 survey.</p>
+      </div>
+      <div class="seg" role="group" aria-label="Scenario">
+        <button type="button" id="sc0" data-i="0" aria-pressed="false">King tide</button>
+        <button type="button" id="sc1" data-i="1" aria-pressed="true">+ El Niño baseline</button>
+        <button type="button" id="sc2" data-i="2" class="assumed" aria-pressed="false">+ big storm</button>
+        <button type="button" id="sc3" data-i="3" class="assumed" aria-pressed="false">Stress test</button>
+      </div>
+      <div class="scene" id="scene">
+        <div class="loading" id="sceneLoading">Loading lidar…</div>
+        <div class="hud"><span>USGS 3DEP lidar · Ferry Building &amp; Embarcadero · vertical ×1.5 · drag to orbit</span><span id="stressTag" hidden><span class="banner">STRESS TEST · NOT A FORECAST</span></span></div>
+        <div class="readout"><b class="num" id="lvl">8.2 ft</b><span id="gap">1.9 ft below the promenade</span><span class="prov" id="prov"><i class="sw o"></i>NOAA prediction + measured offset</span></div>
+      </div>
+      <div class="grid2">
+        <div class="slot" data-shot="F2" data-src="media/f2_resident_ar.mp4" >
+          <div class="cap"><b>Footage F2–F4 · the water line in AR, on the seawall</b><span>iPhone, ARCore Geospatial with LiDAR occlusion. Recorded Sun Oct 25, 4:30–6:00 PM.</span></div>
+        </div>
+        <div class="panel" style="display:grid;gap:12px">
+          <p class="eyebrow" style="color:var(--amber)">What the resident gets</p>
+          <p style="margin:0"><b>High water near the Ferry Building, Thu Dec 24, <span id="winTxt">9:30–11:45 AM</span>.</b> Expect water <span id="gapTxt">2 ft</span> below the promenade; waves may splash over. Avoid the seawall edge.</p>
+          <p style="margin:0;color:var(--muted)">Marea alta cerca del Ferry Building, jue 24 dic. El agua llegará a <span id="gapTxtEs">2 pies</span> del paseo; las olas pueden saltar. Aléjese del borde del malecón.</p>
+          <p class="note">Hatched means assumed. In the realistic case still water stays below the promenade; waves on top of it are what flooded the Embarcadero in June 2026, and they aren't modeled.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT 3 -->
+  <section class="act" aria-labelledby="a3">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Act 3 · The proof</p>
+        <h2 id="a3">We've seen this storm before. New Year's Eve 2022.</h2>
+        <p class="lede">5.46 inches fell downtown, nearly a 100-year, 24-hour storm. In the Mission, 17 people called 311 to report flooding within 600 m of 17th &amp; Folsom. We gave Gemini 4 Argon that storm and those reports, not a model, and it rewrote its flood model until the two agreed.</p>
+      </div>
+      <div class="grid2">
+        <figure><img src="img/rain_ground_truth.png" alt="Map around 17th and Folsom with the city's 100-year flood zone hatched, 311 flooding reports in red and orange, and pre-registered dry control points in green."><figcaption>Ground truth: 311 reports, the city's 100-year flood zone (held back from Argon) and ten dry check points committed before any modeling.</figcaption></figure>
+        <div style="display:grid;gap:14px;min-width:0">
+          <figure><img src="img/replay_rain.png" alt="Hourly rain on Dec 31, 2022 with the cumulative total reaching just under the 100-year line."><figcaption>The replay storm, hour by hour.</figcaption></figure>
+          <div class="stats">
+            <div class="stat"><b class="num" id="scoreBase">—</b><span>Argon's first model, verification score</span></div>
+            <div class="stat alert"><b class="num" id="scoreFinal">—</b><span>After it iterated against the real night (target 0.75)</span></div>
+          </div>
+          <p class="note">Scores are computed live on Sun Oct 25 and filled in here.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACT 4 -->
+  <section class="act" aria-labelledby="a4">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Act 4 · The city</p>
+        <h2 id="a4">A block-by-block timeline, drafted before the crews are called.</h2>
+        <p class="lede">A team of Gemini managed agents re-runs every forecast cycle. Each one reaches data through a single MCP server, so every number carries its source. The coordinator turns the stack into a timeline against NOAA's flood thresholds and drafts the brief. A person decides.</p>
+      </div>
+      <div class="agents" aria-label="Agent pipeline">
+        <span class="agent">Forecast</span><span class="arrow">→</span><span class="agent">Coastal</span><span class="arrow">→</span><span class="agent">Terrain</span><span class="arrow">→</span><span class="agent">Drainage</span><span class="arrow">→</span><span class="agent">Hydraulics</span><span class="arrow">→</span><span class="agent lead">Coordinator · Gemini 4 Argon</span>
+        <span class="prov" style="margin-left:auto"><i class="sw o"></i>official <i class="sw"></i>derived <i class="sw a"></i>assumed</span>
+      </div>
+      <div class="panel"><svg class="chart" id="tide" viewBox="0 0 1100 480" role="img" aria-label="Predicted water level at San Francisco, Dec 23 to 25, with El Niño baseline and storm scenario against flood thresholds"></svg></div>
+      <pre class="brief" id="brief" aria-label="Drafted situation brief"></pre>
+    </div>
+  </section>
+
+  <!-- ACT 5 -->
+  <section class="act" aria-labelledby="a5">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Act 5 · Before the storm</p>
+        <h2 id="a5">Twelve drains matter most. A robot finds out which ones are blocked.</h2>
+        <p class="lede">Clogged grates turn ordinary storms into street floods. San Francisco has more than 25,000 drains and crews deep-clean 5,000 to 9,000 a year. Waterline ranks the <span id="dCount">468</span> real city drains around 17th &amp; Folsom by how much water reaches each grate. A rover scouts the top twelve, Gemini reads each photo, and volunteers get a list before the rain.</p>
+      </div>
+      <div class="drains">
+        <div class="panel"><svg class="chart" id="dmap" viewBox="0 0 1000 1000" role="img" aria-label="Map of storm drains around 17th and Folsom with the twelve highest-priority drains numbered"></svg>
+          <p class="note" style="margin-top:8px">Drains: SFPUC, the Adopt-a-Drain dataset. Ranking: water reaching each grate on the lidar terrain, each drain intercepting what reaches it. Red: 311 flooding reports, Dec 31 2022.</p></div>
+        <div style="display:grid;gap:14px;min-width:0">
+          <div class="slot" data-shot="R1" data-src="media/r1_rover_scout.mp4" >
+            <div class="cap"><b>Footage R1 · rover scouts a grate</b><span>Pi rover with depth camera approaches a leaf-covered grate; Gemini labels it. Recorded before the event.</span></div>
+          </div>
+          <div class="dlist" id="dlist"></div>
+          <p class="note">Grate condition comes from photos taken on the drain walk; Gemini classifies each as clear, partly blocked or blocked on Sun Oct 25.</p>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step"><b>1 · Rank</b><p>Agents trace runoff over the lidar terrain to each of the city's drains and rank them.</p></div>
+        <div class="step"><b>2 · Scout</b><p>A rover or a volunteer's phone photographs the top grates. Gemini labels each one.</p></div>
+        <div class="step"><b>3 · Dispatch</b><p>The coordinator sends the blocked ones to Adopt-a-Drain volunteers and Public Works, with a deadline before the rain.</p></div>
+        <div class="step"><b>4 · Re-run</b><p>The hydraulics agent re-runs with those drains cleared, and the city sees how much ponding it avoided.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="close" aria-labelledby="c1">
+    <div class="wrap" style="display:grid;gap:18px">
+      <p class="eyebrow">Waterline</p>
+      <h2 id="c1">Strong El Niño. Street level. This winter.</h2>
+      <p class="lede">From the tide gauge to your block to the drain on your corner: prediction, proof and prevention, run by Gemini 4 Argon managed agents.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p style="margin:0">Screening-level prototype built at the Gemini 4 Argon hackathon, SHACK15, Oct 25 2026. Not an official alert: follow AlertSF and the National Weather Service.</p>
+    <p style="margin:0">Data: NOAA CO-OPS 9414290 and Atlas 14 · NOAA CPC ENSO · USGS 3DEP lidar (2023, AWS EPT) · SFPUC 100-year flood map and drain inlets (DataSF) · SF 311 · GHCN-D · Open-Meteo ensembles.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script>
+(async function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const C = { fg: "#e8eef3", muted: "#8fa3b5", rule: "#22374a", water: "#3aa0ff", water2: "#1d5f99", amber: "#f2b33d", orange: "#f08a3c", red: "#ff6b5b", ground: "#b79f7d" };
+  const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+  const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, fill: C.muted, "font-size": 14, ...attrs }, parent); t.textContent = s; return t; };
+  let D;
+  try { D = await (await fetch("story-data.json")).json(); } catch (e) { console.error(e); return; }
+
+  // ---------- Act 1: Kelvin chart ----------
+  (function kelvin() {
+    const svg = document.getElementById("kelvin"), W = 1100, H = 420, L = 70, R = 90, T = 30, B = 46;
+    const y26 = Object.entries(D.kelvin.y2026), y25 = Object.entries(D.kelvin.y2025);
+    const t0 = Date.parse("2026-09-01"), t1 = Date.parse("2026-11-01");
+    const X = d => L + (Date.parse(d) - t0) / (t1 - t0) * (W - L - R);
+    const ymax = 1.5, ymin = -0.1, Y = v => T + (ymax - v) / (ymax - ymin) * (H - T - B);
+    for (let v = 0; v <= 1.5001; v += 0.25) { el("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: C.rule, "stroke-width": v === 0 ? 1.5 : 1 }, svg); txt(svg, L - 10, Y(v) + 5, (v > 0 ? "+" : "") + v.toFixed(2), { "text-anchor": "end" }); }
+    ["2026-09-01", "2026-09-15", "2026-10-01", "2026-10-15", "2026-11-01"].forEach(d => txt(svg, X(d), H - 16, new Date(d + "T12:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }), { "text-anchor": "middle" }));
+    txt(svg, L, 18, "ft above prediction, daily mean, SF tide gauge", { fill: C.muted });
+    const path = (pts, f) => pts.map(([d, v], i) => (i ? "L" : "M") + f(d).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
+    el("path", { d: path(y25, d => X(d.replace("2025", "2026"))), fill: "none", stroke: C.muted, "stroke-width": 2.2 }, svg);
+    const p26 = el("path", { d: path(y26, X), fill: "none", stroke: C.water, "stroke-width": 4, "stroke-linejoin": "round" }, svg);
+    const last26 = y26[y26.length - 1], last25 = y25[y25.length - 1];
+    txt(svg, X(last26[0]) + 10, Y(last26[1]) + 5, "2026", { fill: C.water, "font-size": 17, "font-weight": 600 });
+    txt(svg, X(last25[0].replace("2025", "2026")) + 8, Y(last25[1]) + 5, "2025", { fill: C.muted, "font-size": 15 });
+    const pk = y26.reduce((a, b) => b[1] > a[1] ? b : a);
+    el("circle", { cx: X(pk[0]), cy: Y(pk[1]), r: 6, fill: C.amber }, svg);
+    txt(svg, X(pk[0]) - 12, Y(pk[1]) - 12, "+" + pk[1].toFixed(2) + " ft, " + new Date(pk[0] + "T12:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }), { fill: C.amber, "text-anchor": "end", "font-size": 15, "font-weight": 600 });
+    const len = p26.getTotalLength(); p26.style.strokeDasharray = len; p26.style.strokeDashoffset = 0;
+    const mean = (arr, pre) => { const v = arr.filter(([d]) => d.startsWith(pre)).map(x => x[1]); return v.reduce((a, b) => a + b, 0) / v.length; };
+    document.getElementById("s_oct26").textContent = "+" + mean(y26, "2026-10").toFixed(2) + " ft";
+    document.getElementById("s_oct25").textContent = "+" + mean(y25, "2025-10").toFixed(2) + " ft";
+    document.getElementById("heroPeak").firstChild.nodeValue = D.kelvin.peak.v.toFixed(2);
+  })();
+
+  // ---------- Act 4: tide timeline + brief ----------
+  const S = D.coastal, base = S.baseline_ft, storm = S.storm_typ_ft, th = S.thresholds, plaza = S.plaza_ft_mllw;
+  const series = D.tide.series.map(([t, v]) => [t, +v]);
+  function windows(off, lvl) {
+    const out = []; let cur = null;
+    series.forEach(([t, v]) => { const on = v + off >= lvl; if (on && !cur) cur = [t, t, v + off]; else if (on) { cur[1] = t; cur[2] = Math.max(cur[2], v + off); } else if (cur) { out.push(cur); cur = null; } });
+    if (cur) out.push(cur); return out;
+  }
+  const hm = t => { const [d, h] = t.split(" "); let [H, M] = h.split(":").map(Number); const ap = H >= 12 ? "PM" : "AM"; H = H % 12 || 12; return H + ":" + String(M).padStart(2, "0") + " " + ap; };
+  const day = t => new Date(t.replace(" ", "T")).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  (function tide() {
+    const svg = document.getElementById("tide"), W = 1100, H = 480, L = 60, R = 170, T = 84, B = 44;
+    const n = series.length, X = i => L + i / (n - 1) * (W - L - R), ymin = -1, ymax = 11, Y = v => T + (ymax - v) / (ymax - ymin) * (H - T - B);
+    for (let v = 0; v <= 11; v += 2) { el("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: C.rule }, svg); txt(svg, L - 8, Y(v) + 5, v + "", { "text-anchor": "end" }); }
+    txt(svg, L, 18, "ft MLLW at the SF gauge · Dec 23–25 2026");
+    series.forEach(([t], i) => { if (t.endsWith("00:00")) { el("line", { x1: X(i), x2: X(i), y1: T, y2: H - B, stroke: C.rule, "stroke-dasharray": "2 4" }, svg); txt(svg, X(i) + 6, H - 18, day(t)); } });
+    const P = off => series.map(([, v], i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v + off).toFixed(1)).join(" ");
+    const lines = [["nws_minor", "NWS minor", C.amber], ["nos_minor", "NOS minor", C.amber], ["nos_moderate", "NOS moderate", C.orange], ["nos_major", "NOS major", C.red]];
+    lines.forEach(([k, lab, col]) => { el("line", { x1: L, x2: W - R, y1: Y(th[k]), y2: Y(th[k]), stroke: col, "stroke-dasharray": "6 5", "stroke-width": 1.4 }, svg); txt(svg, W - R + 8, Y(th[k]) + (k === "nos_major" ? 16 : 5), lab + " " + th[k].toFixed(2), { fill: col }); });
+    el("rect", { x: L, width: W - L - R, y: Y(plaza + 0.15), height: Y(plaza - 0.15) - Y(plaza + 0.15), fill: C.ground, opacity: .55 }, svg);
+    txt(svg, W - R + 8, Y(plaza) - 10, "Plaza " + plaza.toFixed(1), { fill: C.ground });
+    el("pattern", { id: "hatchT", width: 8, height: 8, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, el("defs", {}, svg)).appendChild(el("line", { x1: 0, y1: 0, x2: 0, y2: 8, stroke: C.water, "stroke-width": 2 }));
+    const band = series.map(([, v], i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v + base + storm).toFixed(1)).join(" ") + " " + series.slice().reverse().map(([, v], j) => "L" + X(n - 1 - j).toFixed(1) + " " + Y(v + base).toFixed(1)).join(" ") + " Z";
+    el("path", { d: band, fill: "url(#hatchT)", opacity: .55 }, svg);
+    el("path", { d: P(0), fill: "none", stroke: C.muted, "stroke-width": 1.6 }, svg);
+    el("path", { d: P(base), fill: "none", stroke: C.water, "stroke-width": 3.4 }, svg);
+    const legend = el("g", { transform: `translate(${L},48)` }, svg);
+    [["NOAA predicted tide", C.muted, 1.6, 0], ["+ measured El Niño offset (+" + base.toFixed(2) + " ft)", C.water, 3.4, 220]].forEach(([s, c, w, x]) => { el("line", { x1: x, x2: x + 26, y1: 0, y2: 0, stroke: c, "stroke-width": w }, legend); txt(legend, x + 34, 5, s, { fill: C.fg }); });
+    el("rect", { x: 590, y: -7, width: 26, height: 14, fill: "url(#hatchT)" }, legend); txt(legend, 624, 5, "+ big-storm surge (+2.0 ft, assumed)", { fill: C.fg });
+  })();
+  (function brief() {
+    const wMinor = windows(base, th.nos_minor), wMod = windows(base + storm, th.nos_moderate), wNws = windows(base, th.nws_minor);
+    const kt = S.king_tide, lvl = (+kt.v + base);
+    const rows = wNws.map(w => `  ${day(w[0]).padEnd(13)} ${hm(w[0])}–${hm(w[1])}  peak ${w[2].toFixed(2)} ft  ${w[2] >= th.nos_minor ? "NOS MINOR" : "NWS minor"}`).join("\n");
+    const b = document.getElementById("brief");
+    b.innerHTML = `<span class="h">WATERLINE SITUATION BRIEF · Ferry Building / Embarcadero · draft</span>
+Sources: tide = NOAA CO-OPS 9414290 (official) · offset = observed minus predicted, Oct 2026 (official, measured)
+         surge = +2.0 ft scenario (assumed) · terrain = USGS 3DEP lidar 2023 (official)
+
+<span class="h">HEADLINE</span>
+Coastal flooding at NOS minor likely ${day(kt.t)}, peak ${lvl.toFixed(1)} ft MLLW at ${hm(kt.t)}.
+With a big storm on the same tide: NOS moderate, ${(lvl + storm).toFixed(1)} ft. Promenade grade ≈ ${plaza.toFixed(1)} ft.
+
+<span class="h">THRESHOLD WINDOWS (tide + El Niño offset)</span>
+${rows || "  none"}
+  Storm case reaches NOS moderate in ${wMod.length} window${wMod.length === 1 ? "" : "s"}.
+
+<span class="h">RECOMMENDED ACTIONS (for human decision)</span>
+  - Pre-stage Embarcadero crews 1 hr before each window; consider closing seawall-edge access
+  - Clear the 12 priority drains near 17th &amp; Folsom before Dec 22 (Act 5)
+  - Public message: resident template, EN/ES
+
+<span class="h">LIMITATIONS</span>
+  Screening model, not HEC-RAS. Wave overtopping not modeled (hatched). Offset may change as more
+  Kelvin waves arrive; refreshed from the live gauge every cycle.`;
+    const w0 = wMinor.find(w => w[0].startsWith("2026-12-24")) || wNws.find(w => w[0].startsWith("2026-12-24"));
+    if (w0) document.getElementById("winTxt").textContent = hm(w0[0]) + "–" + hm(w0[1]);
+  })();
+
+  // ---------- Act 2: lidar scene ----------
+  const levels = S.scenarios.map(s => s[1]);
+  const provs = S.scenarios.map(s => s[2]);
+  let target = levels[1], setLevel = () => {};
+  function updateReadout(i) {
+    const lv = levels[i], gap = plaza - lv;
+    document.getElementById("lvl").textContent = lv.toFixed(1) + " ft";
+    document.getElementById("gap").textContent = gap > 0 ? gap.toFixed(1) + " ft below the promenade" : Math.abs(gap).toFixed(1) + " ft above the promenade grade";
+    document.getElementById("prov").innerHTML = provs[i] === "official" ? '<i class="sw o"></i>NOAA prediction + measured offset' : '<i class="sw a"></i>includes an assumed surge';
+    document.getElementById("stressTag").hidden = i !== 3;
+    const g = Math.max(gap, 0).toFixed(1);
+    document.getElementById("gapTxt").textContent = g + " ft"; document.getElementById("gapTxtEs").textContent = g + " pies";
+  }
+  document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    const i = +b.dataset.i; target = levels[i]; updateReadout(i); setLevel(target);
+  }));
+  updateReadout(1);
+  (async function scene() {
+    const host = document.getElementById("scene");
+    if (!window.THREE) { document.getElementById("sceneLoading").textContent = "3D view unavailable"; return; }
+    let buf;
+    try { buf = await (await fetch(D.lidar.coast_bin)).arrayBuffer(); } catch (e) { document.getElementById("sceneLoading").textContent = "Lidar file missing: run scripts/build_story_data.py"; return; }
+    const n = Math.floor(buf.byteLength / 14), dv = new DataView(buf);
+    const EX = 1.5, M = 3.28084;
+    let pos = new Float32Array(n * 3), col = new Float32Array(n * 3), k = 0, sx = 0, sy = 0;
+    for (let i = 0; i < n; i++) { const o = i * 14; sx += dv.getFloat32(o, true); sy += dv.getFloat32(o + 4, true); }
+    const cx = sx / n, cy = sy / n;
+    const pal = { 1: [0.56, 0.62, 0.69], 2: [0.72, 0.62, 0.49], 9: [0.10, 0.26, 0.40], 20: [0.72, 0.62, 0.49] };
+    for (let i = 0; i < n; i++) {
+      const o = i * 14, c = dv.getUint8(o + 12); if (c === 7 || c === 18) continue;
+      const x = dv.getFloat32(o, true) - cx, y = dv.getFloat32(o + 4, true) - cy, z = dv.getFloat32(o + 8, true), it = dv.getUint8(o + 13) / 255;
+      pos[k * 3] = x; pos[k * 3 + 1] = z * EX; pos[k * 3 + 2] = -y;
+      const p = pal[c] || [0.5, 0.5, 0.5], s = 0.55 + 0.6 * it;
+      col[k * 3] = p[0] * s; col[k * 3 + 1] = p[1] * s; col[k * 3 + 2] = p[2] * s; k++;
+    }
+    pos = pos.subarray(0, k * 3); col = col.subarray(0, k * 3);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    host.appendChild(renderer.domElement);
+    const scene = new THREE.Scene(); scene.background = new THREE.Color(0x070c11); scene.fog = new THREE.Fog(0x070c11, 500, 1100);
+    const cam = new THREE.PerspectiveCamera(42, 16 / 9, 1, 3000);
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    scene.add(new THREE.Points(g, new THREE.PointsMaterial({ size: 1.15, vertexColors: true, sizeAttenuation: true })));
+    // Water only where it can reach from the Bay: flood-fill a 2 m ground grid from lidar water cells.
+    let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity;
+    for (let i = 0; i < k; i++) { const x = pos[i * 3], y = -pos[i * 3 + 2]; if (x < xmin) xmin = x; if (x > xmax) xmax = x; if (y < ymin) ymin = y; if (y > ymax) ymax = y; }
+    const CS = 2, GW = Math.ceil((xmax - xmin) / CS), GH = Math.ceil((ymax - ymin) / CS);
+    const gz = new Float32Array(GW * GH).fill(Infinity), seed = new Uint8Array(GW * GH);
+    for (let i = 0; i < n; i++) {
+      const o = i * 14, c = dv.getUint8(o + 12); if (c !== 2 && c !== 9 && c !== 20) continue;
+      const gx = Math.floor((dv.getFloat32(o, true) - cx - xmin) / CS), gy = Math.floor((dv.getFloat32(o + 4, true) - cy - ymin) / CS);
+      if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) continue;
+      const j = gy * GW + gx, z = dv.getFloat32(o + 8, true); if (z < gz[j]) gz[j] = z; if (c === 9) seed[j] = 1;
+    }
+    const mask = new Uint8Array(GW * GH * 4), tex = new THREE.DataTexture(mask, GW, GH, THREE.RGBAFormat);
+    tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter;
+    function flood(levelM) {
+      const wet = new Uint8Array(GW * GH), q = [];
+      for (let j = 0; j < GW * GH; j++) if (seed[j]) { wet[j] = 1; q.push(j); }
+      while (q.length) { const j = q.pop(), x = j % GW, y = (j / GW) | 0;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= GW || yy >= GH) continue;
+          const jj = yy * GW + xx; if (!wet[jj] && gz[jj] < levelM) { wet[jj] = 1; q.push(jj); } } }
+      for (let j = 0; j < GW * GH; j++) { const a = wet[j] ? 255 : 0; mask[j * 4] = mask[j * 4 + 1] = mask[j * 4 + 2] = a; mask[j * 4 + 3] = 255; }
+      tex.needsUpdate = true;
+    }
+    const wm = new THREE.MeshBasicMaterial({ color: 0x3aa0ff, transparent: true, opacity: 0.55, alphaMap: tex, depthWrite: false, side: THREE.DoubleSide });
+    const water = new THREE.Mesh(new THREE.PlaneGeometry(GW * CS, GH * CS), wm);
+    water.rotation.x = -Math.PI / 2; water.position.set(xmin + GW * CS / 2, 0, -(ymin + GH * CS / 2)); scene.add(water);
+    const toY = ft => (ft - 0.06) / M * EX;
+    let cur = toY(0.6);
+    setLevel = ft => { target = ft; flood((ft - 0.06) / M); };
+    setLevel(target);
+    let az = Math.atan2(240, -150), elev = 0.5, dist = 470, drag = null, auto = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const resize = () => { const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); };
+    new ResizeObserver(resize).observe(host); resize();
+    renderer.domElement.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY, az, elev]; auto = false; renderer.domElement.setPointerCapture(e.pointerId); });
+    renderer.domElement.addEventListener("pointermove", e => { if (!drag) return; az = drag[2] - (e.clientX - drag[0]) * 0.006; elev = Math.min(1.35, Math.max(0.12, drag[3] + (e.clientY - drag[1]) * 0.004)); });
+    renderer.domElement.addEventListener("pointerup", () => drag = null);
+    renderer.domElement.addEventListener("wheel", e => { e.preventDefault(); dist = Math.min(900, Math.max(160, dist * (1 + Math.sign(e.deltaY) * 0.08))); }, { passive: false });
+    document.getElementById("sceneLoading").remove();
+    (function loop() {
+      if (auto) az += 0.0009;
+      cur += (toY(target) - cur) * 0.035; water.position.y = cur;
+      cam.position.set(Math.sin(az) * Math.cos(elev) * dist, 25 + Math.sin(elev) * dist, Math.cos(az) * Math.cos(elev) * dist);
+      cam.lookAt(0, 12, 0);
+      renderer.render(scene, cam); requestAnimationFrame(loop);
+    })();
+  })();
+
+  // ---------- Act 5: drain map ----------
+  (function drains() {
+    const svg = document.getElementById("dmap"), dd = D.drains, [x0, y0, x1, y1] = dd.bbox;
+    const kx = Math.cos(37.7634 * Math.PI / 180), Wd = (x1 - x0) * kx, Hd = (y1 - y0), s = 1000 / Math.max(Wd, Hd);
+    const P = ([lo, la]) => [((lo - x0) * kx) * s, 1000 - (la - y0) * s];
+    svg.setAttribute("viewBox", `0 ${1000 - Hd * s} ${Wd * s} ${Hd * s}`);
+    el("rect", { x: 0, y: 1000 - Hd * s, width: Wd * s, height: Hd * s, fill: "#0b141c" }, svg);
+    dd.others.forEach(p => { const [x, y] = P(p); el("circle", { cx: x, cy: y, r: 3.2, fill: "#4c6378" }, svg); });
+    dd.nye311.forEach(p => { const [x, y] = P(p); el("circle", { cx: x, cy: y, r: 7, fill: C.red, stroke: "#0b141c", "stroke-width": 2 }, svg); });
+    const [sx, sy] = P(dd.site); el("path", { d: `M${sx - 14} ${sy}H${sx + 14}M${sx} ${sy - 14}V${sy + 14}`, stroke: C.fg, "stroke-width": 3 }, svg);
+    txt(svg, sx + 16, sy - 12, "17th & Folsom", { fill: C.fg, "font-size": 22, "font-weight": 600 });
+    dd.top.forEach(d => { const [x, y] = P([d.lon, d.lat]); el("circle", { cx: x, cy: y, r: 19, fill: C.amber, stroke: "#0b141c", "stroke-width": 3 }, svg); txt(svg, x, y + 7, d.rank, { fill: "#141414", "font-size": 20, "font-weight": 700, "text-anchor": "middle" }); });
+    document.getElementById("dCount").textContent = dd.count;
+    const list = document.getElementById("dlist");
+    dd.top.forEach(d => { const c = document.createElement("div"); c.className = "dcard";
+      c.innerHTML = `<span class="r">#${d.rank}</span><span class="a">${d.asset} · ${(d.area_m2 / 1000).toFixed(1)}k m² drains here</span><span class="v">scout pending</span>`; list.appendChild(c); });
+  })();
+
+  // ---------- footage slots: play recorded media when present ----------
+  document.querySelectorAll(".slot[data-src]").forEach(async s => {
+    try { const r = await fetch(s.dataset.src, { method: "HEAD" }); if (!r.ok) return;
+      const v = document.createElement("video"); v.src = s.dataset.src; v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true; v.controls = true;
+      s.prepend(v); s.classList.add("filled"); } catch (e) {}
+  });
+})();
+</script>
