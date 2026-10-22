@@ -20,6 +20,8 @@
 |---|---|
 | **`demo/index.html`** | **The story demo**: five acts, live lidar scene, real data, footage slots (`plan/story.md`) |
 | `plan/story.md` | Story arc, footage file names, drain walk, what's computed Sunday |
+| `scripts/citywide_analysis.py` | Citywide drain ranking + street low spots + validation vs 311 (runs anywhere; ~1 min) |
+| `scripts/download_citywide.py` | Resumable citywide downloads (photos, drains, 311, SFPUC, SF 1 m DEM) |
 | `scripts/drain_priority.py` | Ranks real SFPUC drains by water reaching each grate (lidar terrain) |
 | `scripts/build_story_data.py` | Packs data + assets into `demo/` |
 | `pitch/application-answers.md` | Paste-ready application answers |

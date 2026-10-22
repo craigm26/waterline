@@ -1,0 +1,9 @@
+{
+  "_doc": "Copy to demo/results.json on Sunday and fill from real runs. The page shows each block only when its key is present.",
+  "verify": {"baseline": 0.41, "final": 0.79, "iterations": 6, "target": 0.75, "log": "runs/verify_log.jsonl"},
+  "photo_depths": {"16238675": {"depth_in": 6, "range_in": [4, 8], "reference": "curb top", "model": "gemini-4-argon"}},
+  "model_at_photos": {"16238675": {"p50_in": 5.5}},
+  "scout": {"1": "blocked", "2": "clear"},
+  "payoff": {"site": "17th & Folsom", "storm": "Dec 31 2022 replay", "flooded_area_blocked_m2": 0, "flooded_area_cleared_m2": 0, "pct_reduction": 0},
+  "any_block_run": {"place": "", "minutes": 0, "trace": "runs/mcp_log.jsonl"}
+}

@@ -91,3 +91,34 @@ Build an iOS (Swift, ARCore Geospatial via CocoaPods 'ARCore/Geospatial') screen
 Review this session: where did we stall, and why? Write the lessons into AGENTS.md so the next run
 of this pipeline (another neighborhood) takes the direct path.
 ```
+
+## 5. Photo depth readings (Act 3) · Gemini vision, thinking_level: medium
+
+```
+For each image in data/ground_truth/nye311_photos/ (metadata in photos.json), estimate the water depth at
+the deepest visible point near the camera, in inches, using a visible reference: curb height (SF curbs
+~6 in), car tire (wheel rim center ~13 in above ground), doorstep, traffic cone (28 in), bike rack.
+Return JSON {id: {depth_in, range_in: [lo, hi], reference, confidence: low|medium|high, note}}.
+Say "no reference visible" rather than guess. Write it to demo/results.json under "photo_depths".
+Then sample the replay depth grid at each photo's lat/lon (P50, inches) into "model_at_photos".
+```
+
+## 6. Prevention payoff (Act 5) · thinking_level: high
+
+```
+Using hydraulics.py on the Dec 31 2022 replay at 17th & Folsom, run two cases: (a) the 12 priority drains
+in data/derived/drain_priority.geojson that the scout marked "blocked" in demo/results.json "scout" have
+capacity x 0.1; (b) the same drains cleared (capacity x 1.0). Report flooded area (depth >= 0.05 m) for
+each and the % reduction. Write demo/results.json "payoff". If no scout data yet, treat all 12 as blocked
+and label the result "all 12 assumed blocked".
+```
+
+## 7. Any block (Act 6, footage V1) · Managed Agents
+
+```
+New site: <address or lat,lon chosen live>. Using only the MCP tools, build the site: fetch the lidar crop
+(scripts/fetch_lidar.py --crop), the drains and 311 history within 400 m (data/derived/citywide/*), rank
+drains with the same score as drain_priority.py, find the lowest street bowl, and write a 6-line brief
+with provenance. Log every tool call to runs/mcp_log.jsonl. Stop when the brief is written.
+```
+Screen-record the trace view while it runs; speed it up 4–8× for V1.

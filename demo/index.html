@@ -1,6 +1,7 @@
 <meta charset="utf-8">
 <title>Waterline</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="share-url" content="https://claude.ai/artifact/DzXzkyFJqVJwShFK1SdimN">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: five full-width acts on a night-harbor ground, each a headline + one hero visual; data is always the star.
@@ -112,6 +113,44 @@ figcaption { font-size: .88rem; color: var(--muted); }
 .step b { font: 700 1.2rem var(--display); }
 .step p { margin: 0; font-size: .93rem; color: var(--muted); }
 
+/* live gauge */
+.live { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; font: 500 .9rem var(--mono); color: var(--fg); background: rgba(20,34,48,.85); border: 1px solid var(--rule); border-radius: 999px; padding: 8px 14px; justify-self: start; }
+.live .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+.live.on .dot { background: #3ddc84; box-shadow: 0 0 0 0 rgba(61,220,132,.6); animation: pulse 2s infinite; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(61,220,132,0); } 100% { box-shadow: 0 0 0 0 rgba(61,220,132,0); } }
+@media (prefers-reduced-motion: reduce) { .live.on .dot { animation: none; } }
+.photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.ph { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; display: grid; min-width: 0; margin: 0; }
+.ph img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; border: 0; border-radius: 0; }
+.ph .m { padding: 10px 12px; display: grid; gap: 4px; }
+.ph .t { font: .76rem var(--mono); color: var(--muted); }
+.ph .p { font: 600 .95rem var(--body); }
+.chip { font: 600 .76rem var(--mono); padding: 3px 9px; border-radius: 999px; border: 1px dashed #3b5670; color: var(--muted); justify-self: start; }
+.chip.done { border: 1px solid var(--water); color: var(--water); }
+.city { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .city { grid-template-columns: 1fr; } }
+.mapwrap { position: relative; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: #0a1016; }
+.mapwrap canvas { display: block; width: 100%; height: auto; cursor: crosshair; touch-action: manipulation; }
+.layers { display: flex; flex-wrap: wrap; gap: 8px; }
+.layers label { display: inline-flex; align-items: center; gap: 6px; font: .82rem var(--mono); color: var(--fg); background: var(--panel); border: 1px solid var(--rule); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.side { display: grid; gap: 14px; min-width: 0; }
+.block { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+.block h3 { margin: 0; font: 700 1.3rem var(--display); }
+.block table { width: 100%; border-collapse: collapse; font: .82rem var(--mono); }
+.block td, .block th { padding: 5px 6px; border-bottom: 1px solid var(--rule); text-align: left; }
+.block th { color: var(--muted); font-weight: 500; }
+.tbl { overflow-x: auto; }
+.hot { display: grid; gap: 6px; }
+.hot button { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) auto; gap: 10px; align-items: center; text-align: left; background: var(--panel); color: var(--fg); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 12px; cursor: pointer; font: .88rem var(--body); }
+.hot button[aria-pressed="true"] { border-color: var(--amber); box-shadow: inset 3px 0 0 var(--amber); }
+.hot button b { font: 700 1.3rem var(--display); color: var(--amber); }
+.hot button span.k { font: .74rem var(--mono); color: var(--muted); }
+.range { display: grid; gap: 4px; font: .82rem var(--mono); color: var(--muted); }
+.range input { width: 100%; accent-color: var(--water); }
+.tl { width: 100%; height: auto; display: block; }
+.qr { display: flex; flex-wrap: wrap; gap: 22px; align-items: center; }
+.qr .code { background: #fff; padding: 12px; border-radius: 8px; width: 184px; height: 184px; }
+.qr .code svg { width: 100%; height: 100%; display: block; }
 /* close */
 .close { padding-block: 110px 80px; text-align: left; background: radial-gradient(900px 400px at 20% 120%, #17324b 0%, transparent 60%), var(--night); }
 .close h2 { font-size: clamp(2.4rem, 6vw, 4.6rem); max-width: 18ch; }
@@ -126,6 +165,7 @@ footer .wrap { display: grid; gap: 8px; }
     <h1 id="h1">On October 11, San Francisco Bay crossed flood stage.</h1>
     <div class="big num" id="heroPeak">7.57<small>ft</small></div>
     <p class="lede">It's October, before king-tide season. A strong El Niño has the Bay running a foot above prediction. Waterline shows what this winter means on your street, and what to do before the storm arrives.</p>
+    <p class="live" id="live" aria-live="polite"><span class="dot"></span><span id="liveTxt">Checking the San Francisco tide gauge…</span></p>
   </div>
   <div class="waves" aria-hidden="true">
     <svg viewBox="0 0 2400 150" preserveAspectRatio="none"><path d="M0 70 Q150 40 300 70 T600 70 T900 70 T1200 70 T1500 70 T1800 70 T2100 70 T2400 70 V150 H0Z" fill="#123553"/></svg>
@@ -149,7 +189,12 @@ footer .wrap { display: grid; gap: 8px; }
         <div class="stat alert"><b class="num">7.57 ft</b><span>Oct 11 peak, above the NWS minor flood line (7.04)</span></div>
         <div class="stat"><b class="num">70–83%</b><span>NOAA's odds this El Niño is the strongest since 1950</span></div>
       </div>
-      <div class="slot" data-shot="F0" data-src="media/f0_high_water.mp4" >
+      <div class="panel" style="display:grid;gap:10px">
+        <p class="eyebrow" style="color:var(--amber)">This isn't one event. More waves are coming.</p>
+        <svg class="tl" id="kelvinTl" viewBox="0 0 1100 235" role="img" aria-label="Timeline of Kelvin-wave pulses, NOAA updates and king tides from September 2026 to March 2027"></svg>
+        <p class="note">Expected pulses: oceanographer Dillon Amaya (NC State), as reported by NPR and ABC7. King tides: NOAA predictions. Gauge peak: measured.</p>
+      </div>
+      <div class="slot" data-shot="F0" data-src="media/f0_high_water.mp4">
         <div class="cap"><b>Footage F0 · the Bay outside this building, 11:07 AM today</b><span>Real high water at the Embarcadero seawall with the live gauge reading. Recorded Sun Oct 25.</span></div>
       </div>
     </div>
@@ -175,7 +220,7 @@ footer .wrap { display: grid; gap: 8px; }
         <div class="readout"><b class="num" id="lvl">8.2 ft</b><span id="gap">1.9 ft below the promenade</span><span class="prov" id="prov"><i class="sw o"></i>NOAA prediction + measured offset</span></div>
       </div>
       <div class="grid2">
-        <div class="slot" data-shot="F2" data-src="media/f2_resident_ar.mp4" >
+        <div class="slot" data-shot="F2" data-src="media/f2_resident_ar.mp4">
           <div class="cap"><b>Footage F2–F4 · the water line in AR, on the seawall</b><span>iPhone, ARCore Geospatial with LiDAR occlusion. Recorded Sun Oct 25, 4:30–6:00 PM.</span></div>
         </div>
         <div class="panel" style="display:grid;gap:12px">
@@ -207,6 +252,12 @@ footer .wrap { display: grid; gap: 8px; }
           <p class="note">Scores are computed live on Sun Oct 25 and filled in here.</p>
         </div>
       </div>
+      <div class="head" style="margin-top:12px">
+        <p class="eyebrow" style="color:var(--amber)">That night, in their own photos</p>
+        <p class="lede">Eight people attached photos to their 311 reports. Gemini reads each one, measuring the water against curbs, tires and doorsteps, and that becomes a depth to check the model against.</p>
+      </div>
+      <div class="photos" id="photos"></div>
+      <p class="note">Photos: SF 311 public records (DataSF), Dec 31 2022 – Jan 1 2023. Plates blurred; locations shown to the street.</p>
     </div>
   </section>
 
@@ -239,7 +290,7 @@ footer .wrap { display: grid; gap: 8px; }
         <div class="panel"><svg class="chart" id="dmap" viewBox="0 0 1000 1000" role="img" aria-label="Map of storm drains around 17th and Folsom with the twelve highest-priority drains numbered"></svg>
           <p class="note" style="margin-top:8px">Drains: SFPUC, the Adopt-a-Drain dataset. Ranking: water reaching each grate on the lidar terrain, each drain intercepting what reaches it. Red: 311 flooding reports, Dec 31 2022.</p></div>
         <div style="display:grid;gap:14px;min-width:0">
-          <div class="slot" data-shot="R1" data-src="media/r1_rover_scout.mp4" >
+          <div class="slot" data-shot="R1" data-src="media/r1_rover_scout.mp4">
             <div class="cap"><b>Footage R1 · rover scouts a grate</b><span>Pi rover with depth camera approaches a leaf-covered grate; Gemini labels it. Recorded before the event.</span></div>
           </div>
           <div class="dlist" id="dlist"></div>
@@ -252,6 +303,64 @@ footer .wrap { display: grid; gap: 8px; }
         <div class="step"><b>3 · Dispatch</b><p>The coordinator sends the blocked ones to Adopt-a-Drain volunteers and Public Works, with a deadline before the rain.</p></div>
         <div class="step"><b>4 · Re-run</b><p>The hydraulics agent re-runs with those drains cleared, and the city sees how much ponding it avoided.</p></div>
       </div>
+      <div class="grid2">
+        <div class="stats">
+          <div class="stat alert"><b class="num" id="payoffPct">—</b><span>Less flooded area at 17th &amp; Folsom with the blocked priority drains cleared, New Year's Eve storm replay. Computed Sun Oct 25.</span></div>
+          <div class="stat"><b class="num" id="lift">1.6×</b><span>Past flooding reports near the city's top-ranked drains, against a random sample (citywide check, Act 6)</span></div>
+        </div>
+        <div class="slot" data-shot="A1" data-src="media/a1_adopt_clear.mp4">
+          <div class="cap"><b>Footage A1 · I adopted drain N-339755 at 17th &amp; Folsom</b><span>Clearing the grate before the rain, as Adopt-a-Drain asks. Recorded Thu Oct 22.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="act" aria-labelledby="a6">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Act 6 · The whole city</p>
+        <h2 id="a6">Every drain and every low spot in San Francisco, ranked before Christmas.</h2>
+        <p class="lede">The same pipeline ran citywide on the USGS lidar: <span id="cDrains">23,835</span> drains ranked, the street low spots where water collects first, and the city's 311 flooding history. Tap anywhere on the map to see that block.</p>
+      </div>
+      <div class="layers" role="group" aria-label="Map layers">
+        <label><input type="checkbox" id="lyDrains" checked> Top 500 drains</label>
+        <label><input type="checkbox" id="lyHot" checked> Top 50 low spots</label>
+        <label><input type="checkbox" id="ly311"> 311 flooding history</label>
+      </div>
+      <div class="city">
+        <div class="mapwrap"><canvas id="cityMap" width="1200" height="1200" aria-label="Map of San Francisco with ranked drains and flood low spots; tap to inspect a block"></canvas></div>
+        <div class="side">
+          <div class="block" id="blockPanel">
+            <h3 id="bTitle">Pick a block</h3>
+            <div class="seg" id="presets" role="group" aria-label="Places"></div>
+            <div id="bBody" class="note">Tap the map, or pick a place, to see the drains that matter most within 300 m and that block's flooding history.</div>
+          </div>
+          <div class="slot" data-shot="V1" data-src="media/v1_any_block.mp4">
+            <div class="cap"><b>Footage V1 · an unprepared block, start to finish</b><span>Time-lapse of the managed agents building a new site: lidar, drains, history, depth. Recorded Sun Oct 25.</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat alert"><b class="num" id="cTop500">9.7</b><span>Past 311 flooding reports within 75 m of the top 500 drains, on average</span></div>
+        <div class="stat"><b class="num" id="cRand">6.1</b><span>The same for 500 random drains</span></div>
+        <div class="stat"><b class="num" id="cZone">28 of 50</b><span>Top street low spots inside the city's own 100-year flood zone</span></div>
+        <div class="stat"><b class="num" id="c311">26,458</b><span>311 flooding reports on the map</span></div>
+      </div>
+      <div class="head" style="margin-top:8px">
+        <p class="eyebrow" style="color:var(--amber)">Drill down · lidar</p>
+        <h2 style="font-size:clamp(1.6rem,3.4vw,2.4rem)">Fill a low spot and watch where the water goes.</h2>
+      </div>
+      <div class="city">
+        <div class="scene" id="hsScene"><div class="loading" id="hsLoading">Pick a low spot</div>
+          <div class="hud"><span id="hsHud">USGS 3DEP lidar · vertical ×1.5 · drag to orbit</span></div>
+          <div class="readout"><b class="num" id="hsLvl">0 ft</b><span id="hsArea">above the lowest point</span></div>
+        </div>
+        <div class="side">
+          <div class="hot" id="hotList"></div>
+          <div class="range"><label for="hsDepth">Water above the lowest point: <span id="hsDepthTxt">3.0 ft</span></label><input type="range" id="hsDepth" min="0" max="8" step="0.25" value="3"></div>
+          <p class="note">Elevation-only fill from the lowest lidar ground point near the centre: no pipes, no rain timing. It shows the shape of the bowl, not a forecast.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -260,6 +369,8 @@ footer .wrap { display: grid; gap: 8px; }
       <p class="eyebrow">Waterline</p>
       <h2 id="c1">Strong El Niño. Street level. This winter.</h2>
       <p class="lede">From the tide gauge to your block to the drain on your corner: prediction, proof and prevention, run by Gemini 4 Argon managed agents.</p>
+      <div class="qr"><div class="code" id="qr" aria-label="QR code to open this demo on your phone"></div>
+        <div style="display:grid;gap:6px;max-width:40ch"><b style="font:700 1.5rem var(--display)">Raise the water yourself.</b><span class="note">Scan to open Waterline on your phone and try the Christmas Eve scenarios at the Ferry Building.</span><span class="note" id="qrUrl"></span></div></div>
     </div>
   </section>
 </main>
@@ -272,14 +383,21 @@ footer .wrap { display: grid; gap: 8px; }
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>
 (async function () {
   const NS = "http://www.w3.org/2000/svg";
   const C = { fg: "#e8eef3", muted: "#8fa3b5", rule: "#22374a", water: "#3aa0ff", water2: "#1d5f99", amber: "#f2b33d", orange: "#f08a3c", red: "#ff6b5b", ground: "#b79f7d" };
   const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
   const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, fill: C.muted, "font-size": 14, ...attrs }, parent); t.textContent = s; return t; };
-  let D;
+  let D, R = {};
   try { D = await (await fetch("story-data.json")).json(); } catch (e) { console.error(e); return; }
+  try { const r = await fetch("results.json"); if (r.ok) R = await r.json(); } catch (e) {}
+  async function loadBin(url) {
+    try { const r = await fetch(url); if (r.ok) return await r.arrayBuffer(); } catch (e) {}
+    try { const r = await fetch(url.replace(".bin", ".b64.txt")); if (!r.ok) return null;
+      const s = atob((await r.text()).trim()), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u.buffer; } catch (e) { return null; }
+  }
 
   // ---------- Act 1: Kelvin chart ----------
   (function kelvin() {
@@ -388,12 +506,8 @@ ${rows || "  none"}
     const host = document.getElementById("scene");
     if (!window.THREE) { document.getElementById("sceneLoading").textContent = "3D view unavailable"; return; }
     let buf;
-    try { const r = await fetch(D.lidar.coast_bin); if (!r.ok) throw 0; buf = await r.arrayBuffer(); }
-    catch (e) {
-      try { const r = await fetch(D.lidar.coast_bin.replace(".bin", ".b64.txt")); if (!r.ok) throw 0;
-        const s = atob((await r.text()).trim()), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); buf = u.buffer; }
-      catch (e2) { document.getElementById("sceneLoading").textContent = "Lidar file missing: run scripts/build_story_data.py"; return; }
-    }
+    buf = await loadBin(innerWidth < 760 ? D.lidar.coast_bin.replace(".bin", "_lite.bin") : D.lidar.coast_bin);
+    if (!buf) { document.getElementById("sceneLoading").textContent = "Lidar file missing: run scripts/build_story_data.py"; return; }
     const n = Math.floor(buf.byteLength / 14), dv = new DataView(buf);
     const EX = 1.5, M = 3.28084;
     let pos = new Float32Array(n * 3), col = new Float32Array(n * 3), k = 0, sx = 0, sy = 0;
@@ -476,7 +590,199 @@ ${rows || "  none"}
     document.getElementById("dCount").textContent = dd.count;
     const list = document.getElementById("dlist");
     dd.top.forEach(d => { const c = document.createElement("div"); c.className = "dcard";
-      c.innerHTML = `<span class="r">#${d.rank}</span><span class="a">${d.asset} · ${(d.area_m2 / 1000).toFixed(1)}k m² drains here</span><span class="v">scout pending</span>`; list.appendChild(c); });
+      const v = (R.scout || {})[d.rank];
+      c.innerHTML = `<span class="r">#${d.rank}</span><span class="a">${d.asset} · ${(d.area_m2 / 1000).toFixed(1)}k m² drains here</span><span class="v"${v ? ' style="border-style:solid;color:' + (v === "blocked" ? "#ff6b5b" : v === "clear" ? "#3ddc84" : "#f2b33d") + '"' : ""}>${v || "scout pending"}</span>`; list.appendChild(c); });
+  })();
+
+  // ---------- live gauge ----------
+  (async function live() {
+    const box = document.getElementById("live"), tx = document.getElementById("liveTxt");
+    const y26 = Object.entries(D.kelvin.y2026), last = y26[y26.length - 1];
+    try {
+      const base = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=9414290&date=today&datum=MLLW&units=english&time_zone=lst_ldt&format=json&application=waterline";
+      const [o, p] = await Promise.all([fetch(base + "&product=water_level").then(r => r.json()), fetch(base + "&product=predictions").then(r => r.json())]);
+      const obs = (o.data || []).filter(x => x.v !== ""), lo = obs[obs.length - 1];
+      const pm = Object.fromEntries((p.predictions || []).map(x => [x.t, +x.v]));
+      if (!lo || pm[lo.t] === undefined) throw 0;
+      const res = +lo.v - pm[lo.t], hh = lo.t.split(" ")[1];
+      tx.textContent = `Live · SF tide gauge ${hh}: ${(+lo.v).toFixed(2)} ft MLLW, ${res >= 0 ? "+" : ""}${res.toFixed(2)} ft above prediction`;
+      box.classList.add("on");
+    } catch (e) {
+      tx.textContent = `SF tide gauge, ${new Date(last[0] + "T12:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}: +${last[1].toFixed(2)} ft above prediction (daily mean)`;
+    }
+  })();
+
+  // ---------- Kelvin timeline ----------
+  (function timeline() {
+    const svg = document.getElementById("kelvinTl"), W = 1100, L = 30, RR = 30;
+    const t0 = Date.parse("2026-09-01"), t1 = Date.parse("2027-04-01"), X = d => L + (Date.parse(d) - t0) / (t1 - t0) * (W - L - RR);
+    el("line", { x1: L, x2: W - RR, y1: 130, y2: 130, stroke: C.rule, "stroke-width": 2 }, svg);
+    ["2026-09-01", "2026-10-01", "2026-11-01", "2026-12-01", "2027-01-01", "2027-02-01", "2027-03-01"].forEach(d => {
+      el("line", { x1: X(d), x2: X(d), y1: 124, y2: 136, stroke: C.muted }, svg);
+      txt(svg, X(d) + 4, 152, new Date(d + "T12:00").toLocaleDateString("en-US", { month: "short" }), { "font-size": 13 });
+    });
+    const today = new Date().toISOString().slice(0, 10);
+    if (Date.parse(today) > t0 && Date.parse(today) < t1) { el("line", { x1: X(today), x2: X(today), y1: 112, y2: 170, stroke: C.fg, "stroke-dasharray": "3 4" }, svg); txt(svg, X(today) + 4, 168, "today", { fill: C.fg, "font-size": 12 }); }
+    const col = { measured: C.amber, observed: C.water, expected: C.orange, predicted: "#7fb8e8", scheduled: C.muted };
+    const lanes = [22, 46, 70, 94], laneEnd = [0, 0, 0, 0];
+    const short = e => e.kind === "expected" ? "Next Kelvin wave (expected)" : e.kind === "predicted" ? "King tides " + (e.text.match(/[\d.]+ ft/) || [""])[0]
+      : e.kind === "scheduled" ? "NOAA ENSO update" : e.kind === "measured" ? "Gauge 7.57 ft: flood stage" : e.date === "2026-09-18" ? "Bay +6 in above normal" : "SoCal +6–8 in";
+    D.kelvin_outlook.forEach(e => {
+      const c = col[e.kind] || C.muted;
+      if (e.date_start && Date.parse(e.date_end) - Date.parse(e.date_start) > 90 * 864e5) {
+        el("rect", { x: X(e.date_start), y: 192, width: X(e.date_end) - X(e.date_start), height: 10, fill: c, opacity: .45, rx: 3 }, svg);
+        txt(svg, X(e.date_start), 222, "Strong El Niño · more Kelvin waves · sea level may stay high into spring 2027", { fill: C.fg, "font-size": 13 });
+        return;
+      }
+      const x0 = X(e.date || e.date_start), x1 = e.date_end ? X(e.date_end) : x0;
+      if (e.date_end) el("rect", { x: x0, y: 122, width: Math.max(5, x1 - x0), height: 16, fill: c, rx: 3, opacity: .9 }, svg);
+      else el("circle", { cx: x0, cy: 130, r: 6.5, fill: c }, svg);
+      const label = short(e), w = label.length * 7.9 + 10, lx = Math.min(x0 + 3, W - w);
+      let li = laneEnd.findIndex(end => end < lx); if (li < 0) li = laneEnd.indexOf(Math.min(...laneEnd));
+      laneEnd[li] = lx + w; const y = lanes[li];
+      el("line", { x1: x0, x2: x0, y1: y + 5, y2: 122, stroke: c, "stroke-width": 1, opacity: .7 }, svg);
+      txt(svg, lx, y, label, { fill: c, "font-size": 13 });
+    });
+  })();
+
+  // ---------- photos + results.json ----------
+  (function photos() {
+    const box = document.getElementById("photos"), PD = R.photo_depths || {}, MP = R.model_at_photos || {};
+    D.photos.forEach(p => {
+      const d = document.createElement("figure"); d.className = "ph";
+      const g = PD[p.id], m = MP[p.id];
+      const chip = g ? `<span class="chip done">Gemini: ~${g.depth_in} in${g.reference ? " · vs " + g.reference : ""}</span>` : `<span class="chip">Gemini depth reading · Sun</span>`;
+      const mod = m ? `<span class="chip done">Model: ${m.p50_in} in</span>` : "";
+      d.innerHTML = `<img src="${p.src}" alt="311 photo of flooding at ${p.place}, ${p.time.slice(11, 16)}"><div class="m"><span class="t">${new Date(p.time).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${p.time.slice(11, 16)} · ${p.kind === "On_street" ? "street" : "property"}</span><span class="p">${p.place}</span>${chip}${mod}</div>`;
+      box.appendChild(d);
+    });
+    if (R.verify) { document.getElementById("scoreBase").textContent = (+R.verify.baseline).toFixed(2); document.getElementById("scoreFinal").textContent = (+R.verify.final).toFixed(2); }
+    if (R.payoff && R.payoff.pct_reduction) document.getElementById("payoffPct").textContent = "−" + Math.round(R.payoff.pct_reduction) + "%";
+  })();
+
+  // ---------- city map + any block ----------
+  (function city() {
+    const cw = D.citywide, cv = document.getElementById("cityMap"), ctx = cv.getContext("2d");
+    const S = cv.width / cw.w; cv.height = Math.round(cw.h * S);
+    const img = new Image(); img.src = cw.basemap;
+    const ly = { d: document.getElementById("lyDrains"), h: document.getElementById("lyHot"), f: document.getElementById("ly311") };
+    const sm = cw.summary, rnd = sm.random500_mean_311_75m_p50_p95[0];
+    document.getElementById("cDrains").textContent = sm.inlets_ranked.toLocaleString();
+    document.getElementById("cTop500").textContent = sm.top500_mean_311_75m.toFixed(1);
+    document.getElementById("cRand").textContent = rnd.toFixed(1);
+    document.getElementById("cZone").textContent = sm.top50_hotspots_in_sfpuc_zone + " of 50";
+    document.getElementById("c311").textContent = sm.flood311_reports.toLocaleString();
+    document.getElementById("lift").textContent = (sm.top500_mean_311_75m / rnd).toFixed(1) + "×";
+    // lon/lat -> map px via a least-squares affine fit on the hotspots (they carry both)
+    const H = cw.hotspots;
+    const fit = k => { const M = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], b = [0, 0, 0];
+      H.forEach(h => { const a = [h[8][0], h[8][1], 1]; for (let i = 0; i < 3; i++) { b[i] += a[i] * h[k]; for (let j = 0; j < 3; j++) M[i][j] += a[i] * a[j]; } });
+      const m = M.map((r, i) => [...r, b[i]]);
+      for (let i = 0; i < 3; i++) { let p = i; for (let j = i + 1; j < 3; j++) if (Math.abs(m[j][i]) > Math.abs(m[p][i])) p = j; [m[i], m[p]] = [m[p], m[i]];
+        for (let j = 0; j < 3; j++) if (j !== i) { const f = m[j][i] / m[i][i]; for (let q = i; q < 4; q++) m[j][q] -= f * m[i][q]; } }
+      return [0, 1, 2].map(i => m[i][3] / m[i][i]); };
+    const ax = fit(0), ay = fit(1), toPx = (lon, lat) => [ax[0] * lon + ax[1] * lat + ax[2], ay[0] * lon + ay[1] * lat + ay[2]];
+    let sel = null;
+    function draw() {
+      ctx.fillStyle = "#0a1016"; ctx.fillRect(0, 0, cv.width, cv.height);
+      if (img.complete && img.naturalWidth) ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      if (ly.f.checked) { ctx.fillStyle = "rgba(255,107,91,.4)"; cw.flood311.forEach(([x, y]) => ctx.fillRect(x * S - 1, y * S - 1, 2.2, 2.2)); }
+      if (ly.d.checked) { ctx.fillStyle = "#f2b33d"; for (const d of cw.drains) { if (d[2] > 500) continue; ctx.beginPath(); ctx.arc(d[0] * S, d[1] * S, 2 + 3.5 * (501 - d[2]) / 500, 0, 7); ctx.fill(); } }
+      if (ly.h.checked) { ctx.strokeStyle = "#3aa0ff"; ctx.lineWidth = 2.5; H.forEach(h => { ctx.beginPath(); ctx.arc(h[0] * S, h[1] * S, 10, 0, 7); ctx.stroke(); }); }
+      if (sel) { ctx.strokeStyle = "#e8eef3"; ctx.lineWidth = 2; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.arc(sel[0] * S, sel[1] * S, 300 / cw.m_per_px * S, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+    }
+    img.onload = draw; Object.values(ly).forEach(c => c.addEventListener("change", draw)); draw();
+    function inspect(x, y, name) {
+      sel = [x, y]; draw();
+      const rpx = 300 / cw.m_per_px, near = cw.drains.filter(d => Math.hypot(d[0] - x, d[1] - y) <= rpx).sort((a, b) => a[2] - b[2]);
+      const n311 = cw.flood311.filter(p => Math.hypot(p[0] - x, p[1] - y) <= rpx).length;
+      const hs = H.filter(h => Math.hypot(h[0] - x, h[1] - y) <= 600 / cw.m_per_px).sort((a, b) => a[2] - b[2])[0];
+      document.getElementById("bTitle").textContent = name || "This block";
+      const rows = near.slice(0, 6).map(d => `<tr><td>#${d[2].toLocaleString()}</td><td>${d[7]}</td><td>${Math.round(d[4] * 100)} cm</td><td>${d[6]}</td></tr>`).join("");
+      document.getElementById("bBody").innerHTML = `<p style="margin:0">${near.length} city drains within 300 m · <b>${n311}</b> past 311 flooding reports within 300 m.${hs ? ` Nearest top low spot: <b>#${hs[2]}</b>, ${hs[4].toFixed(1)} m deep, ${hs[3].toLocaleString()} m².` : ""}</p>` +
+        (rows ? `<div class="tbl"><table><thead><tr><th>City rank</th><th>Drain</th><th>Low spot</th><th>311 nearby</th></tr></thead><tbody>${rows}</tbody></table></div>` : "") +
+        `<p class="note" style="margin:0">Rank among ${sm.inlets_ranked.toLocaleString()} drains citywide. Low spot = lidar depression within 15 m.</p>`;
+    }
+    cv.addEventListener("click", e => { const r = cv.getBoundingClientRect(); inspect((e.clientX - r.left) / r.width * cw.w, (e.clientY - r.top) / r.height * cw.h); });
+    const places = [["17th & Folsom", -122.4150, 37.7634], ["Mission Creek", -122.3960, 37.7720], ["Islais Creek", -122.3890, 37.7505], ["Ferry Building", -122.3935, 37.7955], ["Marina", -122.4370, 37.8030], ["Outer Sunset", -122.5070, 37.7600]];
+    const pr = document.getElementById("presets");
+    places.forEach(([n, lo, la]) => { const b = document.createElement("button"); b.type = "button"; b.textContent = n; b.setAttribute("aria-pressed", "false");
+      b.onclick = () => { pr.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); const [x, y] = toPx(lo, la); inspect(x, y, n); }; pr.appendChild(b); });
+  })();
+
+  // ---------- hotspot drill-down: lidar bowl fill ----------
+  (function hotspots() {
+    const list = document.getElementById("hotList"), host = document.getElementById("hsScene"), slider = document.getElementById("hsDepth");
+    const ranks = { hs02_folsom: 2, hs01_soma: 1, hs04_islais: 4, hs07_bayview: 7, hs03_greathwy: 3 };
+    let renderer, scene, cam, setDepth = () => {}, az = 0.8, elev = 0.6, dist = 360, drag = null, token = 0;
+    D.hotspot_scenes.forEach((h, i) => {
+      const hs = D.citywide.hotspots.find(x => x[2] === ranks[h.id]);
+      const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", "false");
+      b.innerHTML = `<b>#${ranks[h.id]}</b><span>${h.title}<br><span class="k">${hs ? hs[3].toLocaleString() + " m² · " + hs[6] + " past 311 reports nearby" : ""}</span></span><span class="k">${hs && hs[7] ? "100-yr zone" : ""}</span>`;
+      b.onclick = () => { list.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); open(h); };
+      list.appendChild(b);
+      if (i === 0) setTimeout(() => b.click(), 60);
+    });
+    async function open(h) {
+      if (!window.THREE) return;
+      const my = ++token, ld = document.getElementById("hsLoading"); if (ld) ld.textContent = "Loading lidar…";
+      const buf = await loadBin(h.bin); if (!buf || my !== token) return;
+      const n = Math.floor(buf.byteLength / 14), dv = new DataView(buf), EX = 1.5;
+      const pos = new Float32Array(n * 3), col = new Float32Array(n * 3); let k = 0, sx = 0, sy = 0;
+      for (let i = 0; i < n; i++) { sx += dv.getFloat32(i * 14, true); sy += dv.getFloat32(i * 14 + 4, true); }
+      const cx = sx / n, cy = sy / n, CS = 2, half = 170, G = Math.ceil(2 * half / CS), gz = new Float32Array(G * G).fill(Infinity);
+      const pal = { 1: [0.56, 0.62, 0.69], 2: [0.72, 0.62, 0.49], 9: [0.10, 0.26, 0.40], 17: [0.62, 0.56, 0.72] };
+      for (let i = 0; i < n; i++) { const o = i * 14, c = dv.getUint8(o + 12); if (c === 7 || c === 18) continue;
+        const x = dv.getFloat32(o, true) - cx, y = dv.getFloat32(o + 4, true) - cy, z = dv.getFloat32(o + 8, true), it = dv.getUint8(o + 13) / 255;
+        pos[k * 3] = x; pos[k * 3 + 1] = z; pos[k * 3 + 2] = -y; const p = pal[c] || [0.5, 0.5, 0.5], s = 0.55 + 0.6 * it;
+        col[k * 3] = p[0] * s; col[k * 3 + 1] = p[1] * s; col[k * 3 + 2] = p[2] * s; k++;
+        if (c === 2) { const gx = Math.floor((x + half) / CS), gy = Math.floor((y + half) / CS); if (gx >= 0 && gy >= 0 && gx < G && gy < G) { const j = gy * G + gx; if (z < gz[j]) gz[j] = z; } } }
+      // bowl bottom = 5th-percentile ground within 45 m of the hotspot centre (ignores single pits like ramps);
+      // seed = the ground cell nearest the centre at or below that level
+      const near = []; for (let gy = 0; gy < G; gy++) for (let gx = 0; gx < G; gx++) { const j = gy * G + gx, d = Math.hypot(gx * CS - half, gy * CS - half); if (d < 45 && gz[j] < Infinity) near.push([gz[j], d, j]); }
+      near.sort((a, b) => a[0] - b[0]); const sz = near.length ? near[Math.floor(near.length * 0.05)][0] : 0;
+      let seed = -1, bd = Infinity; near.forEach(([z, d, j]) => { if (z <= sz + 0.05 && d < bd) { bd = d; seed = j; } });
+      const zs = Array.from({ length: Math.min(k, 20000) }, (_, i) => pos[Math.floor(i * k / Math.min(k, 20000)) * 3 + 1]).sort((a, b) => a - b), z0 = zs[Math.floor(zs.length * 0.02)];
+      for (let i = 0; i < k; i++) pos[i * 3 + 1] = (pos[i * 3 + 1] - z0) * EX;
+      if (!renderer) {
+        renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); host.appendChild(renderer.domElement);
+        cam = new THREE.PerspectiveCamera(42, 16 / 9, 1, 3000);
+        const rs = () => { const w = host.clientWidth, hh = host.clientHeight; renderer.setSize(w, hh, false); cam.aspect = w / hh; cam.updateProjectionMatrix(); };
+        new ResizeObserver(rs).observe(host); rs();
+        renderer.domElement.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY, az, elev]; renderer.domElement.setPointerCapture(e.pointerId); });
+        renderer.domElement.addEventListener("pointermove", e => { if (!drag) return; az = drag[2] - (e.clientX - drag[0]) * 0.006; elev = Math.min(1.35, Math.max(0.15, drag[3] + (e.clientY - drag[1]) * 0.004)); });
+        renderer.domElement.addEventListener("pointerup", () => drag = null);
+        const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        (function loop() { if (scene) { cam.position.set(Math.sin(az) * Math.cos(elev) * dist, 15 + Math.sin(elev) * dist, Math.cos(az) * Math.cos(elev) * dist); cam.lookAt(0, 6, 0); renderer.render(scene, cam); }
+          if (!drag && !still) az += 0.0008; requestAnimationFrame(loop); })();
+      }
+      const sc = new THREE.Scene(); sc.background = new THREE.Color(0x070c11);
+      const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos.subarray(0, k * 3), 3)); g.setAttribute("color", new THREE.BufferAttribute(col.subarray(0, k * 3), 3));
+      sc.add(new THREE.Points(g, new THREE.PointsMaterial({ size: 0.9, vertexColors: true })));
+      const mask = new Uint8Array(G * G * 4), tex = new THREE.DataTexture(mask, G, G, THREE.RGBAFormat); tex.magFilter = tex.minFilter = THREE.LinearFilter;
+      const water = new THREE.Mesh(new THREE.PlaneGeometry(G * CS, G * CS), new THREE.MeshBasicMaterial({ color: 0x3aa0ff, transparent: true, opacity: 0.62, alphaMap: tex, depthWrite: false, side: THREE.DoubleSide }));
+      water.rotation.x = -Math.PI / 2; sc.add(water);
+      setDepth = ft => { const lvl = sz + ft * 0.3048, wet = new Uint8Array(G * G), q = seed >= 0 ? [seed] : []; let cnt = 0; if (seed >= 0) wet[seed] = 1;
+        while (q.length) { const j = q.pop(); cnt++; const x = j % G, y = (j / G) | 0;
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= G || yy >= G) continue; const jj = yy * G + xx; if (!wet[jj] && gz[jj] < lvl) { wet[jj] = 1; q.push(jj); } } }
+        for (let j = 0; j < G * G; j++) { const a = wet[j] ? 255 : 0; mask[j * 4] = mask[j * 4 + 1] = mask[j * 4 + 2] = a; mask[j * 4 + 3] = 255; } tex.needsUpdate = true;
+        water.position.y = (lvl - z0) * EX + 0.05;
+        document.getElementById("hsLvl").textContent = ft.toFixed(1) + " ft";
+        document.getElementById("hsArea").textContent = `above the lowest point · ${(cnt * CS * CS).toLocaleString()} m² under water`;
+        document.getElementById("hsDepthTxt").textContent = ft.toFixed(1) + " ft"; };
+      scene = sc; setDepth(+slider.value);
+      document.getElementById("hsHud").textContent = `USGS 3DEP lidar · ${h.title} · vertical ×1.5 · drag to orbit`;
+      const ld2 = document.getElementById("hsLoading"); if (ld2) ld2.remove();
+    }
+    slider.addEventListener("input", () => setDepth(+slider.value));
+  })();
+
+  // ---------- QR for judges ----------
+  (function qr() {
+    const url = (document.querySelector('meta[name="share-url"]') || {}).content || location.href.split("#")[0];
+    document.getElementById("qrUrl").textContent = url.replace(/^https?:\/\//, "");
+    if (!window.qrcode) return; const q = qrcode(0, "M"); q.addData(url); q.make();
+    document.getElementById("qr").innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
   })();
 
   // ---------- footage slots: play recorded media when present ----------

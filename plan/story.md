@@ -14,6 +14,19 @@
 | 5 · Before the storm | Twelve drains matter most; a robot finds out which are blocked | Real SFPUC drain map, top-12 ranked, **footage R1** (rover scout), scout cards → Gemini verdicts | R1: pre-recorded. Verdicts: Sunday |
 | Close | Strong El Niño. Street level. This winter. | | |
 
+## Added Oct 22
+
+- **Hero:** live SF tide-gauge reading (NOAA allows cross-site requests, so it works when you run the site locally; falls back to the latest staged daily value on the published page).
+- **Act 1:** Kelvin-wave timeline: measured, expected and predicted events through spring 2027 (`data/derived/kelvin_outlook.json`).
+- **Act 3:** the 8 citizen photos from Dec 31, 2022 (plates blurred, street-level places), each with a Gemini depth-reading chip and a model-depth chip filled from `results.json`.
+- **Act 5:** payoff stat (from `results.json`), the 1.6× citywide validation, and footage slot **A1** (adopt and clear drain N-339755).
+- **Act 6 · The whole city:** citywide map (top 500 drains, top 50 street low spots, 26k 311 reports), tap-anywhere "any block" panel with presets, footage slot **V1** (any-block agent time-lapse), and a lidar drill-down for 5 hotspots with a fill slider.
+- **Close:** QR code to the published page. **Set the page's sharing to "anyone with the link" before Sunday, or judges' phones can't open it.**
+
+## Sunday fills (`demo/results.json`)
+
+Copy `demo/results.example.json` → `demo/results.json` and fill from real runs: `verify`, `photo_depths`, `model_at_photos`, `scout`, `payoff`, `any_block_run`. Each block appears on the page only when its key exists. Prompts: `plan/argon-prompts.md` §5–7.
+
 ## Footage to drop in
 
 Put MP4s in `demo/media/` with these exact names; the page detects them and plays them in place of the placeholder.
@@ -22,6 +35,8 @@ Put MP4s in `demo/media/` with these exact names; the page detects them and play
 |---|---|---|
 | `media/f0_high_water.mp4` | Real high water at the Embarcadero seawall + gauge screenshot | **Sun 10:45–11:20 AM** |
 | `media/f2_resident_ar.mp4` | AR water line on the seawall, scenario toggles | **Sun 4:30–6:00 PM** (sunset 6:19) |
+| `media/a1_adopt_clear.mp4` | Adopt drain N-339755 and clear it | Thu Oct 22 |
+| `media/v1_any_block.mp4` | Agents building an unprepared block (time-lapse) | Sun |
 | `media/r1_rover_scout.mp4` | Rover drives to a leaf-covered grate; Gemini label appears | **Fri at home, or Sat at the Gemma hackathon** with the rover already set up there |
 
 Keep each clip 10–25 s, landscape 16:9, no audio needed (you narrate live). Compress with `ffmpeg -i in.mov -vf scale=1280:-2 -c:v libx264 -crf 26 -an out.mp4`.
