@@ -296,7 +296,9 @@ def dem_check(las, points):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--only", nargs="*", choices=list(CROPS))
+    ap.add_argument("--only", nargs="*", choices=list(CROPS) + ["none"])
+    ap.add_argument("--crop", nargs=5, action="append", metavar=("NAME", "LAT", "LON", "HALF_M", "DEPTH"),
+                    help="ad-hoc scene crop (repeatable), e.g. --crop hs1 37.7744 -122.3982 150 7")
     ap.add_argument("--depth", type=int, help="override max EPT depth for scene crops (7 ≈ 1M pts; 9 ≈ 15M)")
     a = ap.parse_args()
     ept = Ept()
@@ -311,8 +313,16 @@ def main():
         spots = json.load(open(ROOT / "data" / "raw" / "spot_elevations_navd88_ft.json"))
     except FileNotFoundError:
         pass
-    for name in a.only or CROPS:
+    for c in a.crop or []:
+        CROPS[c[0]] = {"center": (float(c[2]), float(c[1])), "half_m": float(c[3]), "depth": int(c[4]),
+                       "title": c[0], "adhoc": True}
+    names = (a.only or []) + [c[0] for c in a.crop or []] if (a.only or a.crop) else list(CROPS)
+    for name in names:
         cfg = dict(CROPS[name])
+        if cfg.get("adhoc"):
+            las = fetch_crop(ept, name, cfg)
+            export_bin(name, las, cfg)
+            continue
         if a.depth and name.endswith("_scene"):
             cfg["depth"] = a.depth
         las = fetch_crop(ept, name, cfg)
