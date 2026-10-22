@@ -117,11 +117,19 @@ def captured_area(order, tf, sinks, shape):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--top", type=int, default=12)
+    ap.add_argument("--map-only", action="store_true", help="re-render the map from the saved geojson (no network)")
     a = ap.parse_args()
     from pyproj import Transformer
     z, t, crs = load_dem()
     print(f"DEM {z.shape[1]}x{z.shape[0]} at {RES} m; filling + D8 ...")
     acc, order, tf = d8_accumulation(priority_flood(z))
+    if a.map_only:
+        from pyproj import Transformer
+        tr = Transformer.from_crs("EPSG:4326", crs, always_xy=True)
+        feats = json.load(open(ROOT / "data" / "derived" / "drain_priority.geojson"))["features"]
+        nye = [f["geometry"]["coordinates"] for f in
+               json.load(open(ROOT / "data" / "ground_truth" / "sf311_rain_replay.geojson"))["features"]]
+        return render_map(z, t, tr, acc, feats, feats[:a.top], nye, a.top)
     inlets = getj("https://data.sf.gov/resource/jtgq-b7c5.json",
                   {"$where": f"within_box(location,{BBOX[3]},{BBOX[0]},{BBOX[1]},{BBOX[2]})", "$limit": "5000"})
     print(f"{len(inlets)} inlets in bbox")
@@ -188,7 +196,10 @@ def main():
     (ROOT / "data" / "derived" / "drain_walk.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print(f"top {a.top}: " + ", ".join(f"#{f['properties']['rank']} {f['properties']['captured_area_m2']:,} m2" for f in top))
 
-    # map
+    render_map(z, t, tr, acc, feats, top, nye, a.top)
+
+
+def render_map(z, t, tr, acc, feats, top, nye, ntop):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -216,11 +227,11 @@ def main():
     ax.set_xticks([]); ax.set_yticks([])
     for sp in ax.spines.values():
         sp.set_visible(False)
-    fig.suptitle(f"The {a.top} drains that matter most around 17th & Folsom", x=0.02, ha="left", y=0.95,
+    fig.suptitle(f"The {ntop} drains that matter most around 17th & Folsom", x=0.02, ha="left", y=0.95,
                  fontsize=24, weight="bold", color="#1f2933")
     import matplotlib.lines as ml
-    leg = [ml.Line2D([], [], marker="o", ls="", color="#d9a21b", mec="#1f2933", ms=14, label=f"top {a.top} by water reaching the grate"),
-           ml.Line2D([], [], marker="o", ls="", color="#5f6b78", ms=5, label=f"other inlets ({len(feats) - a.top})"),
+    leg = [ml.Line2D([], [], marker="o", ls="", color="#d9a21b", mec="#1f2933", ms=14, label=f"top {ntop} by water reaching the grate"),
+           ml.Line2D([], [], marker="o", ls="", color="#5f6b78", ms=5, label=f"other inlets ({len(feats) - ntop})"),
            ml.Line2D([], [], marker="o", ls="", color="#b3261e", ms=8, label="311 flooding, Dec 31 2022"),
            ml.Line2D([], [], color="#2f80c1", lw=4, label="where surface water converges")]
     fig.legend(handles=leg, loc="center left", bbox_to_anchor=(0.71, 0.58), frameon=False, fontsize=14)
