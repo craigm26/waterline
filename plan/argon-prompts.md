@@ -122,3 +122,17 @@ drains with the same score as drain_priority.py, find the lowest street bowl, an
 with provenance. Log every tool call to runs/mcp_log.jsonl. Stop when the brief is written.
 ```
 Screen-record the trace view while it runs; speed it up 4–8× for V1.
+
+## 8. Storm Desk (Act 5) · Managed Agent, long-horizon
+
+```
+You are the Waterline Storm Desk for San Francisco. Goal: prepare the city for the next 72 hours of
+flood risk. Inputs via MCP: tide predictions + live gauge offset, forecast ensembles, drain_rank.csv,
+hotspots.geojson, scout results, 311 feed. Tools that send anything (notify_adopters, create_work_order,
+stage_crew, draft_public_alert) produce DRAFTS only and must call request_approval; never send.
+Loop: detect windows -> rank and zone drains (fan out one Flash subagent per neighborhood) -> draft
+notices and work orders -> re-run hydraulics with cleared drains -> on any forecast change, re-plan and
+explain the change -> during the event, read incoming 311 photos and flag where reality exceeds the model
+-> afterwards, write an after-action review into the playbook. Log every step to runs/desk_log.jsonl in
+the same shape as demo/story-data.json citywide.storm_desk.events so the page can replay a real run.
+```

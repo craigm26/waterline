@@ -60,8 +60,81 @@ def citywide():
     for r in csv.DictReader(open(C / "sf311_flooding.csv", encoding="utf-8")):
         x, y = px(float(r["lon"]), float(r["lat"]))
         f311.append([x, y])
+    desk = storm_desk(rows, hot, px)
     return {"basemap": "img/sf_basemap.png", "w": W, "h": H, "m_per_px": 5 * k,
-            "drains": drains, "hotspots": hot, "flood311": f311, "summary": rj(C / "summary.json")}
+            "drains": drains, "hotspots": hot, "flood311": f311, "summary": rj(C / "summary.json"), "storm_desk": desk}
+
+
+def storm_desk(rows, hot, px):
+    """Scripted 72-hour Storm Desk run built from real data (drains, hotspots, tide windows).
+    The storm is a labelled scenario; every outbound action is a draft awaiting human approval."""
+    import collections
+    tide = rj(D / "christmas_tide.json")["series"]
+    if tide and not isinstance(tide[0], list):
+        tide = [[tide[i], tide[i + 1]] for i in range(0, len(tide), 2)]
+    stack = rj(D / "coastal_stack.json"); base = stack["baseline_ft"]; th = stack["thresholds"]
+    wins, cur = [], None
+    for t, v in tide:
+        on = float(v) + base >= th["nos_minor"]
+        if on and not cur: cur = [t, t, float(v) + base]
+        elif on: cur[1] = t; cur[2] = max(cur[2], float(v) + base)
+        elif cur: wins.append(cur); cur = None
+    if cur: wins.append(cur)
+    hm = lambda t: t[11:16]
+    street = [r for r in rows if int(r["rank"]) <= 500 and float(r["sump_m"]) <= 2.0]
+    verify = [r for r in rows if int(r["rank"]) <= 500 and float(r["sump_m"]) > 2.0]
+    zones = collections.Counter(r["neighborhood"] for r in street).most_common(8)
+    hs_names = {1: "SoMa by Mission Creek", 2: "14th–15th & Folsom", 3: "Lower Great Highway", 4: "Islais Creek / Dogpatch", 7: "Bayview, 3rd St"}
+    hs_pts = [[h[0], h[1], "hot"] for h in hot if h[2] in hs_names]
+    def pts(rs, n=60): return [[*px(float(r["lon"]), float(r["lat"])), "drain"] for r in rs[:n]]
+    fb = [*px(-122.3935, 37.7955), "coast"]
+    folsom12 = rj(D / "drain_priority.geojson")["features"][:12]
+    f12 = [[*px(*f["geometry"]["coordinates"]), "drain"] for f in folsom12]
+    w = {x[0][:10]: x for x in wins}
+    d23, d24, d25 = w.get("2026-12-23"), w.get("2026-12-24"), w.get("2026-12-25")
+    E = []
+    def ev(t, tag, title, body, argon, approval, targets=(), metrics=None):
+        E.append({"t": t, "tag": tag, "title": title, "body": body, "argon": argon, "approval": approval,
+                  "targets": list(targets), "metrics": metrics or {}})
+    ev("2026-12-21T06:00", "detect", "Incident opened: king tides + El Niño + storm",
+       f"The tide agent sees NOS-minor coastal flooding windows on Dec 23 ({hm(d23[0])}–{hm(d23[1])}), Dec 24 ({hm(d24[0])}–{hm(d24[1])}, peak {d24[2]:.1f} ft) and Dec 25. "
+       f"The live gauge still runs +{base:.2f} ft above prediction. Scenario: the forecast agent's ensemble shows an atmospheric river arriving the night of Dec 23. "
+       "The coordinator opens a Storm Desk incident and sets a 72-hour plan.",
+       "Long-horizon autonomy: one goal, a 72-hour plan, no turn-by-turn prompting", "auto", [fb] + hs_pts, {"phase": "Watch"})
+    ev("2026-12-21T06:07", "plan", f"{len(street)} street drains to clear before the storm",
+       f"Re-ranks all 23,835 city drains for this storm. Of the top 500, {len(street)} sit in street low spots; {len(verify)} sit in pits deeper than 2 m (underpasses, stairwells) and go to a human to verify. "
+       "Groups the street drains into crew zones: " + ", ".join(f"{n} ({c})" for n, c in zones[:6]) + ".",
+       "Orchestrates Flash subagents: one per neighborhood, in parallel", "auto", pts(street, 120), {"drains": len(street)})
+    ev("2026-12-21T06:15", "notify", "Drafted: notices to Adopt-a-Drain adopters",
+       f"One message per adopted drain among the {len(street)}: which grate, why it matters (low spot, water reaching it), clear it before Dec 23 6 PM, don't clear it during the storm, report blockages to 311. Batched for the Rain Ready SF contact list.",
+       "Writes 500 personalized messages from one plan", "required", pts(street, 120), {"drafts": len(street)})
+    ev("2026-12-21T07:02", "approve", "Approved by the duty manager", "Notices go out through the city's own channel. Waterline never sends on its own.",
+       "Human in the loop", "approved", [], {"approved": 1})
+    ev("2026-12-22T09:30", "dispatch", "Scouting the 12 drains at 17th & Folsom",
+       "Rover and volunteer photos of the 12 priority grates around 17th & Folsom come in. Gemini reads each photo: clear, partly blocked or blocked. Blocked grates become drafted Public Works work orders with the asset ID, photo and location.",
+       "Multimodal: reads grate photos and decides", "required", f12, {"work_orders": "Sun"})
+    ev("2026-12-22T14:00", "rerun", "Re-run: what clearing them buys",
+       "The hydraulics agent re-runs the New Year's Eve 2022 replay with the blocked drains cleared and reports the drop in flooded area at 17th & Folsom.",
+       "Writes and runs its own model, graded against reality", "sunday", f12, {"payoff": "Sun"})
+    ev("2026-12-23T05:40", "replan", "Forecast shifted: storm 6 hours earlier",
+       f"The new ensemble pulls the rain onto the Dec 23 morning high tide ({hm(d23[0])}–{hm(d23[1])}). The coordinator re-plans: sandbag pickup moves up, Embarcadero staging moves to the Dec 23 window, and adopters who haven't confirmed get a reminder.",
+       "Re-plans when the world changes, and says why", "required", [fb] + hs_pts, {"phase": "Warning"})
+    ev("2026-12-23T07:00", "stage", "Drafted: crew staging at the five worst low spots",
+       "Barricades and pump-truck staging at " + ", ".join(hs_names[k] for k in (1, 2, 4, 7, 3)) + ", each with the lidar bowl map, the fill depth at which the street floods, and past 311 history attached. Port of SF crew request drafted for the Embarcadero seawall during the tide windows.",
+       "Turns lidar into field instructions", "required", hs_pts + [fb], {"sites": 6})
+    ev("2026-12-23T09:00", "alert", "Drafted: resident alerts in English, Spanish and Chinese",
+       f"Street-level alerts for the hotspot zones and the Ferry Building waterfront: time window, expected depth band, three actions. Sent through AlertSF opt-in by a person, not by Waterline.",
+       "Writes plain-language alerts, three languages", "required", hs_pts + [fb], {"alerts": 3})
+    ev("2026-12-24T08:30", "monitor", "Live: 311 reports matched to predictions",
+       "As 311 flooding reports and photos arrive, Gemini reads each photo, estimates depth and checks it against the predicted depth at that spot. Where reality runs deeper than the model, it flags the block and asks for a crew.",
+       "Reads incoming photos and finds where the model is wrong", "auto", hs_pts, {"phase": "Event"})
+    ev(d24[0].replace(" ", "T"), "peak", f"Peak: {d24[2]:.1f} ft MLLW at the gauge",
+       "Coordinator posts the situation brief every 30 minutes: where water is, what's staged, what's open.", "Keeps the whole picture in one long context", "auto", [fb], {})
+    ev("2026-12-24T15:00", "review", "After-action review",
+       "Compares predicted against reported flooding street by street, writes what to change (thresholds, drains that failed, sites that surprised it) into the next run's playbook.",
+       "Reflects on its own run and improves the next one", "auto", [], {"phase": "Recovery"})
+    return {"scenario": "Scenario: Christmas-week king tides (NOAA) with an assumed atmospheric-river storm. Drains, low spots, tide windows and neighborhoods are real data. Every outbound action is a draft for human approval.",
+            "events": E, "zones": zones, "street_drains": len(street), "verify_drains": len(verify)}
 
 
 def copy_only():
