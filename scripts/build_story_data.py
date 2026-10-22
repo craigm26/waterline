@@ -59,6 +59,8 @@ def main():
     for src, dst in copies.items():
         (ROOT / dst).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / src, ROOT / dst)
+    import base64   # artifact hosts don't serve raw .bin; ship a base64 twin the page falls back to
+    (ROOT / "demo/lidar/coast_scene.b64.txt").write_text(base64.b64encode((ROOT / "demo/lidar/coast_scene.bin").read_bytes()).decode())
     p = ROOT / "demo" / "story-data.json"
     p.parent.mkdir(exist_ok=True)
     p.write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")

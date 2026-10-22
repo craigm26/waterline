@@ -388,7 +388,12 @@ ${rows || "  none"}
     const host = document.getElementById("scene");
     if (!window.THREE) { document.getElementById("sceneLoading").textContent = "3D view unavailable"; return; }
     let buf;
-    try { buf = await (await fetch(D.lidar.coast_bin)).arrayBuffer(); } catch (e) { document.getElementById("sceneLoading").textContent = "Lidar file missing: run scripts/build_story_data.py"; return; }
+    try { const r = await fetch(D.lidar.coast_bin); if (!r.ok) throw 0; buf = await r.arrayBuffer(); }
+    catch (e) {
+      try { const r = await fetch(D.lidar.coast_bin.replace(".bin", ".b64.txt")); if (!r.ok) throw 0;
+        const s = atob((await r.text()).trim()), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); buf = u.buffer; }
+      catch (e2) { document.getElementById("sceneLoading").textContent = "Lidar file missing: run scripts/build_story_data.py"; return; }
+    }
     const n = Math.floor(buf.byteLength / 14), dv = new DataView(buf);
     const EX = 1.5, M = 3.28084;
     let pos = new Float32Array(n * 3), col = new Float32Array(n * 3), k = 0, sx = 0, sy = 0;
