@@ -16,7 +16,8 @@ Updated Wed Oct 21. The Gemma Hardware Hackathon is **Sat Oct 24** (AGI House, H
 | P7 | ~~Validation layer~~ **Done:** SFPUC 100-yr zone + Dec 2024 flood elevations staged (SFCD → NAVD88 +11.35 ft) | — | [x] |
 | P7b | ~~Pick dry controls~~ **Done:** 10 points committed in `data/ground_truth/dry_controls_rain.geojson` (seed 20261025) | — | [x] |
 | P8 | Decide AR approach: native iOS ARCore Geospatial vs 3D Tiles on the laptop (see `plan/argon-prompts.md` §3). Create the Google Cloud project + enable the ARCore API and Maps (3D Tiles) keys | Thu Oct 22 | [ ] |
-| P9 | **Film 17th & Folsom B-roll** (shots M1–M4 in `plan/demo-film-plan.md`) | Thu Oct 22 | [ ] |
+| P9 | **Film 17th & Folsom B-roll** (M1–M5) **+ drain walk D1–D12** (`data/derived/drain_walk.md`) | Thu Oct 22 | [ ] |
+| P9b | **Record R1 rover scout** at home (or at the Gemma hackathon Sat) → `demo/media/r1_rover_scout.mp4` | Fri/Sat | [ ] |
 | P10 | Test a tunnel (cloudflared/ngrok) for the MCP server from home | Fri Oct 23 | [ ] |
 | P11 | Rehearse the pitch twice, timed (with placeholder numbers) | Fri Oct 23 | [ ] |
 | P12 | Pack (gear list in `plan/demo-film-plan.md`); charge everything | Fri Oct 23 | [ ] |
@@ -35,7 +36,7 @@ Updated Wed Oct 21. The Gemma Hardware Hackathon is **Sat Oct 24** (AGI House, H
 | 1:30–3:30 | Trace view + city-manager dashboard (§2) | Both tabs screenshot-clean |
 | 3:30–4:30 | AR scene (§3) **or** the 3D Tiles fallback. **Checkpoint 4:30: is AR anchoring?** If not, go to the fallback | Something filmable |
 | **4:30–6:00** | **Film outside** (F1–F6); low tide 5:34 PM gives the real-water vs Christmas-Eve contrast. Sunset 6:19 PM | Raw footage on the laptop |
-| 6:00–7:00 | Edit the 2-min video (CapCut/iMovie). Run one cached + one live agent cycle | Video exported |
+| 6:00–7:00 | Drop F0/F2 clips into `demo/media/`; fill Act 3 scores + Act 5 scout verdicts; screen-record the scroll-through as the submission video | Story site complete |
 | 7:00–7:30 | Freeze features. Fill `pitch/submission-template.md`. Submit | Submitted |
 | 7:30–8:30 | Rehearse 3×; reflection prompt (§4) | |
 | 8:30+ | Judging | |

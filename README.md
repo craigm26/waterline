@@ -18,6 +18,10 @@
 
 | Path | What |
 |---|---|
+| **`demo/index.html`** | **The story demo**: five acts, live lidar scene, real data, footage slots (`plan/story.md`) |
+| `plan/story.md` | Story arc, footage file names, drain walk, what's computed Sunday |
+| `scripts/drain_priority.py` | Ranks real SFPUC drains by water reaching each grate (lidar terrain) |
+| `scripts/build_story_data.py` | Packs data + assets into `demo/` |
 | `pitch/application-answers.md` | Paste-ready application answers |
 | `pitch/pitch-2min.md` | 2-min and 60-s stage scripts (resident + city-manager), fallback lines |
 | `pitch/judge-qa.md` | Likely judge questions with 10-second answers |
