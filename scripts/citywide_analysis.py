@@ -166,11 +166,18 @@ def main():
     from shapely.geometry import shape, Point
     zone = shape(json.load(open(C / "sfpuc_100yr_zone.geojson"))["features"][0]["geometry"]).buffer(0)
     hs = []
-    for i in np.nonzero(areas >= 250)[0]:
+    dgrid = defaultdict(list)   # city drains, for "is this low spot on the street network?"
+    for d in inlets:
+        dgrid[(int(d["lon"] * kx // 40), int(d["lat"] * ky // 40))].append((d["lon"], d["lat"]))
+    for i in np.nonzero((areas >= 250) & (maxd <= 2.5))[0]:   # >2.5 m deep = lakes, quarries, stairwells
         r, c = com[i]; x, y = T * (c + 0.5, r + 0.5); lo, la = inv_tr.transform(x, y)
         gx, gy = int(lo * kx // 75), int(la * ky // 75)
         n = sum(1 for dx in (-2, -1, 0, 1, 2) for dy in (-2, -1, 0, 1, 2) for j in grid.get((gx + dx, gy + dy), [])
                 if math.hypot((P[j, 0] - lo) * kx, (P[j, 1] - la) * ky) <= 150)
+        ex, ey = int(lo * kx // 40), int(la * ky // 40)
+        if not any(math.hypot((a - lo) * kx, (b - la) * ky) <= 40 for dx in (-1, 0, 1) for dy in (-1, 0, 1)
+                   for a, b in dgrid.get((ex + dx, ey + dy), [])):
+            continue   # not on the street network (park ponds, fields)
         hs.append({"lon": lo, "lat": la, "area_m2": float(areas[i]), "max_depth_m": float(maxd[i]),
                    "volume_m3": float(vol[i]), "flood311_150m": n, "in_sfpuc_100yr": bool(zone.contains(Point(lo, la)))})
     for x in hs:
@@ -192,7 +199,7 @@ def main():
             "captured_area_only_top500_mean_311_75m": round(float(np.mean([d["flood311_75m"] for d in by_area])), 2), "top500_share_of_captured_area": round(sum(d["captured_m2"] for d in top) / sum(d["captured_m2"] for d in inlets), 3),
             "top500_mean_311_75m": round(float(np.mean([d["flood311_75m"] for d in top])), 2),
             "all_mean_311_75m": round(float(np.mean([d["flood311_75m"] for d in inlets])), 2),
-            "bowls_ge_250m2": len(hs), "top50_hotspots_in_sfpuc_zone": sum(x["in_sfpuc_100yr"] for x in hs[:50]),
+            "street_bowls_ge_250m2": len(hs), "top50_hotspots_in_sfpuc_zone": sum(x["in_sfpuc_100yr"] for x in hs[:50]),
             "flood311_reports": len(P), "resolution_m": res,
             "method": "5 m lidar bare earth, priority-flood + D8, inlets intercept flow; bowls = fill depth >= 0.15 m"}
     json.dump(summ, open(C / "summary.json", "w"), indent=1)
@@ -216,15 +223,15 @@ def main():
             for d in top:
                 x, y = tr.transform(d["lon"], d["lat"]); xs.append(x); ys.append(y); ss.append(6 + 60 * (d["captured_m2"] / top[0]["captured_m2"]))
             ax.scatter(xs, ys, s=ss, color="#f2b33d", edgecolor="#0a1016", lw=0.4, zorder=5)
-            note = (f"{len(inlets):,} city drains ranked by how deep a low spot\neach grate sits in x the water reaching it.\n"
-                    f"The top 500 average {summ['top500_mean_311_75m']} past 311 flooding reports\nwithin 75 m; a random 500 average {summ['random500_mean_311_75m_p50_p95'][0]}.")
+            note = (f"{len(inlets):,} city drains ranked by\nhow deep a low spot each grate sits in\nx the water reaching it.\n\n"
+                    f"Top 500: {summ['top500_mean_311_75m']} past 311 flooding\nreports within 75 m on average.\nRandom 500: {summ['random500_mean_311_75m_p50_p95'][0]}.")
         else:
             ax.imshow(np.where(fill >= 0.15, np.minimum(fill, 2.0), np.nan), cmap="Blues", extent=ext, vmin=0, vmax=1.5, alpha=0.95)
             for x in hs[:50]:
                 px, py = tr.transform(x["lon"], x["lat"])
                 ax.scatter(px, py, s=90, facecolor="none", edgecolor="#f2b33d", lw=1.6, zorder=6)
-            note = (f"Blue: low spots where water pools on the lidar terrain.\nAmber rings: top 50 by volume, past 311 flooding\n"
-                    f"and the city's 100-year zone ({summ['top50_hotspots_in_sfpuc_zone']} of 50 inside it).")
+            note = (f"Blue: low spots where water pools\non the lidar terrain.\nAmber rings: the top 50 street low spots\n"
+                    f"by volume, past 311 flooding and the\ncity's 100-year zone ({summ['top50_hotspots_in_sfpuc_zone']} of 50 inside it).")
         ax.set_xticks([]); ax.set_yticks([])
         for sp in ax.spines.values():
             sp.set_visible(False)
