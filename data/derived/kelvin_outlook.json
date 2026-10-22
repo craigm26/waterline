@@ -1,0 +1,15 @@
+{
+  "what": "Outlook for further El Nino Kelvin-wave pulses reaching the California coast, for the story timeline. Expert statements, not a model forecast.",
+  "provenance": "derived",
+  "events": [
+    {"date": "2026-09-18", "kind": "observed", "text": "Bay Area water levels already ~6 in above normal; a Kelvin wave expected by October could add 6-12 in", "source": "ABC7 / Dillon Amaya, NC State", "url": "https://abc7news.com/post/el-nio-driven-kelvin-wave-could-raise-bay-area-sea-levels-1-foot-october-scientists-say/19841795/"},
+    {"date": "2026-10-01", "kind": "observed", "text": "Southern California sea levels 6-8 in above normal in early October (Kelvin wave)", "source": "NPR / Dillon Amaya", "url": "https://www.wunc.org/environment/2026-10-19/a-kelvin-wave-raised-sea-levels-on-the-west-coast-more-are-coming"},
+    {"date": "2026-10-11", "kind": "measured", "text": "SF gauge peaks at 7.57 ft MLLW, above the NWS minor flood threshold (7.04)", "source": "NOAA CO-OPS 9414290", "url": "https://tidesandcurrents.noaa.gov/stationhome.html?id=9414290"},
+    {"date_start": "2026-10-25", "date_end": "2026-11-10", "kind": "expected", "text": "Next Kelvin wave expected to reach San Diego in late October or early November, then travel up the coast", "source": "NPR / Dillon Amaya, NC State", "url": "https://www.wunc.org/environment/2026-10-19/a-kelvin-wave-raised-sea-levels-on-the-west-coast-more-are-coming"},
+    {"date": "2026-11-12", "kind": "scheduled", "text": "Next NOAA CPC ENSO diagnostic discussion (second Thursday of the month)", "source": "NOAA CPC", "url": "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml"},
+    {"date_start": "2026-11-24", "date_end": "2026-11-26", "kind": "predicted", "text": "King tides (7.03 ft MLLW peak Nov 25)", "source": "NOAA CO-OPS predictions", "url": "https://tidesandcurrents.noaa.gov/stationhome.html?id=9414290"},
+    {"date_start": "2026-12-23", "date_end": "2026-12-25", "kind": "predicted", "text": "King tides (7.23 ft MLLW peak Dec 24 10:37)", "source": "NOAA CO-OPS predictions", "url": "https://tidesandcurrents.noaa.gov/stationhome.html?id=9414290"},
+    {"date_start": "2027-01-20", "date_end": "2027-01-22", "kind": "predicted", "text": "King tides (7.11 ft MLLW peak Jan 21)", "source": "NOAA CO-OPS predictions", "url": "https://tidesandcurrents.noaa.gov/stationhome.html?id=9414290"},
+    {"date_start": "2026-10-01", "date_end": "2027-03-31", "kind": "expected", "text": "Strong-to-very-strong El Nino likely through Jan-Mar 2027; 83% chance of a historic event in Oct-Dec. Several more Kelvin waves through fall and early winter (5-6 typical in a strong year); sea levels may stay elevated until spring 2027", "source": "NOAA CPC (Oct 8 2026); NPR / ABC7 citing Dillon Amaya", "url": "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml"}
+  ]
+}
