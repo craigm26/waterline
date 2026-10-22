@@ -122,14 +122,16 @@ def main():
     from pyproj import Transformer
     z, t, crs = load_dem()
     print(f"DEM {z.shape[1]}x{z.shape[0]} at {RES} m; filling + D8 ...")
-    acc, order, tf = d8_accumulation(priority_flood(z))
-    if a.map_only:
-        from pyproj import Transformer
-        tr = Transformer.from_crs("EPSG:4326", crs, always_xy=True)
+    filled = priority_flood(z)
+    acc, order, tf = d8_accumulation(filled)
+    from scipy import ndimage
+    sump = ndimage.maximum_filter(filled - z, size=2 * int(round(15 / RES)) + 1)   # deepest low spot within 15 m
+    tr = Transformer.from_crs("EPSG:4326", crs, always_xy=True)
+    nye = [f["geometry"]["coordinates"] for f in
+           json.load(open(ROOT / "data" / "ground_truth" / "sf311_rain_replay.geojson"))["features"]]
+    if a.map_only:   # re-rank + re-render from the saved inlets (no network)
         feats = json.load(open(ROOT / "data" / "derived" / "drain_priority.geojson"))["features"]
-        nye = [f["geometry"]["coordinates"] for f in
-               json.load(open(ROOT / "data" / "ground_truth" / "sf311_rain_replay.geojson"))["features"]]
-        return render_map(z, t, tr, acc, feats, feats[:a.top], nye, a.top)
+        return finish(a, z, t, tr, acc, sump, feats, nye)
     inlets = getj("https://data.sf.gov/resource/jtgq-b7c5.json",
                   {"$where": f"within_box(location,{BBOX[3]},{BBOX[0]},{BBOX[1]},{BBOX[2]})", "$limit": "5000"})
     print(f"{len(inlets)} inlets in bbox")
@@ -166,7 +168,21 @@ def main():
             f["properties"]["captured_area_m2"] = round(cap.get(cell, 0) / len(fs))
             f["properties"]["upstream_area_m2"] = f["properties"].pop("contrib_area_m2")
             f["properties"].pop("_cell")
-    feats.sort(key=lambda f: -f["properties"]["captured_area_m2"])
+    return finish(a, z, t, tr, acc, sump, feats, nye)
+
+
+def finish(a, z, t, tr, acc, sump, feats, nye):
+    # Score: drain sits in a low spot (sump depth within 15 m) x log(water reaching it).
+    # Citywide check (scripts/citywide_analysis.py): this picks drains with ~1.7x the average past 311
+    # flooding reports; captured area alone did no better than random.
+    inv = ~t
+    for f in feats:
+        x, y = tr.transform(*f["geometry"]["coordinates"]); c, r = inv * (x, y)
+        s = float(sump[int(r), int(c)]); p = f["properties"]
+        p["sump_depth_m"] = round(s, 3)
+        p["check"] = "deep >2 m: likely underpass/stairwell/excavation; verify" if s > 2 else ""
+        p["score"] = round(min(s, 1.5) * math.log1p(p["captured_area_m2"]), 4)   # cap: bare-earth pits aren't street sumps
+    feats.sort(key=lambda f: -f["properties"]["score"])
     for i, f in enumerate(feats):
         f["properties"]["rank"] = i + 1
     out = ROOT / "data" / "derived" / "drain_priority.geojson"
@@ -183,20 +199,21 @@ def main():
     for k, f in enumerate(walk, 1):
         lon, lat = f["geometry"]["coordinates"]; p = f["properties"]
         rows.append({"stop": k, "rank": p["rank"], "asset_id": p["asset_id"], "lat": round(lat, 6), "lon": round(lon, 6),
-                     "captured_area_m2": p["captured_area_m2"], "upstream_area_m2": p["upstream_area_m2"], "nye2022_311_within_60m": p["nye2022_311_within_60m"],
+                     "sump_depth_m": p["sump_depth_m"], "captured_area_m2": p["captured_area_m2"], "nye2022_311_within_60m": p["nye2022_311_within_60m"],
                      "map": f"https://www.google.com/maps/search/?api=1&query={lat:.6f},{lon:.6f}"})
     with open(ROOT / "data" / "derived" / "drain_walk.csv", "w", newline="", encoding="utf-8") as fh:
         wr = csv.DictWriter(fh, fieldnames=list(rows[0])); wr.writeheader(); wr.writerows(rows)
     md = ["# Drain walk: photograph each grate (top, straight down, plus one wide shot)", "",
-          "Ranked by the surface area that drains straight to each grate on the lidar terrain (each inlet",
-          "intercepts what reaches it). Walk order starts at 17th & Folsom.", "",
-          "| Stop | Rank | Asset | Drains to it | 311 NYE-22 within 60 m | Map |", "|---|---|---|---|---|---|"]
-    md += [f"| {r['stop']} | {r['rank']} | {r['asset_id']} | {r['captured_area_m2']:,} m² | {r['nye2022_311_within_60m']} | "
+          "Ranked by how deep a low spot each grate sits in (lidar, within 15 m) times the water reaching it.",
+          "Citywide, this score picks drains with ~1.7x the average past 311 flooding. Walk order starts at 17th & Folsom.", "",
+          "| Stop | Rank | Asset | Low-spot depth | Drains to it | 311 NYE-22 within 60 m | Map |", "|---|---|---|---|---|---|---|"]
+    md += [f"| {r['stop']} | {r['rank']} | {r['asset_id']} | {r['sump_depth_m']*100:.0f} cm | {r['captured_area_m2']:,} m² | {r['nye2022_311_within_60m']} | "
            f"[{r['lat']}, {r['lon']}]({r['map']}) |" for r in rows]
     (ROOT / "data" / "derived" / "drain_walk.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print(f"top {a.top}: " + ", ".join(f"#{f['properties']['rank']} {f['properties']['captured_area_m2']:,} m2" for f in top))
 
     render_map(z, t, tr, acc, feats, top, nye, a.top)
+    return top
 
 
 def render_map(z, t, tr, acc, feats, top, nye, ntop):
@@ -230,12 +247,12 @@ def render_map(z, t, tr, acc, feats, top, nye, ntop):
     fig.suptitle(f"The {ntop} drains that matter most around 17th & Folsom", x=0.02, ha="left", y=0.95,
                  fontsize=24, weight="bold", color="#1f2933")
     import matplotlib.lines as ml
-    leg = [ml.Line2D([], [], marker="o", ls="", color="#d9a21b", mec="#1f2933", ms=14, label=f"top {ntop} by water reaching the grate"),
+    leg = [ml.Line2D([], [], marker="o", ls="", color="#d9a21b", mec="#1f2933", ms=14, label=f"top {ntop}: deepest low spot x water reaching it"),
            ml.Line2D([], [], marker="o", ls="", color="#5f6b78", ms=5, label=f"other inlets ({len(feats) - ntop})"),
            ml.Line2D([], [], marker="o", ls="", color="#b3261e", ms=8, label="311 flooding, Dec 31 2022"),
            ml.Line2D([], [], color="#2f80c1", lw=4, label="where surface water converges")]
     fig.legend(handles=leg, loc="center left", bbox_to_anchor=(0.71, 0.58), frameon=False, fontsize=14)
-    fig.text(0.71, 0.32, "Inlets: SFPUC / DataSF jtgq-b7c5 (Adopt-a-Drain).\nFlow: USGS 3DEP lidar bare earth, 2 m, D8;\neach inlet intercepts what reaches it.\nScreening only: ignores pipes, curbs, buildings.",
+    fig.text(0.71, 0.32, "Inlets: SFPUC / DataSF jtgq-b7c5 (Adopt-a-Drain).\nScore: lidar low-spot depth within 15 m x\nwater reaching the grate (2 m, D8).\nScreening only: ignores pipes, curbs, buildings.",
              fontsize=12, color="#7b8794", va="top")
     fig.savefig(ROOT / "assets" / "maps" / "drain_priority.png")
     print("wrote drain_priority.geojson, drain_walk.csv/.md, assets/maps/drain_priority.png")

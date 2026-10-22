@@ -1,0 +1,17 @@
+{
+ "inlets_ranked": 23835,
+ "score": "min(sump depth within 15 m, 1.5 m) x log(1 + captured area)",
+ "random500_mean_311_75m_p50_p95": [
+  6.07,
+  6.67
+ ],
+ "captured_area_only_top500_mean_311_75m": 5.81,
+ "top500_share_of_captured_area": 0.078,
+ "top500_mean_311_75m": 9.73,
+ "all_mean_311_75m": 6.1,
+ "bowls_ge_250m2": 1279,
+ "top50_hotspots_in_sfpuc_zone": 15,
+ "flood311_reports": 26458,
+ "resolution_m": 5.0,
+ "method": "5 m lidar bare earth, priority-flood + D8, inlets intercept flow; bowls = fill depth >= 0.15 m"
+}
