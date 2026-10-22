@@ -1,0 +1,90 @@
+[
+ {
+  "id": "16238235",
+  "time": "2022-12-31T10:31:08.000",
+  "address": "Intersection of 18TH ST and SHOTWELL ST",
+  "lat": 37.7620395,
+  "lon": -122.4161099,
+  "kind": "On_street",
+  "file": "16238235.jpg",
+  "source": "https://mobile311.sfgov.org/reports/16238235/photos",
+  "credit": "SF 311 public record (DataSF vw6y-z8j6)"
+ },
+ {
+  "id": "16238675",
+  "time": "2022-12-31T12:06:27.000",
+  "address": "1835 FOLSOM ST, SAN FRANCISCO, CA, 94103",
+  "lat": 37.7679391,
+  "lon": -122.4151047,
+  "kind": "On_street",
+  "file": "16238675.jpg",
+  "source": "https://mobile311.sfgov.org/reports/16238675/photos",
+  "credit": "SF 311 public record (DataSF vw6y-z8j6)"
+ },
+ {
+  "id": "16238942",
+  "time": "2022-12-31T12:51:00.000",
+  "address": "25 14TH ST, SAN FRANCISCO, CA, 94103",
+  "lat": 37.7684033,
+  "lon": -122.4142516,
+  "kind": "On_street",
+  "file": "16238942.jpg",
+  "source": "https://mobile311.sfgov.org/reports/16238942/photos",
+  "credit": "SF 311 public record (DataSF vw6y-z8j6)"
+ },
+ {
+  "id": "16239122",
+  "time": "2022-12-31T13:16:00.000",
+  "address": "Intersection of 19TH ST and HARRISON ST",
+  "lat": 37.7606217,
+  "lon": -122.4126932,
+  "kind": "On_street",
+  "file": "16239122.jpg",
+  "source": "https://mobile311.sfgov.org/reports/16239122/photos",
+  "credit": "SF 311 public record (DataSF vw6y-z8j6)"
+ },
+ {
+  "id": "16239511",
+  "time": "2022-12-31T14:30:58.000",
+  "address": "440 TREAT AVE, SAN FRANCISCO, CA, 94110",
+  "lat": 37.763275,
+  "lon": -122.41382,
+  "kind": "On_property",
+  "file": "16239511.jpg",
+  "source": "https://mobile311.sfgov.org/reports/16239511/photos",
+  "credit": "SF 311 public record (DataSF vw6y-z8j6)"
+ },
+ {
+  "id": "16240155",
+  "time": "2022-12-31T16:52:41.000",
+  "address": "1450 15TH ST, SAN FRANCISCO, CA, 94103",
+  "lat": 37.767010906409,
+  "lon": -122.416709263563,
+  "kind": "On_property",
+  "file": "16240155.jpg",
+  "source": "https://mobile311.sfgov.org/reports/16240155/photos",
+  "credit": "SF 311 public record (DataSF vw6y-z8j6)"
+ },
+ {
+  "id": "16240362",
+  "time": "2022-12-31T18:05:30.000",
+  "address": "1450 15TH ST, SAN FRANCISCO, CA, 94103",
+  "lat": 37.766954005885,
+  "lon": -122.416799749729,
+  "kind": "On_property",
+  "file": "16240362.jpg",
+  "source": "https://mobile311.sfgov.org/reports/16240362/photos",
+  "credit": "SF 311 public record (DataSF vw6y-z8j6)"
+ },
+ {
+  "id": "16242400",
+  "time": "2023-01-01T13:51:40.000",
+  "address": "2169 FOLSOM ST, SAN FRANCISCO, CA, 94110",
+  "lat": 37.762683874964,
+  "lon": -122.414587371629,
+  "kind": "On_property",
+  "file": "16242400.jpg",
+  "source": "https://mobile311.sfgov.org/reports/16242400/photos",
+  "credit": "SF 311 public record (DataSF vw6y-z8j6)"
+ }
+]
