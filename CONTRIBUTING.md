@@ -31,6 +31,22 @@ python scripts/build_story_data.py               # repacks demo/ from data/deriv
 
 The raw downloads (`scripts/stage_data.py`, `download_citywide.py`) hit NOAA, USGS and DataSF and are already done. Their outputs are committed under `data/`.
 
+## Lidar data
+
+| What | Where | Size |
+|---|---|---|
+| Point-cloud crops (Ferry Building, 17th & Folsom, 5 hotspots, cross-sections), USGS 3DEP 2023 | `data/lidar/*.laz` (+ Three.js `.bin`, metadata `.json`) | ~30 MB, in the repo |
+| 1 m lidar DEMs for the two demo sites + 5 m citywide mosaic | `data/terrain/*.tif` | ~19 MB, in the repo |
+| **Citywide 1 m lidar DEM tiles** (4 USGS tiles, all of SF) | GitHub Release [`data-v1`](https://github.com/craigm26/waterline-argon-hackathon/releases/tag/data-v1) | ~510 MB |
+| The full point cloud (13.1 billion points) | streamed from `s3://usgs-lidar-public/CA_SanFrancisco_1_B23` | — |
+
+```bash
+gh release download data-v1 -R craigm26/waterline-argon-hackathon -D data/raw/citywide/dem   # citywide DEM tiles
+python scripts/fetch_lidar.py --crop my_block 37.7633 -122.4148 120 9                          # new point-cloud crop (name lat lon half-width-m depth)
+```
+
+All USGS/NOAA data is US public domain.
+
 ## The contracts (don't break these)
 
 The page reads **only** these files. Then Argon can regenerate the page without touching the data, and the data can change without breaking the page.

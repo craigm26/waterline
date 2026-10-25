@@ -13,3 +13,7 @@ demo/lidar/*.b64.txt
 .drain.log
 .lidar.log
 renders/*/_vid/
+.release.log
+.release.err
+.release-notes.md
+.release.ps1
