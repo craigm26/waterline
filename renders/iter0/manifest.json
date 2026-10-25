@@ -1,0 +1,117 @@
+{
+  "tag": "iter0",
+  "page": "demo/index.html",
+  "rendered_at": "2026-10-24T18:38:56",
+  "frames": [
+    {
+      "file": "ferry_s0.png",
+      "scene": "ferry_building",
+      "scenario": "King tide",
+      "readout": null,
+      "hud": "USGS 3DEP lidar \u00b7 Ferry Building & Embarcadero \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "ferry_s1.png",
+      "scene": "ferry_building",
+      "scenario": "+ El Ni\u00f1o baseline",
+      "readout": "8.2 ft\n1.9 ft below the promenade\nNOAA prediction + measured offset",
+      "hud": "USGS 3DEP lidar \u00b7 Ferry Building & Embarcadero \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "ferry_s2.png",
+      "scene": "ferry_building",
+      "scenario": "+ big storm",
+      "readout": null,
+      "hud": "USGS 3DEP lidar \u00b7 Ferry Building & Embarcadero \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "ferry_s3.png",
+      "scene": "ferry_building",
+      "scenario": "Stress test",
+      "readout": null,
+      "hud": "USGS 3DEP lidar \u00b7 Ferry Building & Embarcadero \u00b7 vertical \u00d71.5 \u00b7 drag to orbit\nSTRESS TEST \u00b7 NOT A FORECAST"
+    },
+    {
+      "file": "hs_rank2_1ft.png",
+      "scene": "rank2",
+      "title": "#2\n14th\u201315th & Folsom, Mission\n111,775 m\u00b2 \u00b7 52 past 311 reports nearby\n100-yr zone",
+      "water_ft_above_lowest": 1.0,
+      "readout": null,
+      "hud": null
+    },
+    {
+      "file": "hs_rank2_4ft.png",
+      "scene": "rank2",
+      "title": "#2\n14th\u201315th & Folsom, Mission\n111,775 m\u00b2 \u00b7 52 past 311 reports nearby\n100-yr zone",
+      "water_ft_above_lowest": 4.0,
+      "readout": "4.0 ft\nabove the lowest point \u00b7 57,592 m\u00b2 under water",
+      "hud": "USGS 3DEP lidar \u00b7 14th\u201315th & Folsom, Mission \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "hs_rank1_1ft.png",
+      "scene": "rank1",
+      "title": "#1\nSoMa by Mission Creek\n105,400 m\u00b2 \u00b7 56 past 311 reports nearby\n100-yr zone",
+      "water_ft_above_lowest": 1.0,
+      "readout": "1.0 ft\nabove the lowest point \u00b7 8,384 m\u00b2 under water",
+      "hud": "USGS 3DEP lidar \u00b7 SoMa by Mission Creek \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "hs_rank1_4ft.png",
+      "scene": "rank1",
+      "title": "#1\nSoMa by Mission Creek\n105,400 m\u00b2 \u00b7 56 past 311 reports nearby\n100-yr zone",
+      "water_ft_above_lowest": 4.0,
+      "readout": "4.0 ft\nabove the lowest point \u00b7 47,088 m\u00b2 under water",
+      "hud": "USGS 3DEP lidar \u00b7 SoMa by Mission Creek \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "hs_rank4_1ft.png",
+      "scene": "rank4",
+      "title": "#4\nIslais Creek / Dogpatch\n36,950 m\u00b2 \u00b7 27 past 311 reports nearby",
+      "water_ft_above_lowest": 1.0,
+      "readout": "1.0 ft\nabove the lowest point \u00b7 5,540 m\u00b2 under water",
+      "hud": "USGS 3DEP lidar \u00b7 Islais Creek / Dogpatch \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "hs_rank4_4ft.png",
+      "scene": "rank4",
+      "title": "#4\nIslais Creek / Dogpatch\n36,950 m\u00b2 \u00b7 27 past 311 reports nearby",
+      "water_ft_above_lowest": 4.0,
+      "readout": "4.0 ft\nabove the lowest point \u00b7 39,956 m\u00b2 under water",
+      "hud": "USGS 3DEP lidar \u00b7 Islais Creek / Dogpatch \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "hs_rank7_1ft.png",
+      "scene": "rank7",
+      "title": "#7\nBayview, 3rd St\n7,425 m\u00b2 \u00b7 34 past 311 reports nearby\n100-yr zone",
+      "water_ft_above_lowest": 1.0,
+      "readout": "1.0 ft\nabove the lowest point \u00b7 2,556 m\u00b2 under water",
+      "hud": "USGS 3DEP lidar \u00b7 Bayview, 3rd St \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "hs_rank7_4ft.png",
+      "scene": "rank7",
+      "title": "#7\nBayview, 3rd St\n7,425 m\u00b2 \u00b7 34 past 311 reports nearby\n100-yr zone",
+      "water_ft_above_lowest": 4.0,
+      "readout": "4.0 ft\nabove the lowest point \u00b7 33,024 m\u00b2 under water",
+      "hud": "USGS 3DEP lidar \u00b7 Bayview, 3rd St \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "hs_rank3_1ft.png",
+      "scene": "rank3",
+      "title": "#3\nLower Great Highway, Outer Sunset\n74,800 m\u00b2 \u00b7 14 past 311 reports nearby\n100-yr zone",
+      "water_ft_above_lowest": 1.0,
+      "readout": "1.0 ft\nabove the lowest point \u00b7 12,588 m\u00b2 under water",
+      "hud": "USGS 3DEP lidar \u00b7 Lower Great Highway, Outer Sunset \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    },
+    {
+      "file": "hs_rank3_4ft.png",
+      "scene": "rank3",
+      "title": "#3\nLower Great Highway, Outer Sunset\n74,800 m\u00b2 \u00b7 14 past 311 reports nearby\n100-yr zone",
+      "water_ft_above_lowest": 4.0,
+      "readout": "4.0 ft\nabove the lowest point \u00b7 21,152 m\u00b2 under water",
+      "hud": "USGS 3DEP lidar \u00b7 Lower Great Highway, Outer Sunset \u00b7 vertical \u00d71.5 \u00b7 drag to orbit"
+    }
+  ],
+  "video": "orbit.mp4",
+  "page_errors": []
+}

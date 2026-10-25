@@ -136,3 +136,42 @@ explain the change -> during the event, read incoming 311 photos and flag where 
 -> afterwards, write an after-action review into the playbook. Log every step to runs/desk_log.jsonl in
 the same shape as demo/story-data.json citywide.storm_desk.events so the page can replay a real run.
 ```
+
+## 9. Track 2 loop: render → watch → critique → fix · thinking_level: high
+
+Spec and rubric: `plan/track2-loop.md`. Run 9a once (iter0), then 9b + 9c per iteration.
+
+**9a · Generate (iter0, background=True, long decode)**
+```
+Goal: a 3D city-manager flood view for San Francisco this El Niño winter, as one self-contained
+HTML page. Inputs: demo/story-data.json (lidar scenes, citywide drains, hotspots, tide windows,
+storm desk), demo/results.json, plan/track2-loop.md (rubric). Read the existing demo/index.html as
+a reference, not something to copy. Requirements: water surfaces come ONLY from the depth data
+(coast = Bay-connected fill, rain = bowl fill); official/derived/assumed provenance styling;
+camera presets for the top 3 hotspots; the city manager should know what to do within 5 seconds.
+Write it to build/iter0/index.html. Then run: python scripts/render_watch.py --tag iter0
+--page build/iter0/index.html
+```
+
+**9b · Watch + critique (attach: renders/iterN/orbit.mp4, all PNGs, manifest.json, the 8 NYE-2022
+photos, demo/media/f0_high_water.mp4, data/derived/lidar_checks.json, results.json)**
+```
+You built the page that produced this render. Watch orbit.mp4 end to end, then the stills. Compare
+against the reference set: real photos with known locations and depth readings, and today's video of
+real high water at the Ferry Building seawall at a known tide. Score every rubric item in
+plan/track2-loop.md from 0 to 1. List each defect with the frame (or video timestamp), the evidence
+(what the reference shows vs what the render shows), the likely cause, the fix, and whether the fix
+goes to the "page" or the "model". Also list what to keep. Be harsh: a render that looks good but puts
+water where the photos show a dry curb fails. Output only critique.json in the schema in
+plan/track2-loop.md.
+```
+
+**9c · Fix**
+```
+Apply the fixes in renders/iterN/critique.json, highest severity first. Don't touch anything listed
+under "keep". Model fixes go through the hydraulics module, re-verified against 311 (section 1).
+Write build/iter{N+1}/index.html and a 3-line changelog, then run render_watch.py --tag iter{N+1}.
+Stop at score >= 0.85 or after iteration 5.
+```
+
+Log every critique. `scripts/loop_report.py` turns them into the score chart and the iteration strip.

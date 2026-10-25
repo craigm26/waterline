@@ -18,6 +18,9 @@
 
 | Path | What |
 |---|---|
+| **`plan/track2-loop.md`** | **Our track (Problem Statement Two):** render → watch → critique → fix loop, rubric, critique schema, work split |
+| `scripts/render_watch.py` | Renders the 3D scenes to stills + `orbit.mp4` + manifest so Argon can watch them (`renders/iterN/`) |
+| `scripts/loop_report.py` | Critiques → score chart + iteration strip (the measured improvement) |
 | **`demo/index.html`** | **The story demo**: five acts, live lidar scene, real data, footage slots (`plan/story.md`) |
 | `plan/story.md` | Story arc, footage file names, drain walk, what's computed Sunday |
 | `scripts/citywide_analysis.py` | Citywide drain ranking + street low spots + validation vs 311 (runs anywhere; ~1 min) |
