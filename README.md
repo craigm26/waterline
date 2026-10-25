@@ -14,6 +14,10 @@
 - **Dec 31, 2022 replay:** 5.46 in at SF Downtown (Atlas 14 100-yr 24-hr = 5.55 in); **17 SF 311 flooding reports within 600 m of 17th & Folsom**, 614 citywide; 17th & Folsom is inside the SFPUC 100-year flood zone.
 - The SFPUC fix for 17th & Folsom (tunnel + box sewers) runs **through 2030**. This El Niño arrives first.
 
+## Contributing
+
+Run the demo: `cd demo && python -m http.server 8000`. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup and the data contracts, and [`plan/track2-loop.md`](plan/track2-loop.md) for what we're building and who does what.
+
 ## What's in here
 
 | Path | What |

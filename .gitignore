@@ -9,7 +9,7 @@ __pycache__/
 !data/terrain/*.tif
 .build.log
 !data/lidar/*.laz
-demo/lidar/
-demo/img/
+demo/lidar/*.b64.txt
 .drain.log
 .lidar.log
+renders/*/_vid/

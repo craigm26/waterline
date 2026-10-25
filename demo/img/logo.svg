@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" role="img" aria-label="Waterline">
+  <defs>
+    <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#1b4f7a" stroke-width="2.5"/>
+    </pattern>
+  </defs>
+  <!-- mark: a building edge with a measured water line; hatched band = uncertainty -->
+  <rect x="14" y="14" width="44" height="92" fill="none" stroke="#1f2933" stroke-width="5"/>
+  <rect x="6" y="62" width="60" height="14" fill="url(#hatch)"/>
+  <rect x="6" y="76" width="60" height="30" fill="#2f80c1"/>
+  <line x1="0" y1="76" x2="72" y2="76" stroke="#1b4f7a" stroke-width="4"/>
+  <text x="92" y="82" font-family="Inter, DejaVu Sans, Helvetica, Arial, sans-serif" font-size="56"
+        font-weight="700" fill="#1f2933" letter-spacing="-1">Waterline</text>
+</svg>
