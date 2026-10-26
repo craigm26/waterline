@@ -1,6 +1,6 @@
 # Waterline
 
-**Now (Oct 26):** we're past the hackathon and building v2 in the open: a city-manager view on the web and an AR app for iOS, both field-tested on the Nov 25 and Dec 24 king tides, with WeatherNext 3 as the forecast. Plan: [`plan/v2-roadmap.md`](plan/v2-roadmap.md). Live site: https://craigm26.github.io/waterline-argon-hackathon/. Everything below is the original hackathon prep, kept because the data and analysis carry over.
+**Now (Oct 26):** we're past the hackathon and building v2 in the open: a city-manager view on the web and an AR app for iOS, both field-tested on the Nov 25 and Dec 24 king tides, with NOAA tide and rain forecasts first and WeatherNext 3 added last. Plan: [`plan/v2-roadmap.md`](plan/v2-roadmap.md). Live site: https://craigmerry.com/waterline/. Everything below is the original hackathon prep, kept because the data and analysis carry over.
 
 ---
 
