@@ -1,4 +1,10 @@
-# Waterline: prep package
+# Waterline
+
+**Now (Oct 26):** we're past the hackathon and building v2 in the open: a city-manager view on the web and an AR app for iOS, both field-tested on the Nov 25 and Dec 24 king tides, with WeatherNext 3 as the forecast. Plan: [`plan/v2-roadmap.md`](plan/v2-roadmap.md). Live site: https://craigm26.github.io/waterline-argon-hackathon/. Everything below is the original hackathon prep, kept because the data and analysis carry over.
+
+---
+
+## Hackathon prep package
 
 **Event:** Gemini 4 Argon hackathon, Google DeepMind · **SHACK15, 1 Ferry Plaza (Ferry Building), San Francisco**
 **When:** Sun Oct 25, 2026, 9:00 AM – 10:00 PM PDT

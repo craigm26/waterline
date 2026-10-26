@@ -1,0 +1,21 @@
+name: iOS build
+on:
+  push:
+    paths: ["ios/**", ".github/workflows/ios-build.yml"]
+  pull_request:
+    paths: ["ios/**"]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Xcode project
+        run: brew install xcodegen && cd ios && xcodegen generate
+      - name: Build (device SDK, unsigned)
+        run: |
+          cd ios
+          xcodebuild -project Waterline.xcodeproj -scheme Waterline \
+            -destination 'generic/platform=iOS' -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO build | tee build.log | grep -E "error:|warning:|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" build.log

@@ -17,3 +17,5 @@ renders/*/_vid/
 .release.err
 .release-notes.md
 .release.ps1
+ios/*.xcodeproj/
+ios/build.log
