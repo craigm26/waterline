@@ -1,6 +1,8 @@
 # Waterline
 
-**Now (Oct 26):** we're past the hackathon and building v2 in the open: a city-manager view on the web and an AR app for iOS, both field-tested on the Nov 25 and Dec 24 king tides, with NOAA tide and rain forecasts first and WeatherNext 3 added last. Plan: [`plan/v2-roadmap.md`](plan/v2-roadmap.md). Live site: https://craigmerry.com/waterline/. Everything below is the original hackathon prep, kept because the data and analysis carry over.
+**Now:** Waterline is a city-manager site for San Francisco flood screening, live at https://craigmerry.com/waterline/, and an iOS app that draws the water line on the seawall (TestFlight). Both were finished with Claude Code after the hackathon. Plan: [`plan/v2-roadmap.md`](plan/v2-roadmap.md).
+
+**What came before:** everything below, and the [build-day demo](https://craigmerry.com/waterline/build-day/) in `demo/`, was written before the Gemini 4 Argon hackathon (Oct 25, 2026) to guide a day of building with Google Antigravity and Gemini 4 Argon. The thing to be built that day was the city-manager site. The build day never happened for Waterline, so wherever this prep says Argon agents did something, read it as the plan. The data and analysis are real and carry over.
 
 ---
 

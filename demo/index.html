@@ -1,5 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
-<title>Waterline</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waterline build-day demo (archive)</title>
+<meta name="robots" content="noindex">
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="share-url" content="https://craigmerry.com/waterline/">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -191,7 +196,19 @@ figcaption { font-size: .88rem; color: var(--muted); }
 .close h2 { font-size: clamp(2.4rem, 6vw, 4.6rem); max-width: 18ch; }
 footer { border-top: 1px solid var(--rule); padding-block: 28px 48px; font-size: .82rem; color: var(--muted); }
 footer .wrap { display: grid; gap: 8px; }
+.archive { position: sticky; top: 0; z-index: 50; background: #2a1f08; border-bottom: 2px solid var(--amber); }
+.archive .wrap { display: grid; gap: 6px; padding-block: 12px; font-size: .95rem; }
+.archive b { color: var(--amber); font: 600 .78rem/1.4 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+.archive p { margin: 0; max-width: 100ch; }
+@media (max-width: 700px) { .archive .more { display: none; } }
 </style>
+</head>
+<body>
+<div class="archive" role="note"><div class="wrap">
+  <b>Archive · pre-hackathon build-day demo · never run</b>
+  <p>This page was written before the Gemini 4 Argon hackathon (Oct 25, 2026) to guide a day of building with Google Antigravity and Gemini 4 Argon. The thing to be built that day was the city-manager site. <strong>The build day didn't happen for Waterline.</strong> <span class="more">Wherever this page says Argon or Gemini agents ran, re-planned, read photos or recorded footage, that describes the plan, not something that happened. The tide, lidar, 311, drain and rain data on it are real.</span></p>
+  <p><a href="../">Go to the finished city-manager site, built with Claude Code →</a></p>
+</div></div>
 
 <header class="hero" aria-labelledby="h1">
   <div class="wrap">
@@ -456,7 +473,7 @@ footer .wrap { display: grid; gap: 8px; }
 
 <footer>
   <div class="wrap">
-    <p style="margin:0">Screening-level prototype built at the Gemini 4 Argon hackathon, SHACK15, Oct 25 2026. Not an official alert: follow AlertSF and the National Weather Service.</p>
+    <p style="margin:0">Screening-level demo written ahead of the Gemini 4 Argon hackathon (SHACK15, Oct 25 2026) and never run there; kept as an archive. Not an official alert: follow AlertSF and the National Weather Service.</p>
     <p style="margin:0">Data: NOAA CO-OPS 9414290 and Atlas 14 · NOAA CPC ENSO · USGS 3DEP lidar (2023, AWS EPT) · SFPUC 100-year flood map and drain inlets (DataSF) · SF 311 · GHCN-D · Open-Meteo ensembles.</p>
   </div>
 </footer>
@@ -924,3 +941,5 @@ ${rows || "  none"}
   });
 })();
 </script>
+</body>
+</html>

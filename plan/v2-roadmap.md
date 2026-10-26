@@ -18,7 +18,7 @@ The live gauge has been running about +1 ft above prediction this October becaus
 
 ## Deliverable 1: city-manager view (web)
 
-**Where:** `site/` in this repo, published at `https://craigmerry.com/waterline/city/`. The story page in `demo/` is `https://craigmerry.com/waterline/`, listed on the craigmerry.com experiments page. This repo is the source of truth; `scripts/sync-waterline.sh` in the `personalsite` repo copies `demo/` and `site/` into `public/waterline/`, and a push to personalsite `master` deploys it. There is no GitHub Pages deploy any more.
+**Where:** `site/` in this repo, published at `https://craigmerry.com/waterline/` (MVP live Oct 26). The pre-hackathon build-day demo in `demo/` is archived at `https://craigmerry.com/waterline/build-day/` with a banner saying it was never run. This repo is the source of truth; `scripts/sync-waterline.sh` in the `personalsite` repo copies `site/` to `public/waterline/` and `demo/` to `public/waterline/build-day/`, and a push to personalsite `master` deploys it. There is no GitHub Pages deploy.
 
 **What the city manager sees first:** the next 15 days of rain and tide for San Francisco on one strip, with WeatherNext p50/p90 rain against the predicted tide plus today's measured anomaly. Then the worst low spots for that forecast on a 3D map. Their first question is "do I need to do anything this week?", and the first screen answers it.
 
@@ -70,8 +70,8 @@ ORDER BY f.hours;
 | By | Done when |
 |---|---|
 | Oct 31 | Story site live at craigmerry.com/waterline/; `refresh_live.py` writes NOAA tide + NWS rain to `forecast.json` |
-| Nov 7 | `site/` city view MVP at /waterline/city/: forecast strip (NOAA) + 3D map + hotspot drill-down, refreshed by hand |
-| Nov 14 | iOS project in `ios/` building in CI; geospatial anchor + water plane on a device at home (test plane at a known height) |
+| Nov 7 | ~~city view MVP~~ **Done Oct 26**: forecast strip (NOAA live), map of low spots + drains + 311 + SFPUC zone, prep list, draft brief. Next: lidar drill-down per low spot |
+| Nov 14 | iOS 1.0 on TestFlight (marker mode, live NOAA scenarios); water plane checked on a device at home against a known height |
 | **Nov 25** | **Field test 1 at the Ferry Building**; Storm Desk replay in the city view |
 | Dec 12 | Storm Desk live run against a real forecast; alerts drafted; render loop (`render_watch.py`) used to critique the city view |
 | **Dec 24** | **Filmed demo on the king tide**; post written up |

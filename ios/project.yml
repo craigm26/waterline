@@ -1,3 +1,4 @@
+# Waterline.xcodeproj is GENERATED (xcodegen generate on the Mac), never committed.
 name: Waterline
 options:
   bundleIdPrefix: com.craigmerry
@@ -17,12 +18,23 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.craigmerry.waterline
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        # Answers export compliance at build time (HTTPS to NOAA only), so TestFlight
+        # never holds the build on "Missing Compliance".
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: false
+        # Naming the icon set makes Xcode compile it; CFBundleIconName below must also
+        # be set explicitly, or the upload is rejected at validation.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     info:
       path: Waterline/Info.plist
       properties:
         CFBundleDisplayName: Waterline
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleIconName: AppIcon
+        ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
         NSCameraUsageDescription: Waterline draws the forecast water line on the camera view.
-        NSLocationWhenInUseUsageDescription: Waterline uses your location to anchor the water line to real-world height.
         UIRequiredDeviceCapabilities: [arkit]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]

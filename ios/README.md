@@ -18,3 +18,13 @@ That unsigned build is the free compile check. A signed archive goes to TestFlig
 - ARKit doesn't run in the Simulator; test on a device.
 - Marker mode is only as good as the mark's elevation. Use a surveyed point or the lidar plaza grade (10.1 ft MLLW), and say which one you used on screen.
 - `Waterline.xcodeproj` is generated, so edit `project.yml`, not the project file.
+
+## TestFlight
+
+`archive_upload.sh` archives, signs with the team's distribution identity and uploads in one go. Run it on the Mac with the keychain password piped in the same SSH connection (each connection is a new security session):
+
+```bash
+ssh $SSHOPTS $MAC 'cd waterline-ios && KEYCHAIN_PASSWORD=$(cat) ./archive_upload.sh 68T2S87K39 <ISSUER_ID>' < <(op item get <id> --vault Civqo --fields password --reveal)
+```
+
+Bump `CURRENT_PROJECT_VERSION` in `project.yml` before every upload. Uploads are capped at about 20 per version per day, so batch changes into one upload per session.

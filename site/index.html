@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waterline · San Francisco flood screening</title>
+<meta name="description" content="Waterline: the next two weeks of NOAA tide and rain for San Francisco against the flood thresholds, the street low spots and drains that matter most, and a prep list a city manager can act on. A screening tool, not an official alert.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* City-manager view. Same night-harbor palette as the story page; denser, built to be read at a desk.
+   Provenance code (CLAUDE.md rule 2): official data solid, derived outlined, assumed hatched. */
+:root {
+  --night: #0a1016; --deep: #0f1922; --panel: #142230; --rule: #22374a;
+  --fg: #e8eef3; --muted: #8fa3b5; --water: #3aa0ff; --water-2: #1d5f99;
+  --amber: #f2b33d; --orange: #f08a3c; --red: #ff6b5b; --green: #5fc48a;
+  --display: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--night); }
+body { color: var(--fg); font: 16px/1.55 var(--body); margin: 0; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 16px; }
+a { color: var(--water); }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; letter-spacing: -.005em; text-wrap: balance; }
+h1 { font-size: clamp(2.2rem, 5.5vw, 3.6rem); line-height: 1; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); line-height: 1.05; }
+h3 { font-size: 1.25rem; }
+p { margin: 0; }
+.eyebrow { font: 500 .76rem/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--water); }
+.note { font-size: .88rem; color: var(--muted); max-width: 78ch; }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
+
+header.top { border-bottom: 1px solid var(--rule); }
+header.top .wrap { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; justify-content: space-between; padding-block: 14px; }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 1.3rem var(--display); color: var(--fg); text-decoration: none; }
+.brand svg { width: 22px; height: 34px; }
+nav.links { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: .9rem; }
+nav.links a { color: var(--muted); text-decoration: none; }
+nav.links a:hover { color: var(--fg); }
+
+.history { background: var(--deep); border: 1px solid var(--amber); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; margin-top: 22px; }
+.history b { color: var(--amber); font: 600 .78rem/1.4 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+.history p { font-size: .95rem; max-width: 90ch; }
+
+section { padding-block: 44px; border-top: 1px solid var(--rule); }
+section:first-of-type { border-top: 0; }
+.sec-head { display: grid; gap: 8px; margin-bottom: 22px; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+
+.verdict { display: grid; gap: 14px; padding: 22px; border-radius: 6px; border: 1px solid var(--rule); background: var(--deep); }
+.verdict .level { font: 700 clamp(1.8rem, 4.5vw, 2.8rem)/1 var(--display); }
+.verdict.calm .level { color: var(--green); } .verdict.watch .level { color: var(--amber); } .verdict.act .level { color: var(--red); }
+.verdict ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.fresh { font: .8rem var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.fresh button, .btn { font: 500 .82rem var(--mono); color: var(--fg); background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 10px; cursor: pointer; text-decoration: none; display: inline-block; }
+.fresh button:hover, .btn:hover { border-color: var(--water); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.stat { display: grid; gap: 2px; padding: 10px 14px; border-left: 3px solid var(--water); background: var(--panel); min-width: 0; }
+.stat b { font: 700 1.7rem/1 var(--display); font-variant-numeric: tabular-nums; }
+.stat span { font-size: .82rem; color: var(--muted); }
+.stat.derived { border-left-style: dashed; }
+
+svg text { font-family: var(--mono); }
+.chart { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .8rem; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; border-radius: 50%; }
+.k-off { background: var(--water); }
+.k-der { border: 2px solid var(--amber); }
+.k-rain { background: #7fc4ff; border-radius: 0 !important; }
+.k-zone { background: rgba(58,160,255,.25); border: 1px solid var(--water); border-radius: 2px !important; }
+.k-311 { background: #ff8a7a; width: 7px !important; height: 7px !important; }
+.k-hot { border: 2px solid var(--amber); }
+.k-drain { border: 2px solid #c9d6e2; width: 9px !important; height: 9px !important; }
+
+#map { height: 560px; border-radius: 6px; border: 1px solid var(--rule); background: #0f1922; }
+@media (max-width: 700px) { #map { height: 420px; } }
+.layers { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .85rem; margin-bottom: 10px; }
+.layers label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.leaflet-popup-content { font: 13px/1.45 var(--body); }
+.leaflet-container { font-family: var(--body); }
+
+.tablewrap { overflow-x: auto; max-height: 520px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: .86rem; }
+th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th { position: sticky; top: 0; background: var(--deep); font: 500 .74rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: var(--panel); }
+.tag { font: .72rem var(--mono); padding: 1px 6px; border-radius: 3px; border: 1px solid var(--rule); color: var(--muted); }
+.tag.zone { border-color: var(--water); color: var(--water); }
+
+.steps { display: grid; gap: 12px; counter-reset: s; }
+.step { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; }
+.step h3 { font-size: 1.1rem; }
+.step h3::before { counter-increment: s; content: counter(s) " · "; color: var(--water); }
+.step ul { margin: 0; padding-left: 1.1em; font-size: .92rem; }
+textarea { width: 100%; min-height: 260px; background: var(--deep); color: var(--fg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px; font: .86rem/1.5 var(--mono); resize: vertical; }
+
+.sources { font-size: .85rem; color: var(--muted); display: grid; gap: 4px; }
+.sources a { word-break: break-all; }
+footer { border-top: 1px solid var(--rule); padding-block: 28px 44px; font-size: .88rem; color: var(--muted); }
+footer .wrap { display: grid; gap: 8px; }
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <a class="brand" href="./"><svg viewBox="0 0 30 46" aria-hidden="true"><path d="M15 2 C15 2 3 18 3 29 a12 12 0 0 0 24 0 C27 18 15 2 15 2Z" fill="none" stroke="#3aa0ff" stroke-width="2.4"/><path d="M5 31 q5 -4 10 0 t10 0" fill="none" stroke="#3aa0ff" stroke-width="2.4"/></svg>Waterline</a>
+  <nav class="links"><a href="#week">This week</a><a href="#map-sec">Map</a><a href="#prep">Prep list</a><a href="#brief">Brief</a><a href="#method">Method</a><a href="build-day/">Build-day demo (archive)</a><a href="https://github.com/craigm26/waterline">Code</a></nav>
+</div></header>
+
+<main class="wrap">
+
+<div class="history" role="note">
+  <b>What this page is, and what came before it</b>
+  <p>Waterline began as a plan for the Gemini 4 Argon hackathon in San Francisco on October 25, 2026. The <a href="build-day/">build-day demo</a> was written beforehand to guide a day of building with Google Antigravity and Gemini 4 Argon, and the thing to be built that day was this city-manager site. The build day didn't happen for Waterline, so the demo's descriptions of what Argon agents did are a plan, not results.</p>
+  <p>This page is the finished city-manager site, built afterwards with Claude Code. No AI model runs here: every number is computed in your browser from the public data listed under <a href="#method">Method</a>.</p>
+</div>
+
+<section id="week" aria-labelledby="h-week">
+  <div class="sec-head">
+    <p class="eyebrow">San Francisco · next two weeks</p>
+    <h1 id="h-week">Do we need to do anything this week?</h1>
+  </div>
+  <div class="verdict" id="verdict"><div class="level">Loading NOAA data…</div></div>
+  <div class="fresh" style="margin-top:10px"><span id="freshText">—</span><button type="button" id="reload">Fetch from NOAA now</button></div>
+
+  <div class="stats" style="margin-top:22px">
+    <div class="stat"><b class="num" id="sNow">—</b><span>Gauge right now vs prediction, ft (CO-OPS 9414290)</span></div>
+    <div class="stat derived"><b class="num" id="sAnom">—</b><span>30-day mean anomaly, ft: the El Niño / Kelvin-wave baseline</span></div>
+    <div class="stat derived"><b class="num" id="sMax">—</b><span>Highest high in 15 days with the anomaly added, ft MLLW</span></div>
+    <div class="stat"><b class="num" id="sRain">—</b><span>NWS rain forecast, next 7 days, inches (17th &amp; Folsom)</span></div>
+  </div>
+
+  <div class="panel" style="margin-top:22px">
+    <h3>Daily high tide and rain, 15 days</h3>
+    <svg class="chart" id="chart" viewBox="0 0 1000 380" role="img" aria-label="Daily highest predicted tide for 15 days, with the current anomaly added, against NOAA flood thresholds, and NWS daily rain."></svg>
+    <div class="legend">
+      <span><i class="k-off"></i>NOAA predicted high (official)</span>
+      <span><i class="k-der"></i>+ today's 30-day anomaly (derived: assumes it holds)</span>
+      <span><i class="k-rain"></i>NWS rain, inches (official, about 7 days out)</span>
+    </div>
+    <p class="note" style="margin-top:8px">Thresholds are NOAA's for station 9414290 in ft above MLLW: NWS minor 7.04, NOS minor 7.71, NOS moderate 8.64, NOS major 9.91. The plaza in front of the Ferry Building sits near 10.2 ft (USGS lidar). Storm surge and wind setup are not in this chart: a storm adds to these numbers.</p>
+  </div>
+</section>
+
+<section id="map-sec" aria-labelledby="h-map">
+  <div class="sec-head">
+    <p class="eyebrow">Where water collects</p>
+    <h2 id="h-map">The 50 worst street low spots and the 500 drains that matter most</h2>
+    <p class="note">From a 5 m lidar bare-earth model. Drains are ranked by how deep the nearest street bowl gets and how much ground drains to the grate. Low spots are ranked by how much water the bowl holds, past 311 flooding reports within 150 m, and whether it's inside the city's 100-year flood zone. It ignores the pipe network, so it says where to look first, not how deep it will flood. <span id="mapSummary"></span></p>
+  </div>
+  <div class="layers" id="layers">
+    <label><input type="checkbox" data-l="hot" checked> <i class="legend k-hot" style="display:inline-block;width:12px;height:12px;border-radius:50%"></i>Low spots (derived)</label>
+    <label><input type="checkbox" data-l="drain" checked> <i style="display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid #c9d6e2"></i>Top 500 drains (derived rank)</label>
+    <label><input type="checkbox" data-l="f311"> <i style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff8a7a"></i>311 flooding reports, all years (official)</label>
+    <label><input type="checkbox" data-l="zone"> <i style="display:inline-block;width:12px;height:12px;background:rgba(58,160,255,.25);border:1px solid #3aa0ff"></i>SFPUC 100-year flood zone (official)</label>
+  </div>
+  <div id="map" role="region" aria-label="Map of San Francisco low spots and priority drains"></div>
+  <div class="grid2" style="margin-top:22px">
+    <div>
+      <h3 style="margin-bottom:10px">Low spots, worst first</h3>
+      <div class="tablewrap"><table id="hotTable"><thead><tr><th class="r">#</th><th>Place</th><th class="r">Depth m</th><th class="r">Area m²</th><th class="r">311 within 150 m</th><th>SFPUC zone</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div>
+      <h3 style="margin-bottom:10px">Street drains by crew zone</h3>
+      <div class="tablewrap"><table id="zoneTable"><thead><tr><th>Neighborhood</th><th class="r">Street drains in top 500</th></tr></thead><tbody></tbody></table></div>
+      <p class="note" style="margin-top:8px"><a class="btn" href="data/top500_drains.csv" download>Download the 500 drains (CSV)</a></p>
+    </div>
+  </div>
+</section>
+
+<section id="prep" aria-labelledby="h-prep">
+  <div class="sec-head">
+    <p class="eyebrow">Prep list</p>
+    <h2 id="h-prep">What to do before the next high-tide window</h2>
+    <p class="note">Generated from the forecast above and the city data. It changes when NOAA's forecast changes.</p>
+  </div>
+  <div class="steps" id="steps"></div>
+</section>
+
+<section id="brief" aria-labelledby="h-brief">
+  <div class="sec-head">
+    <p class="eyebrow">Draft</p>
+    <h2 id="h-brief">A briefing you can edit and send yourself</h2>
+    <p class="note">Waterline never sends anything. This is text for a person to check, change and send through the city's own channels.</p>
+  </div>
+  <textarea id="briefText" aria-label="Draft briefing text" spellcheck="true"></textarea>
+  <p style="margin-top:10px"><button class="btn" type="button" id="copyBrief">Copy the draft</button> <span class="note" id="copied"></span></p>
+</section>
+
+<section id="method" aria-labelledby="h-method">
+  <div class="sec-head">
+    <p class="eyebrow">Method, sources, limits</p>
+    <h2 id="h-method">How the numbers are made</h2>
+  </div>
+  <div class="grid2">
+    <div style="display:grid;gap:12px;font-size:.95rem">
+      <p><b>Tide.</b> NOAA CO-OPS high/low predictions for San Francisco (9414290), 15 days. The anomaly is the mean of observed minus predicted water level over the last 30 days, fetched live. Adding it to each future high assumes the anomaly holds; this October it has run near +1 ft because of the El Niño Kelvin wave.</p>
+      <p><b>Rain.</b> National Weather Service gridpoint forecast for the cell over 17th &amp; Folsom (MTR 85,105): quantitative precipitation, split by hour and summed per Pacific day.</p>
+      <p><b>Low spots and drains.</b> USGS 3DEP lidar of San Francisco, resampled to a 5 m bare-earth model. Priority-flood fill finds the street bowls; D8 flow routing finds how much ground drains to each of the city's 23,835 inlets. Drains are scored by the depth of the nearest bowl (capped at 1.5 m) times the log of the area they collect. Low spots are scored by bowl volume, past 311 reports within 150 m and SFPUC 100-year zone membership, so they are not an independent check against either. The top 500 sit near 9.7 past 311 flooding reports each within 75 m, against 6.1 for all inlets. Drains in pits deeper than 2 m (underpasses, stairwells) are marked for a person to verify rather than sent to a street crew.</p>
+      <p><b>Limits.</b> This is a screening model, not a hydraulic model like HEC-RAS: no pipes, no pumps, no backflow, no wind. It points at where to look first. It is not an official alert: follow <a href="https://www.alertsf.org/">AlertSF</a> and the <a href="https://www.weather.gov/mtr/">National Weather Service</a>.</p>
+    </div>
+    <div class="sources panel" id="sources"><b style="color:var(--fg)">Sources</b></div>
+  </div>
+</section>
+
+</main>
+
+<footer><div class="wrap">
+  <p>Waterline · street-level flood screening for San Francisco, winter 2026–27. Built with Claude Code by <a href="https://craigmerry.com/">Craig Merry</a>. Code and data: <a href="https://github.com/craigm26/waterline">github.com/craigm26/waterline</a> (MIT).</p>
+  <p>The <a href="build-day/">build-day demo</a> is kept as it was written for October 25, with a note on top.</p>
+</div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+"use strict";
+const STATION = "9414290", GRID = "MTR/85,105";
+const TH = { nws_minor: 7.04, nos_minor: 7.71, nos_moderate: 8.64, nos_major: 9.91 };
+const TH_LABEL = { nws_minor: "NWS minor", nos_minor: "NOS minor", nos_moderate: "NOS moderate", nos_major: "NOS major" };
+const PLAZA = 10.16;
+const COOPS = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const fmtFt = (v, sign) => (sign && v >= 0 ? "+" : "") + v.toFixed(2);
+let F = null, CITY = null;
+
+// ---------- forecast: live from NOAA, same logic as scripts/refresh_live.py; snapshot as fallback ----------
+const pacific = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(d).replace(",", "");
+const ymdhm = (d) => pacific(d).replace(/-/g, "").replace(" ", "%20");
+function coopsUrl(product, begin, end, extra = "") {
+  return `${COOPS}?station=${STATION}&product=${product}&begin_date=${ymdhm(begin)}&end_date=${ymdhm(end)}&datum=MLLW&units=english&time_zone=lst_ldt&format=json&application=waterline${extra}`;
+}
+async function getJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error(url + " " + r.status); return r.json(); }
+
+function perDay(series, how) {
+  const acc = {};
+  for (const v of series.values) {
+    const [start, dur] = v.validTime.split("/");
+    const t0 = new Date(start);
+    const h = dur.startsWith("PT") ? parseInt(dur.slice(2)) : 24 * parseInt(dur.slice(1));
+    for (let i = 0; i < h; i++) {
+      const day = pacific(new Date(t0.getTime() + i * 3600e3)).slice(0, 10);
+      const x = how === "sum" ? (v.value || 0) / h : (v.value || 0);
+      acc[day] = how === "sum" ? (acc[day] || 0) + x : Math.max(acc[day] || 0, x);
+    }
+  }
+  return acc;
+}
+
+async function liveForecast() {
+  const now = new Date(), begin = new Date(now - 30 * 864e5), end = new Date(now.getTime() + 15 * 864e5);
+  const urls = {
+    obs: coopsUrl("water_level", begin, now),
+    pred: coopsUrl("predictions", begin, now, "&interval=6"),
+    hilo: coopsUrl("predictions", now, end, "&interval=hilo"),
+    nws: `https://api.weather.gov/gridpoints/${GRID}`,
+  };
+  const [obs, pred, hilo, nws] = await Promise.all([getJSON(urls.obs), getJSON(urls.pred), getJSON(urls.hilo), getJSON(urls.nws).catch(() => null)]);
+  const p = new Map(pred.predictions.map((r) => [r.t, +r.v]));
+  const res = obs.data.filter((r) => r.v !== "" && p.has(r.t)).map((r) => [r.t, +r.v - p.get(r.t)]);
+  if (!res.length) throw new Error("no matched water levels");
+  const dayAgo = pacific(new Date(now - 864e5));
+  const mean = (a) => a.reduce((s, x) => s + x, 0) / a.length;
+  const anomaly = {
+    mean_30d_ft: +mean(res.map((x) => x[1])).toFixed(2),
+    mean_24h_ft: +mean(res.filter((x) => x[0] >= dayAgo).map((x) => x[1])).toFixed(2),
+    latest: { t: res[res.length - 1][0], residual_ft: +res[res.length - 1][1].toFixed(2) },
+    samples: res.length, source: urls.obs,
+  };
+  const hl = hilo.predictions.map((r) => ({ t: r.t, ft: +r.v, type: r.type }));
+  const rain = nws ? perDay(nws.properties.quantitativePrecipitation, "sum") : {};
+  const chance = nws ? perDay(nws.properties.probabilityOfPrecipitation, "max") : {};
+  return assemble(now, anomaly, hl, rain, chance, urls, nws ? nws.properties.updateTime : null);
+}
+
+function assemble(now, anomaly, hl, rain, chance, urls, nwsUpdated) {
+  const days = [];
+  for (let i = 0; i < 15; i++) {
+    const day = pacific(new Date(now.getTime() + i * 864e5)).slice(0, 10);
+    const highs = hl.filter((x) => (x.type === "H" || x.type === "HH") && x.t.startsWith(day));
+    if (!highs.length) continue;
+    const top = highs.reduce((a, b) => (b.ft > a.ft ? b : a));
+    const w = +(top.ft + anomaly.mean_30d_ft).toFixed(2);
+    days.push({ date: day, high: { t: top.t, predicted_ft: top.ft, with_anomaly_ft: w },
+      over: Object.keys(TH).filter((k) => w >= TH[k]),
+      rain_in: day in rain ? +(rain[day] / 25.4).toFixed(2) : null,
+      rain_chance_pct: day in chance ? Math.round(chance[day]) : null });
+  }
+  return { schema: "waterline.forecast.v1", generated_at: now.toISOString(), live: true, anomaly, days, hilo: hl,
+    sources: { tide_predictions: urls.hilo, water_level: urls.obs, rain: { url: urls.nws, grid: GRID, point: "17th & Folsom (37.7633, -122.4148)", updated: nwsUpdated } } };
+}
+
+async function loadForecast(forceLive) {
+  $("freshText").textContent = "Fetching from NOAA…";
+  try { F = await liveForecast(); }
+  catch (e) {
+    console.warn("live NOAA fetch failed, using snapshot", e);
+    if (!F || !forceLive) F = await getJSON("data/forecast.json");
+  }
+  renderForecast(); renderPrep(); renderBrief(); renderSources();
+}
+
+// ---------- verdict + stats + chart ----------
+const dayName = (d) => new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+const hhmm = (t) => { const [h, m] = t.slice(11, 16).split(":").map(Number); return `${(h % 12) || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`; };
+
+function windows(minFt) {
+  // future high tides that reach minFt once the 30-day anomaly is added
+  const a = F.anomaly.mean_30d_ft, now = pacific(new Date());
+  return F.hilo.filter((x) => (x.type === "H" || x.type === "HH") && x.t >= now && x.ft + a >= minFt).map((x) => ({ t: x.t, ft: x.ft, w: +(x.ft + a).toFixed(2) }));
+}
+
+function renderForecast() {
+  const a = F.anomaly, week = F.days.slice(0, 7);
+  const gen = new Date(F.generated_at);
+  $("freshText").textContent = (F.live ? "Live from NOAA, " : "Snapshot (live fetch failed), ") + gen.toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" }) + " Pacific";
+  $("sNow").textContent = fmtFt(a.latest.residual_ft, true);
+  $("sAnom").textContent = fmtFt(a.mean_30d_ft, true);
+  const top = F.days.reduce((m, d) => (d.high.with_anomaly_ft > m.high.with_anomaly_ft ? d : m), F.days[0]);
+  $("sMax").textContent = top.high.with_anomaly_ft.toFixed(2);
+  const rainDays = week.filter((d) => d.rain_in !== null);
+  const rain7 = rainDays.reduce((s, d) => s + d.rain_in, 0);
+  $("sRain").textContent = rainDays.length ? rain7.toFixed(2) : "n/a";
+
+  const worst = (k) => week.filter((d) => d.over.includes(k));
+  const nosMinor = worst("nos_minor"), nwsMinor = worst("nws_minor"), mod = worst("nos_moderate");
+  const wetHigh = week.filter((d) => d.over.includes("nws_minor") && d.rain_in >= 0.1);
+  let cls, level; const items = [];
+  if (mod.length) { cls = "act"; level = "Prepare: moderate coastal flooding is possible"; }
+  else if (nosMinor.length) { cls = "act"; level = "Prepare the waterfront this week"; }
+  else if (nwsMinor.length) { cls = "watch"; level = "Watch the waterfront"; }
+  else { cls = "calm"; level = "No tide threshold reached this week"; }
+  if (nwsMinor.length) items.push(`High tides reach the NWS minor flood threshold (7.04 ft) on ${nwsMinor.length} of the next 7 days once the current +${a.mean_30d_ft.toFixed(2)} ft anomaly is added: ${nwsMinor.map((d) => `${dayName(d.date)} ${hhmm(d.high.t)} (${d.high.with_anomaly_ft.toFixed(2)} ft)`).join(", ")}.`);
+  if (nosMinor.length) items.push(`${nosMinor.length} of them reach NOAA's minor coastal flood threshold for this gauge (NOS minor, 7.71 ft).`);
+  if (!nwsMinor.length) items.push(`The highest tide this week, with the anomaly, is ${Math.max(...week.map((d) => d.high.with_anomaly_ft)).toFixed(2)} ft, under the NWS minor threshold of 7.04 ft.`);
+  items.push(rainDays.length ? `NWS forecasts ${rain7.toFixed(2)} in of rain over the next ${rainDays.length} days at 17th & Folsom${rain7 > 0 ? `, most on ${dayName(rainDays.reduce((m, d) => (d.rain_in > m.rain_in ? d : m)).date)}` : ""}. For scale, New Year's Eve 2022 brought 5.46 in in a day.` : "The NWS rain forecast didn't load; rain isn't counted above.");
+  if (wetHigh.length) items.push(`Rain and a threshold tide fall on the same day: ${wetHigh.map((d) => dayName(d.date)).join(", ")}. Check the bayside low spots on the map first.`);
+  const ahead = F.days.slice(7).filter((d) => d.over.includes("nws_minor"));
+  if (ahead.length) items.push(`Further out: ${ahead.length} more threshold days in the following week, starting ${dayName(ahead[0].date)}.`);
+  const v = $("verdict"); v.className = "verdict " + cls;
+  v.innerHTML = `<div class="level">${esc(level)}</div><ul>${items.map((s) => `<li>${esc(s)}</li>`).join("")}</ul><p class="note">Storm surge and wind setup aren't forecast here. A storm on any of these days adds to the tide.</p>`;
+  drawChart();
+}
+
+function drawChart() {
+  const W = 1000, H = 380, L = 54, R = 120, T = 16, TB = 252, RB0 = 282, RB1 = 350;
+  const n = F.days.length, x = (i) => L + (i + 0.5) * (W - L - R) / n;
+  const lo = 4.5, hi = 10.5, y = (v) => T + (hi - v) / (hi - lo) * (TB - T);
+  const maxRain = Math.max(1, ...F.days.map((d) => d.rain_in || 0));
+  const ry = (v) => RB1 - v / maxRain * (RB1 - RB0);
+  let s = "";
+  for (let v = 5; v <= 10; v++) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#22374a"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#8fa3b5">${v}</text>`;
+  s += `<text x="${L - 8}" y="${T - 2}" text-anchor="end" font-size="10" fill="#8fa3b5">ft</text>`;
+  const lines = [["nws_minor", "#f2b33d"], ["nos_minor", "#f08a3c"], ["nos_moderate", "#ff6b5b"], ["nos_major", "#ff6b5b"]];
+  for (const [k, c] of lines) s += `<line x1="${L}" x2="${W - R}" y1="${y(TH[k])}" y2="${y(TH[k])}" stroke="${c}" stroke-width="1.5"/><text x="${W - R + 6}" y="${y(TH[k]) + 4}" font-size="11" fill="${c}">${TH_LABEL[k]} ${TH[k]}</text>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${y(PLAZA)}" y2="${y(PLAZA)}" stroke="#b79f7d" stroke-dasharray="5 4"/><text x="${W - R + 6}" y="${y(PLAZA) - 6}" font-size="11" fill="#b79f7d">Ferry plaza ~10.2</text>`;
+  F.days.forEach((d, i) => {
+    const xi = x(i), p = d.high.predicted_ft, w = d.high.with_anomaly_ft;
+    s += `<line x1="${xi}" x2="${xi}" y1="${y(p)}" y2="${y(w)}" stroke="#f2b33d" stroke-opacity=".5" stroke-width="1.5"/>`;
+    s += `<circle cx="${xi}" cy="${y(p)}" r="5" fill="#3aa0ff"><title>${d.date}: predicted high ${p.toFixed(2)} ft at ${hhmm(d.high.t)}</title></circle>`;
+    s += `<circle cx="${xi}" cy="${y(w)}" r="6" fill="none" stroke="#f2b33d" stroke-width="2"><title>${d.date}: with anomaly ${w.toFixed(2)} ft (derived)</title></circle>`;
+    const lab = new Date(d.date + "T12:00:00");
+    s += `<text x="${xi}" y="${TB + 18}" text-anchor="middle" font-size="10" fill="#8fa3b5">${lab.toLocaleDateString("en-US", { weekday: "short" })[0]}${lab.getDate()}</text>`;
+    if (d.rain_in !== null) {
+      const bw = (W - L - R) / n * 0.5;
+      s += `<rect x="${xi - bw / 2}" y="${ry(d.rain_in)}" width="${bw}" height="${RB1 - ry(d.rain_in)}" fill="#7fc4ff"><title>${d.date}: ${d.rain_in.toFixed(2)} in, chance ${d.rain_chance_pct ?? "?"}%</title></rect>`;
+      if (d.rain_in > 0) s += `<text x="${xi}" y="${ry(d.rain_in) - 4}" text-anchor="middle" font-size="10" fill="#7fc4ff">${d.rain_in.toFixed(2)}</text>`;
+    }
+  });
+  s += `<line x1="${L}" x2="${W - R}" y1="${RB1}" y2="${RB1}" stroke="#22374a"/><text x="${L - 8}" y="${RB1}" text-anchor="end" font-size="10" fill="#7fc4ff">rain in</text>`;
+  const firstNoRain = F.days.findIndex((d) => d.rain_in === null);
+  if (firstNoRain > 0) s += `<text x="${x(firstNoRain) - 10}" y="${RB1 - 6}" font-size="10" fill="#8fa3b5">no NWS rain forecast this far out</text>`;
+  $("chart").innerHTML = s;
+}
+
+// ---------- map ----------
+let map, layers = {};
+function initMap() {
+  map = L.map("map", { preferCanvas: true, scrollWheelZoom: false }).setView([37.7599, -122.4348], 12);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
+  map.on("focus", () => map.scrollWheelZoom.enable());
+  const D = CITY.drain_fields.reduce((o, k, i) => ((o[k] = i), o), {});
+  layers.drain = L.layerGroup(CITY.drains_top500.map((d) => {
+    const deep = d[D.sump_m] > CITY.deep_pit_m;
+    return L.circleMarker([d[D.lat], d[D.lon]], { radius: 4, color: deep ? "#5b6b7a" : "#173a5c", weight: 2, fillColor: "#ffffff", fillOpacity: 0.5 })
+      .bindPopup(`<b>Drain ${esc(d[D.asset_id])}</b> · rank ${d[D.rank]} of 23,835<br>${esc(d[D.neighborhood])} · ${esc(d[D.drain_type])}<br>Nearest bowl ${d[D.sump_m].toFixed(2)} m deep · collects ${(d[D.captured_m2] / 1e4).toFixed(1)} ha<br>${d[D.flood311_75m]} past 311 flooding reports within 75 m<br>${deep ? "<b>Deep pit:</b> verify in person before sending a crew" : "Street drain: clear before the storm"}`);
+  })).addTo(map);
+  layers.hot = L.layerGroup(CITY.hotspots.map((h) => L.circleMarker([h.lat, h.lon], { radius: 6 + Math.sqrt(h.area_m2) / 40, color: "#d48a00", weight: 3, fillColor: "#f2b33d", fillOpacity: 0.12 })
+    .bindPopup(`<b>Low spot #${h.rank}${h.name ? ": " + esc(h.name) : ""}</b><br>${esc(h.neighborhood)}<br>Fills ${h.max_depth_m.toFixed(2)} m deep before it spills · ${h.area_m2.toLocaleString()} m² · ${h.volume_m3.toLocaleString()} m³<br>${h.flood311_150m} past 311 flooding reports within 150 m<br>${h.in_sfpuc_100yr ? "Inside" : "Outside"} the SFPUC 100-year flood zone<br><a href="https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lon}" target="_blank" rel="noopener">Open in Maps</a>`))).addTo(map);
+  document.querySelectorAll("#layers input").forEach((cb) => cb.addEventListener("change", () => toggle(cb.dataset.l, cb.checked)));
+}
+async function toggle(name, on) {
+  if (on && !layers[name]) {
+    if (name === "f311") {
+      const pts = await getJSON("data/flood311.json");
+      layers.f311 = L.layerGroup(pts.map(([lon, lat]) => L.circleMarker([lat, lon], { radius: 2, stroke: false, fillColor: "#e0412f", fillOpacity: 0.45, interactive: false })));
+    } else if (name === "zone") {
+      const gj = await getJSON("data/sfpuc_100yr.geojson");
+      layers.zone = L.geoJSON(gj, { style: { color: "#1d5f99", weight: 1, fillColor: "#3aa0ff", fillOpacity: 0.25 }, interactive: false });
+    }
+  }
+  if (!layers[name]) return;
+  if (on) layers[name].addTo(map); else map.removeLayer(layers[name]);
+  if (layers.hot && map.hasLayer(layers.hot)) layers.hot.eachLayer((m) => m.bringToFront && m.bringToFront());
+}
+
+function renderCity() {
+  const s = CITY.summary;
+  $("mapSummary").textContent = `${s.inlets_ranked.toLocaleString()} inlets ranked. ${s.top50_hotspots_in_sfpuc_zone} of the 50 low spots sit inside the city's 100-year flood zone.`;
+  $("hotTable").tBodies[0].innerHTML = CITY.hotspots.map((h) => `<tr data-lat="${h.lat}" data-lon="${h.lon}"><td class="r">${h.rank}</td><td>${esc(h.name || h.neighborhood)}${h.name ? ` <span class="tag">${esc(h.neighborhood)}</span>` : ""}</td><td class="r">${h.max_depth_m.toFixed(2)}</td><td class="r">${h.area_m2.toLocaleString()}</td><td class="r">${h.flood311_150m}</td><td>${h.in_sfpuc_100yr ? '<span class="tag zone">inside</span>' : ""}</td></tr>`).join("");
+  $("zoneTable").tBodies[0].innerHTML = CITY.zones.map(([n, c]) => `<tr data-hood="${esc(n)}"><td>${esc(n)}</td><td class="r">${c}</td></tr>`).join("");
+  $("hotTable").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-lat]"); if (!tr) return; map.flyTo([+tr.dataset.lat, +tr.dataset.lon], 16); $("map").scrollIntoView({ behavior: "smooth", block: "center" }); });
+  $("zoneTable").addEventListener("click", (e) => {
+    const tr = e.target.closest("tr[data-hood]"); if (!tr) return;
+    const D = CITY.drain_fields.indexOf.bind(CITY.drain_fields);
+    const pts = CITY.drains_top500.filter((d) => d[D("neighborhood")] === tr.dataset.hood).map((d) => [d[D("lat")], d[D("lon")]]);
+    if (pts.length) { map.fitBounds(pts, { padding: [40, 40], maxZoom: 16 }); $("map").scrollIntoView({ behavior: "smooth", block: "center" }); }
+  });
+}
+
+// ---------- prep list + brief ----------
+function renderPrep() {
+  if (!CITY || !F) return;
+  const nws = windows(TH.nws_minor).slice(0, 8), nos = windows(TH.nos_minor);
+  const top5 = CITY.hotspots.slice(0, 5);
+  const wins = nws.length ? `<ul>${nws.map((w) => `<li>${dayName(w.t.slice(0, 10))}, ${hhmm(w.t)}: predicted ${w.ft.toFixed(2)} ft, about ${w.w.toFixed(2)} ft with the current anomaly${w.w >= TH.nos_minor ? " · <b>NOS minor</b>" : ""}</li>`).join("")}</ul>` : "<p class='note'>No high tide in the next 15 days reaches 7.04 ft, even with the anomaly added.</p>";
+  $("steps").innerHTML = `
+    <div class="step"><h3>Waterfront tide windows</h3><p class="note">High tides that reach NWS minor (7.04 ft) once the +${F.anomaly.mean_30d_ft.toFixed(2)} ft anomaly is added.</p>${wins}</div>
+    <div class="step"><h3>Clear the street drains</h3><p>${CITY.street_drains} of the top 500 drains sit in street low spots. Biggest crew zones: ${CITY.zones.slice(0, 5).map(([n, c]) => `${esc(n)} (${c})`).join(", ")}. Ask Adopt-a-Drain volunteers to clear their grates before the rain, not during it.</p><p><a class="btn" href="data/top500_drains.csv" download>Drain list (CSV)</a></p></div>
+    <div class="step"><h3>Verify the deep-pit drains</h3><p>${CITY.deep_pit_drains} drains sit in pits deeper than ${CITY.deep_pit_m} m: underpasses, stairwells, ramps. Have someone confirm each one is clear and pumped, rather than adding it to a street crew's route.</p></div>
+    <div class="step"><h3>Stage at the worst low spots</h3><ul>${top5.map((h) => `<li>#${h.rank} ${esc(h.name || h.neighborhood)}: fills ${h.max_depth_m.toFixed(1)} m deep, ${h.flood311_150m} past 311 reports nearby</li>`).join("")}</ul></div>
+    <div class="step"><h3>Approve and send</h3><p>Check the draft brief below, change what's wrong, and send it yourself through the city's channels. Waterline doesn't send alerts, work orders or notices.</p></div>`;
+}
+
+function renderBrief() {
+  if (!CITY || !F) return;
+  const week = F.days.slice(0, 7), nws = week.filter((d) => d.over.includes("nws_minor")), nos = week.filter((d) => d.over.includes("nos_minor"));
+  const rainDays = week.filter((d) => d.rain_in !== null), rain7 = rainDays.reduce((s, d) => s + d.rain_in, 0);
+  const gen = new Date(F.generated_at).toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "long", timeStyle: "short" });
+  const lines = [
+    `DRAFT · San Francisco flood outlook, week of ${dayName(week[0].date)}`,
+    `Prepared ${gen} Pacific from NOAA and NWS forecasts (Waterline screening tool, not an official alert).`,
+    ``,
+    `TIDES`,
+    `The San Francisco tide gauge has run ${fmtFt(F.anomaly.mean_30d_ft, true)} ft above NOAA's prediction over the last 30 days (El Niño / Kelvin wave).`,
+    nws.length ? `With that anomaly, high tides reach the NWS minor flood threshold (7.04 ft MLLW) on ${nws.length} of the next 7 days:` : `With that anomaly, no high tide this week reaches the NWS minor flood threshold (7.04 ft MLLW).`,
+    ...nws.map((d) => `  - ${dayName(d.date)} ${hhmm(d.high.t)}: about ${d.high.with_anomaly_ft.toFixed(2)} ft${d.over.includes("nos_minor") ? " (NOS minor)" : ""}`),
+    ``,
+    `RAIN`,
+    rainDays.length ? `NWS forecasts ${rain7.toFixed(2)} in over the next ${rainDays.length} days at 17th & Folsom.` : `NWS rain forecast unavailable at the time of this draft.`,
+    ``,
+    `ACTIONS FOR APPROVAL`,
+    `  1. Street drains: clear the ${CITY.street_drains} priority street drains (list attached), starting with ${CITY.zones.slice(0, 3).map(([n]) => n).join(", ")}.`,
+    `  2. Deep pits: verify the ${CITY.deep_pit_drains} underpass and stairwell drains are clear and pumped.`,
+    `  3. Low spots: stage barricades at ${CITY.hotspots.slice(0, 3).map((h) => h.name || h.neighborhood).join("; ")}.`,
+    nws.length ? `  4. Waterfront: coordinate with the Port on the tide windows above.` : ``,
+    ``,
+    `Not an official alert. For public warnings use AlertSF and the National Weather Service.`,
+  ].filter((l, i, a) => !(l === "" && a[i - 1] === ""));
+  $("briefText").value = lines.join("\n");
+}
+
+function renderSources() {
+  const s = F.sources;
+  $("sources").innerHTML = `<b style="color:var(--fg)">Sources</b>
+    <span>Tide predictions: <a href="${esc(s.tide_predictions)}">NOAA CO-OPS 9414290 high/low</a></span>
+    <span>Observed water level: <a href="${esc(s.water_level)}">NOAA CO-OPS 9414290, 30 days</a></span>
+    <span>Rain: <a href="${esc(s.rain.url)}">NWS gridpoint ${esc(s.rain.grid)}</a>${s.rain.updated ? `, updated ${esc(new Date(s.rain.updated).toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" }))}` : ""}</span>
+    ${CITY ? Object.entries(CITY.sources).map(([k, v]) => `<span>${esc(k)}: ${esc(v)}</span>`).join("") : ""}
+    <span>Thresholds: NOAA CO-OPS / NWS flood levels for 9414290</span>
+    <span>Snapshot for apps: <a href="data/forecast.json">data/forecast.json</a> (scripts/refresh_live.py)</span>`;
+}
+
+$("reload").addEventListener("click", () => loadForecast(true));
+$("copyBrief").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("briefText").value); $("copied").textContent = "Copied."; }
+  catch { $("briefText").select(); $("copied").textContent = "Selected: press Ctrl/Cmd+C."; }
+});
+
+(async () => {
+  CITY = await getJSON("data/city.json");
+  initMap(); renderCity();
+  await loadForecast(false);
+})();
+</script>
+</body>
+</html>

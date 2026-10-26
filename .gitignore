@@ -19,3 +19,4 @@ renders/*/_vid/
 .release.ps1
 ios/*.xcodeproj/
 ios/build.log
+ios/build/

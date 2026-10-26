@@ -1,0 +1,515 @@
+{
+ "schema": "waterline.forecast.v1",
+ "generated_at": "2026-10-26T10:21:00-07:00",
+ "station": {
+  "id": "9414290",
+  "name": "San Francisco, CA",
+  "datum": "MLLW",
+  "units": "ft"
+ },
+ "thresholds_ft_mllw": {
+  "nws_minor": 7.04,
+  "nos_minor": 7.71,
+  "nos_moderate": 8.64,
+  "nos_major": 9.91
+ },
+ "anomaly": {
+  "mean_30d_ft": 0.95,
+  "mean_24h_ft": 1.07,
+  "latest": {
+   "t": "2026-10-26 10:12",
+   "residual_ft": 1.04
+  },
+  "samples": 7199,
+  "source": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=9414290&product=water_level&begin_date=20260926%2010:21&end_date=20261026%2010:21&datum=MLLW&units=english&time_zone=lst_ldt&format=json&application=waterline"
+ },
+ "days": [
+  {
+   "date": "2026-10-26",
+   "high": {
+    "t": "2026-10-26 11:39",
+    "predicted_ft": 6.487,
+    "with_anomaly_ft": 7.44
+   },
+   "over": [
+    "nws_minor"
+   ],
+   "rain_in": 0.0,
+   "rain_chance_pct": 1
+  },
+  {
+   "date": "2026-10-27",
+   "high": {
+    "t": "2026-10-27 12:15",
+    "predicted_ft": 6.646,
+    "with_anomaly_ft": 7.6
+   },
+   "over": [
+    "nws_minor"
+   ],
+   "rain_in": 0.0,
+   "rain_chance_pct": 0
+  },
+  {
+   "date": "2026-10-28",
+   "high": {
+    "t": "2026-10-28 12:56",
+    "predicted_ft": 6.67,
+    "with_anomaly_ft": 7.62
+   },
+   "over": [
+    "nws_minor"
+   ],
+   "rain_in": 0.0,
+   "rain_chance_pct": 0
+  },
+  {
+   "date": "2026-10-29",
+   "high": {
+    "t": "2026-10-29 13:43",
+    "predicted_ft": 6.534,
+    "with_anomaly_ft": 7.48
+   },
+   "over": [
+    "nws_minor"
+   ],
+   "rain_in": 0.0,
+   "rain_chance_pct": 1
+  },
+  {
+   "date": "2026-10-30",
+   "high": {
+    "t": "2026-10-30 14:39",
+    "predicted_ft": 6.242,
+    "with_anomaly_ft": 7.19
+   },
+   "over": [
+    "nws_minor"
+   ],
+   "rain_in": 0.0,
+   "rain_chance_pct": 10
+  },
+  {
+   "date": "2026-10-31",
+   "high": {
+    "t": "2026-10-31 15:44",
+    "predicted_ft": 5.835,
+    "with_anomaly_ft": 6.79
+   },
+   "over": [],
+   "rain_in": 0.0,
+   "rain_chance_pct": 30
+  },
+  {
+   "date": "2026-11-01",
+   "high": {
+    "t": "2026-11-01 15:59",
+    "predicted_ft": 5.4,
+    "with_anomaly_ft": 6.35
+   },
+   "over": [],
+   "rain_in": 0.06,
+   "rain_chance_pct": 30
+  },
+  {
+   "date": "2026-11-02",
+   "high": {
+    "t": "2026-11-02 17:21",
+    "predicted_ft": 5.044,
+    "with_anomaly_ft": 5.99
+   },
+   "over": [],
+   "rain_in": 0.0,
+   "rain_chance_pct": 22
+  },
+  {
+   "date": "2026-11-03",
+   "high": {
+    "t": "2026-11-03 07:21",
+    "predicted_ft": 5.333,
+    "with_anomaly_ft": 6.28
+   },
+   "over": [],
+   "rain_in": null,
+   "rain_chance_pct": null
+  },
+  {
+   "date": "2026-11-04",
+   "high": {
+    "t": "2026-11-04 08:00",
+    "predicted_ft": 5.643,
+    "with_anomaly_ft": 6.59
+   },
+   "over": [],
+   "rain_in": null,
+   "rain_chance_pct": null
+  },
+  {
+   "date": "2026-11-05",
+   "high": {
+    "t": "2026-11-05 08:35",
+    "predicted_ft": 5.913,
+    "with_anomaly_ft": 6.86
+   },
+   "over": [],
+   "rain_in": null,
+   "rain_chance_pct": null
+  },
+  {
+   "date": "2026-11-06",
+   "high": {
+    "t": "2026-11-06 09:08",
+    "predicted_ft": 6.109,
+    "with_anomaly_ft": 7.06
+   },
+   "over": [
+    "nws_minor"
+   ],
+   "rain_in": null,
+   "rain_chance_pct": null
+  },
+  {
+   "date": "2026-11-07",
+   "high": {
+    "t": "2026-11-07 09:38",
+    "predicted_ft": 6.216,
+    "with_anomaly_ft": 7.17
+   },
+   "over": [
+    "nws_minor"
+   ],
+   "rain_in": null,
+   "rain_chance_pct": null
+  },
+  {
+   "date": "2026-11-08",
+   "high": {
+    "t": "2026-11-08 10:06",
+    "predicted_ft": 6.236,
+    "with_anomaly_ft": 7.19
+   },
+   "over": [
+    "nws_minor"
+   ],
+   "rain_in": null,
+   "rain_chance_pct": null
+  },
+  {
+   "date": "2026-11-09",
+   "high": {
+    "t": "2026-11-09 10:35",
+    "predicted_ft": 6.186,
+    "with_anomaly_ft": 7.14
+   },
+   "over": [
+    "nws_minor"
+   ],
+   "rain_in": null,
+   "rain_chance_pct": null
+  }
+ ],
+ "hilo": [
+  {
+   "t": "2026-10-26 11:39",
+   "ft": 6.487,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-26 18:17",
+   "ft": -0.783,
+   "type": "L"
+  },
+  {
+   "t": "2026-10-27 01:21",
+   "ft": 4.951,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-27 06:01",
+   "ft": 2.495,
+   "type": "L"
+  },
+  {
+   "t": "2026-10-27 12:15",
+   "ft": 6.646,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-27 19:02",
+   "ft": -1.044,
+   "type": "L"
+  },
+  {
+   "t": "2026-10-28 02:19",
+   "ft": 4.859,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-28 06:44",
+   "ft": 2.868,
+   "type": "L"
+  },
+  {
+   "t": "2026-10-28 12:56",
+   "ft": 6.67,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-28 19:52",
+   "ft": -1.103,
+   "type": "L"
+  },
+  {
+   "t": "2026-10-29 03:21",
+   "ft": 4.74,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-29 07:32",
+   "ft": 3.17,
+   "type": "L"
+  },
+  {
+   "t": "2026-10-29 13:43",
+   "ft": 6.534,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-29 20:47",
+   "ft": -0.979,
+   "type": "L"
+  },
+  {
+   "t": "2026-10-30 04:27",
+   "ft": 4.65,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-30 08:32",
+   "ft": 3.38,
+   "type": "L"
+  },
+  {
+   "t": "2026-10-30 14:39",
+   "ft": 6.242,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-30 21:49",
+   "ft": -0.729,
+   "type": "L"
+  },
+  {
+   "t": "2026-10-31 05:35",
+   "ft": 4.655,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-31 09:50",
+   "ft": 3.443,
+   "type": "L"
+  },
+  {
+   "t": "2026-10-31 15:44",
+   "ft": 5.835,
+   "type": "H"
+  },
+  {
+   "t": "2026-10-31 22:56",
+   "ft": -0.434,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-01 05:40",
+   "ft": 4.789,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-01 10:24",
+   "ft": 3.245,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-01 15:59",
+   "ft": 5.4,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-01 23:04",
+   "ft": -0.145,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-02 06:35",
+   "ft": 5.031,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-02 11:51",
+   "ft": 2.746,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-02 17:21",
+   "ft": 5.044,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-03 00:06",
+   "ft": 0.143,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-03 07:21",
+   "ft": 5.333,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-03 13:01",
+   "ft": 2.069,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-03 18:43",
+   "ft": 4.827,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-04 01:00",
+   "ft": 0.471,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-04 08:00",
+   "ft": 5.643,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-04 13:59",
+   "ft": 1.352,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-04 19:57",
+   "ft": 4.731,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-05 01:47",
+   "ft": 0.862,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-05 08:35",
+   "ft": 5.913,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-05 14:48",
+   "ft": 0.697,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-05 21:03",
+   "ft": 4.706,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-06 02:29",
+   "ft": 1.311,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-06 09:08",
+   "ft": 6.109,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-06 15:32",
+   "ft": 0.166,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-06 22:03",
+   "ft": 4.712,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-07 03:09",
+   "ft": 1.789,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-07 09:38",
+   "ft": 6.216,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-07 16:11",
+   "ft": -0.215,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-07 22:58",
+   "ft": 4.725,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-08 03:47",
+   "ft": 2.258,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-08 10:06",
+   "ft": 6.236,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-08 16:48",
+   "ft": -0.446,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-08 23:50",
+   "ft": 4.727,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-09 04:25",
+   "ft": 2.681,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-09 10:35",
+   "ft": 6.186,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-09 17:24",
+   "ft": -0.544,
+   "type": "L"
+  },
+  {
+   "t": "2026-11-10 00:39",
+   "ft": 4.703,
+   "type": "H"
+  },
+  {
+   "t": "2026-11-10 05:02",
+   "ft": 3.031,
+   "type": "L"
+  }
+ ],
+ "sources": {
+  "tide_predictions": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=9414290&product=predictions&begin_date=20261026%2010:21&end_date=20261110%2010:21&datum=MLLW&units=english&time_zone=lst_ldt&format=json&application=waterline&interval=hilo",
+  "water_level": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=9414290&product=water_level&begin_date=20260926%2010:21&end_date=20261026%2010:21&datum=MLLW&units=english&time_zone=lst_ldt&format=json&application=waterline",
+  "rain": {
+   "url": "https://api.weather.gov/gridpoints/MTR/85,105",
+   "grid": "MTR/85,105",
+   "point": "17th & Folsom (37.7633, -122.4148)",
+   "updated": "2026-10-26T09:11:57+00:00",
+   "note": "NWS quantitative precipitation, about 7 days out"
+  }
+ },
+ "derived": "with_anomaly_ft = predicted high + 30-day mean residual (assumes the anomaly holds)"
+}

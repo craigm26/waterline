@@ -6,10 +6,11 @@ Waterline does street-level flood screening for San Francisco this El Niño wint
 
 - **Public repo** with Issues #1–7 left over from the hackathon split. Issues #1–3 (city view, agent activity UI, iteration strip) still apply. #4–5 and #7 were hackathon-day tasks, so re-scope them or close them.
 - **Repo renamed** to `craigm26/waterline` on Oct 26.
-- **Story site** (`demo/index.html`) runs from a fresh clone (`cd demo && python3 -m http.server 8000`). It's live at `https://craigmerry.com/waterline/`, listed on the craigmerry.com experiments page. To publish: commit here, then in `~/projects/craigm26/personalsite` run `scripts/sync-waterline.sh`, commit and push `master` (that push deploys). GitHub Pages is off.
-- **Next build:** the city-manager view in `site/`, served at `craigmerry.com/waterline/city/`. Nothing is in `site/` yet.
-- **WeatherNext 3 access approved Oct 25** for Craig's Google account. The table, schema, query and licensing caveat are in `plan/v2-roadmap.md`. **It's the last task, not the first.** Build on NOAA first: `scripts/refresh_live.py` (the first script to write) pulls CO-OPS tide + NWS rain into `site/data/forecast.json`, run by hand. The scheduled refresh and the WeatherNext pull come after everything else.
-- **iOS AR app:** v0 marker mode in `ios/`, bundle `com.craigmerry.waterline` (registered Oct 26). Anchoring math is in `plan/ar-anchoring.md`. Device builds go through the MacInCloud Mac to TestFlight; no App Store Connect record exists yet, and creating one is Craig's call.
+- **City-manager site** (`site/index.html`, built with Claude Code Oct 26) is live at `https://craigmerry.com/waterline/`, listed on the craigmerry.com experiments page. It fetches NOAA CO-OPS + NWS live in the browser and falls back to `site/data/forecast.json`. Run it with `cd site && python3 -m http.server 8000`.
+- **Build-day demo** (`demo/index.html`) is an ARCHIVE at `https://craigmerry.com/waterline/build-day/`: the page written before the Oct 25 Argon hackathon to guide a build day with Antigravity + Gemini 4 Argon, whose target was the city-manager site. The build day never happened. Its banner says so; never present its Argon claims as results anywhere.
+- **Publish:** commit here, then in `~/projects/craigm26/personalsite` run `scripts/sync-waterline.sh` (site/ -> /waterline/, demo/ -> /waterline/build-day/), commit and push `master` (that push deploys). GitHub Pages is off.
+- **WeatherNext 3 access approved Oct 25** for Craig's Google account. The table, schema, query and licensing caveat are in `plan/v2-roadmap.md`. **It's the last task, not the first.** NOAA is in: `scripts/refresh_live.py` pulls CO-OPS tide + NWS rain into `site/data/forecast.json`, run by hand; `scripts/build_city_data.py` packs the citywide analysis into `site/data/`. The scheduled refresh and the WeatherNext pull come after everything else.
+- **iOS AR app:** 1.0 (1) marker mode in `ios/`, bundle `com.craigmerry.waterline` (registered Oct 26): live NOAA scenarios, help + about sheets, icon. Archive + TestFlight upload: `ios/archive_upload.sh` on the MacInCloud Mac. Anchoring math is in `plan/ar-anchoring.md`.
 
 ## This machine (Raspberry Pi 5)
 
@@ -21,7 +22,10 @@ Waterline does street-level flood screening for San Francisco this El Niño wint
 ## Commands
 
 ```bash
-cd demo && python3 -m http.server 8000                 # story site
+cd site && python3 -m http.server 8000                 # city-manager site
+python3 scripts/refresh_live.py --print                # NOAA tide + NWS rain -> site/data/forecast.json
+python3 scripts/build_city_data.py                     # citywide analysis -> site/data/
+cd demo && python3 -m http.server 8000                 # build-day demo (archive)
 python3 scripts/build_story_data.py                    # repack demo/ from data/ (needs geo stack)
 python3 scripts/render_watch.py --tag iter0 --hotspots 2   # render stills + orbit.mp4 for critique
 python3 scripts/loop_report.py                         # critiques -> score chart + iteration strip
@@ -35,7 +39,8 @@ Pages and apps read **only** these files; field names are listed in `CONTRIBUTIN
 - `demo/story-data.json`: scenes, citywide drains/hotspots/311, tide, Kelvin, storm desk
 - `demo/results.json`: computed run outputs, where each block shows only if its key exists
 - `demo/lidar/*.bin`: 14 bytes per point (xyz float32 LE, m NAVD88; class u8; intensity u8)
-- `site/data/forecast.json` (new): NOAA forecast (CO-OPS tide + NWS rain; WeatherNext added last) for the city view and the iOS app
+- `site/data/forecast.json`: NOAA forecast (CO-OPS tide + NWS rain; WeatherNext added last), schema `waterline.forecast.v1`
+- `site/data/city.json`: top 500 drains, 50 low spots, crew zones, summary, schema `waterline.city.v1`
 
 ## Rules that don't bend
 
