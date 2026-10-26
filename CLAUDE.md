@@ -9,13 +9,13 @@ Waterline does street-level flood screening for San Francisco this El Niño wint
 - **Story site** (`demo/index.html`) runs from a fresh clone (`cd demo && python3 -m http.server 8000`). It's live at `https://craigmerry.com/waterline/`, listed on the craigmerry.com experiments page. To publish: commit here, then in `~/projects/craigm26/personalsite` run `scripts/sync-waterline.sh`, commit and push `master` (that push deploys). GitHub Pages is off.
 - **Next build:** the city-manager view in `site/`, served at `craigmerry.com/waterline/city/`. Nothing is in `site/` yet.
 - **WeatherNext 3 access approved Oct 25** for Craig's Google account. The table, schema, query and licensing caveat are in `plan/v2-roadmap.md`. **It's the last task, not the first.** Build on NOAA first: `scripts/refresh_live.py` (the first script to write) pulls CO-OPS tide + NWS rain into `site/data/forecast.json`, run by hand. The scheduled refresh and the WeatherNext pull come after everything else.
-- **iOS AR app:** v0 marker mode in `ios/`, compiling in CI. Anchoring math is in `plan/ar-anchoring.md`. Device builds go through the MacInCloud Mac to TestFlight; no App Store Connect record exists yet, and creating one is Craig's call.
+- **iOS AR app:** v0 marker mode in `ios/`, bundle `com.craigmerry.waterline` (registered Oct 26). Anchoring math is in `plan/ar-anchoring.md`. Device builds go through the MacInCloud Mac to TestFlight; no App Store Connect record exists yet, and creating one is Craig's call.
 
 ## This machine (Raspberry Pi 5)
 
 - arm64 Linux. The Python geo stack installs from pip wheels: `pip install numpy rasterio shapely pyproj matplotlib pillow scipy "laspy[lazrs]"`. If a rasterio wheel is missing, install `apt install gdal-bin libgdal-dev` first.
 - `scripts/render_watch.py` needs Playwright Chromium (arm64 is supported: `python -m playwright install --with-deps chromium`) and ffmpeg. Without a GPU expect about 10 minutes per run, so pass `--hotspots 2` while iterating.
-- **This machine can't build iOS.** Write the Swift here, then compile on the MacInCloud Mac over SSH (rsync `ios/`, `~/bin/xcodegen generate`, `xcodebuild ... CODE_SIGNING_ALLOWED=NO build`) or let the `ios-build` GitHub Actions job compile it. Signed archives and TestFlight uploads also go through MacInCloud; unlock the keychain in the same SSH connection as the archive. One TestFlight upload per working session.
+- **This machine can't build iOS.** Write the Swift here, then compile on the MacInCloud Mac over SSH (rsync `ios/`, `~/bin/xcodegen generate`, `xcodebuild ... CODE_SIGNING_ALLOWED=NO build`). There is no GitHub Actions job; CI and deploys don't use Actions. Signed archives and TestFlight uploads also go through MacInCloud; unlock the keychain in the same SSH connection as the archive. One TestFlight upload per working session.
 - WeatherNext/BigQuery (last task): authenticate as Craig with `gcloud auth login` and `gcloud auth application-default login`, then `pip install google-cloud-bigquery`. Keep credentials out of git; `.env` is gitignored.
 
 ## Commands
