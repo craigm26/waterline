@@ -24,6 +24,18 @@ Waterline answers "does it flood here?" for wherever you're standing, with no se
 - **Barometer.** *Floor height:* start on the street, walk up, save. CMAltimeter measures the climb to about a foot.
 - **Compass.** Arrows to higher ground and to the drain that matters, which turn as you turn.
 
+**Anywhere in the US, live:**
+- **River gauges** from the NWS National Water Prediction Service within 50 miles: stage, forecast and flood category. For the nearest gauge within 8 km, flood stage becomes an elevation through the gauge's NAVD88 datum, so the app can say "at major stage the river stands 16.5 ft above your ground" (Natomas, from the Sacramento River at I Street). It's limited to 8 km because a river's surface rises upstream.
+- **FEMA flood zone** at the spot, from the National Flood Hazard Layer, in plain words (A99, AE with BFE, levee-protected X, ...).
+- **Region packs** for Sacramento, New Orleans, Miami, Norfolk, Charleston, Houston, NYC and Boston: 10 m ground + bowl grids from USGS 3DEP (`scripts/build_regions.py`, `regions/regions.json`). Behind a levee the bowl is the basin depth; floodwalls and seawalls thinner than 10 m aren't resolved, and the New Orleans, Miami and Charleston packs say so.
+
+**AR sky view** (Water line tab): tags at their true bearing (ARKit `gravityAndHeading`), at three zoom levels:
+- Street, 400 m: drains, the bowl next to you
+- Neighborhood, 4 km: low spots, higher ground, lidar scenes
+- Watershed, 80 km: upstream river gauges with live stage and flood category, the tide station
+
+Overlapping tags stack, and the most severe keeps its true position. Tap a gauge for NOAA's live hydrograph.
+
 **Offline data** (the ⬇ button on Here): download packs listed in `packs/manifest.json`, served from GitHub release `packs-v1`. Every file is checked against SHA-256 before it's used.
 
 | Pack | Size | What the app does with it |
