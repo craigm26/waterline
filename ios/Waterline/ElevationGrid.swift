@@ -1,14 +1,17 @@
 import Foundation
 import CoreLocation
 
-/// The offline lidar answer for San Francisco (scripts/build_ios_data.py): ground elevation and
-/// bowl depth for every 5 m cell. bowl = how deep water sits here before it can spill out, which
-/// is also how far the Bay must rise above this spot's ground before it reaches it overland.
-final class SFGrid {
+/// Offline ground + bowl grids: San Francisco at 5 m in the app bundle (scripts/build_ios_data.py),
+/// and downloaded region packs at 10 m (scripts/build_regions.py: Sacramento, New Orleans, Miami, ...).
+/// bowl = how far the ground sits below the lowest rim that encloses it: how deep water stands here
+/// before it can spill out, and how far open water must rise above this ground to reach it overland.
+/// Behind a levee the rim is the levee.
+final class ElevationGrid {
     struct Header: Decodable {
         struct Part: Decodable { let bytes: Int }
         let rows: Int, cols: Int, x0: Double, y0: Double, res_m: Double, nodata_ground: Int
         let ground: Part, bowl: Part
+        let zone: Int?, region: String?, name: String?
     }
     struct Sample {
         let groundNAVD88Ft: Double
@@ -21,20 +24,43 @@ final class SFGrid {
         let metres: Double
     }
 
-    static let shared: SFGrid? = SFGrid()
+    /// San Francisco, bundled.
+    static let sf: ElevationGrid? = Bundle.main.url(forResource: "sfgrid", withExtension: "bin").flatMap { ElevationGrid(url: $0) }
+
+    private static var regionCache: [String: ElevationGrid] = [:]
+    private static let lock = NSLock()
+
+    /// The grid that has data at this spot: SF first, then any downloaded region pack.
+    static func covering(_ c: CLLocationCoordinate2D) -> ElevationGrid? {
+        if let g = sf, g.sample(c) != nil { return g }
+        let dir = PackStore.root
+        guard let packs = try? FileManager.default.contentsOfDirectory(atPath: dir.path) else { return nil }
+        for id in packs where id.hasPrefix("region-") && PackStore.installedVersion(id) != nil {
+            let name = String(id.dropFirst("region-".count)) + "_grid.bin"
+            lock.lock()
+            var g = regionCache[id]
+            if g == nil, let u = PackStore.file(id, name) { g = ElevationGrid(url: u); regionCache[id] = g }
+            lock.unlock()
+            if let g, g.sample(c) != nil { return g }
+        }
+        return nil
+    }
+    static func reloadRegions() { lock.lock(); regionCache = [:]; lock.unlock() }
+
+    var name: String { h.name ?? "San Francisco" }
+    var resolutionM: Double { h.res_m }
 
     private let h: Header
     private let ground: [Int16]
     private let bowl: [UInt16]
 
-    private init?() {
-        guard let url = Bundle.main.url(forResource: "sfgrid", withExtension: "bin"),
-              let raw = try? Data(contentsOf: url, options: .mappedIfSafe),
+    init?(url: URL) {
+        guard let raw = try? Data(contentsOf: url, options: .mappedIfSafe),
               let nl = raw.firstIndex(of: 0x0A),
               let header = try? JSONDecoder().decode(Header.self, from: raw[raw.startIndex..<nl]) else { return nil }
         h = header
         let gStart = nl + 1, bStart = gStart + header.ground.bytes
-        guard let g = SFGrid.inflate(raw[gStart..<bStart]), let b = SFGrid.inflate(raw[bStart..<(bStart + header.bowl.bytes)]) else { return nil }
+        guard let g = ElevationGrid.inflate(raw[gStart..<bStart]), let b = ElevationGrid.inflate(raw[bStart..<(bStart + header.bowl.bytes)]) else { return nil }
         let n = header.rows * header.cols
         guard g.count == n * 2, b.count == n * 2 else { return nil }
         ground = g.withUnsafeBytes { Array($0.bindMemory(to: Int16.self)) }.map { Int16(littleEndian: $0) }
@@ -47,7 +73,7 @@ final class SFGrid {
     }
 
     private func cell(_ c: CLLocationCoordinate2D) -> (r: Int, c: Int)? {
-        let p = Geo.utm(lon: c.longitude, lat: c.latitude)
+        let p = Geo.utm(lon: c.longitude, lat: c.latitude, zone: h.zone ?? 10)
         let col = Int(((p.x - h.x0) / h.res_m).rounded(.down)), row = Int(((h.y0 - p.y) / h.res_m).rounded(.down))
         guard row >= 0, row < h.rows, col >= 0, col < h.cols else { return nil }
         return (row, col)

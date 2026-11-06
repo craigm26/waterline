@@ -31,17 +31,23 @@ struct SpotReport {
     let coordinate: CLLocationCoordinate2D
     var placeLabel: String?
     var ground: GroundElevation.Result?
-    var grid: SFGrid.Sample?
-    var nearbyBowl: SFGrid.GridSpot?
+    var grid: ElevationGrid.Sample?
+    var nearbyBowl: ElevationGrid.GridSpot?
     var tide: TideOutlook?
     var rain: RainOutlook?
     var drains: [(Places.Drain, Double)] = []
     var flood311Near = 0        // within 150 m (~500 ft)
     var lowSpot: (Places.LowSpot, Double)?
     /// Nearest dry ground for this month's highest tide + anomaly + a 2 ft storm (SF grid).
-    var higherGround: SFGrid.GridSpot?
+    var higherGround: ElevationGrid.GridSpot?
     var inZone = false
     var inSF = false
+    /// River gauges within 60 km (NWS), nearest first; the AR view tags them.
+    var gauges: [RiverGauge] = []
+    /// The nearest gauge within 15 km whose flood stages convert to elevations.
+    var river: RiverFloodLevels?
+    var fema: FEMAZone?
+    var gridName: String?
     var problems: [String] = []
 
     // MARK: derived numbers
@@ -61,11 +67,18 @@ struct SpotReport {
         return b - w
     }
     var rain72: Double { rain?.next72In ?? 0 }
+    /// How far the river at major flood stage would stand above this ground (NAVD88 both sides).
+    var riverMajorAboveGroundFt: Double? {
+        guard let rv = river, let g = ground?.navd88Ft else { return nil }
+        return rv.majorNAVD88 - g
+    }
 
     var level: Level {
         let m = coastalMarginFt ?? .infinity
-        if m < 1 || (bowlFt >= 1 && (inZone || flood311Near >= 10)) { return .high }
-        if m < 3 || bowlFt >= 0.5 || inZone || flood311Near >= 5 || (nearbyBowl?.valueFt ?? 0) >= 1.5 { return .watch }
+        let riverNow = gauges.first.map { $0.severity >= 2 && Geo.distance(coordinate, $0.coordinate) < 15_000 } ?? false
+        if m < 1 || (bowlFt >= 1 && (inZone || flood311Near >= 10)) || riverNow || ["V", "VE"].contains(fema?.zone ?? "") { return .high }
+        if m < 3 || bowlFt >= 0.5 || inZone || flood311Near >= 5 || (nearbyBowl?.valueFt ?? 0) >= 1.5
+            || (fema?.inSFHA ?? false) || (riverMajorAboveGroundFt ?? -1) > 0 || (fema?.subtype ?? "").uppercased().contains("LEVEE") { return .watch }
         return .low
     }
 
@@ -100,8 +113,20 @@ struct SpotReport {
         } else if tide == nil, ground != nil {
             out.append("No tide gauge within 60 km, so coastal flooding isn't assessed here.")
         }
+        if let rv = river, let d = riverMajorAboveGroundFt {
+            let name = rv.gauge.name
+            if d > 0 {
+                out.append(String(format: "At major flood stage, the %@ stands %.1f ft (NAVD88): %.1f ft above the ground here. Levees and banks keep it out; if one failed nearby, water could approach that depth.", name, rv.majorNAVD88, d))
+            } else {
+                out.append(String(format: "You're %.1f ft above the %@ at major flood stage.", -d, name))
+            }
+        }
+        if let g = gauges.first(where: { $0.severity >= 1 }) {
+            out.append("\(g.name) is at \(g.categoryLabel.lowercased()) now (\(g.observed.map { String(format: "%.1f ft", $0) } ?? "no reading")).")
+        }
+        if let f = fema { out.append("FEMA: \(f.plain).") }
         if bowlFt >= 0.5 {
-            out.append(String(format: "This spot sits in a bowl about %.1f ft deep: rain collects here before it can drain away.", bowlFt))
+            out.append(String(format: "This spot sits %.1f ft below the lowest rim around it%@: rain collects here before it can drain away, and a flood that tops the rim fills it.", bowlFt, gridName.map { " (\($0) lidar)" } ?? ""))
         } else if let b = nearbyBowl, b.valueFt >= 0.5 {
             out.append(String(format: "There's a %.1f ft deep bowl %@ to the %@.", b.valueFt, Geo.walk(b.metres),
                               Geo.compass(from: coordinate, to: b.coordinate)))
@@ -135,7 +160,7 @@ struct SpotReport {
         }
         if bowlFt >= 1 || (lowSpot?.1 ?? .infinity) < 250 { out.append("Don't park or store anything at the low point during heavy rain.") }
         if let hg = higherGround {
-            out.append("Higher ground (dry even with a strong storm on this month's highest tide): \(Geo.walk(hg.metres)) \(Geo.compass(from: coordinate, to: hg.coordinate)). The arrow on the Water line tab points to it.")
+            out.append("Higher ground (dry above this month's highest water and a major river flood): \(Geo.walk(hg.metres)) \(Geo.compass(from: coordinate, to: hg.coordinate)). The arrow on the Water line tab points to it.")
         }
         if let m = coastalMarginFt, m < 2, let top = tide?.highest {
             out.append("Check the tide before walking or parking here around \(Self.day.string(from: top.time)).")
@@ -150,6 +175,13 @@ struct SpotReport {
         if bowlFt >= 0.3 {
             out.append(.init(id: "bowl", label: "Rain fills the bowl", detail: String(format: "%.1f ft before it spills (lidar)", bowlFt),
                              depthFt: bowlFt, provenance: .derived, isStressTest: false))
+        }
+        if let rv = river, let gNAVD = ground?.navd88Ft {
+            if let now = rv.observedNAVD88, now > gNAVD {
+                out.append(.init(id: "river-now", label: "River now", detail: rv.gauge.name, depthFt: now - gNAVD, provenance: .official, isStressTest: false))
+            }
+            out.append(.init(id: "river-major", label: "River at major flood stage", detail: "If a levee failed nearby · \(rv.gauge.name)",
+                             depthFt: rv.majorNAVD88 > gNAVD ? rv.majorNAVD88 - gNAVD : nil, provenance: .assumed, isStressTest: false))
         }
         guard let t = tide, let g = groundMLLW, let reach = bayReachesMLLW else { return out }
         func depth(_ level: Double) -> Double? { level >= reach ? level - g : nil }
@@ -183,28 +215,35 @@ struct SpotReport {
         async let tide = try? TideOutlook.load(near: c)
         async let rain = try? RainOutlook.load(c)
         async let label = placeName(c)
+        async let gauges = (try? RiverGauge.near(c)) ?? []
+        async let fema = FEMAZone.load(c)
         let inSF = r.inSF
-        // the grid and city layers are local but heavy on first load: keep them off the main actor
-        let local = await Task.detached(priority: .userInitiated) { () -> (SFGrid.Sample?, SFGrid.GridSpot?, [(Places.Drain, Double)], Int, (Places.LowSpot, Double)?, Bool) in
-            guard inSF else { return (nil, nil, [], 0, nil, false) }
-            let g = SFGrid.shared, p = Places.shared
-            return (g?.sample(c), g?.deepestBowl(near: c), p?.drains(near: c, within: 400, limit: 3) ?? [],
-                    p?.flood311Count(near: c, within: 150) ?? 0, p?.nearestLowSpot(to: c, within: 600), p?.inFloodZone(c) ?? false)
+        // the grids and city layers are local but heavy on first load: keep them off the main actor
+        let local = await Task.detached(priority: .userInitiated) { () -> (ElevationGrid.Sample?, ElevationGrid.GridSpot?, String?, [(Places.Drain, Double)], Int, (Places.LowSpot, Double)?, Bool) in
+            let g = ElevationGrid.covering(c)
+            guard inSF, let p = Places.shared else { return (g?.sample(c), g?.deepestBowl(near: c), g?.name, [], 0, nil, false) }
+            return (g?.sample(c), g?.deepestBowl(near: c), g?.name, p.drains(near: c, within: 400, limit: 3),
+                    p.flood311Count(near: c, within: 150), p.nearestLowSpot(to: c, within: 600), p.inFloodZone(c))
         }.value
-        (r.grid, r.nearbyBowl, r.drains, r.flood311Near, r.lowSpot, r.inZone) = local
+        (r.grid, r.nearbyBowl, r.gridName, r.drains, r.flood311Near, r.lowSpot, r.inZone) = local
         r.ground = await ground
         r.tide = await tide
         r.rain = await rain
         r.placeLabel = await label
-        if inSF, let m = r.coastalMarginFt, m < 3, let w = r.worstWaterMLLW, let k = r.navdToMLLW {
-            let needNAVD = w + 2 - k
-            if let g = r.ground?.navd88Ft, g < needNAVD {
-                r.higherGround = await Task.detached(priority: .userInitiated) {
-                    SFGrid.shared?.higherGround(near: c, aboveNAVD88Ft: needNAVD)
-                }.value
-            }
+        r.gauges = await gauges
+        r.fema = await fema
+        r.river = await RiverFloodLevels.load(r.gauges, near: c)
+        // Higher ground: dry for this month's highest tide + anomaly + a 2 ft storm, and above the
+        // nearby river at major flood stage, whichever is higher.
+        var needNAVD: Double?
+        if let m = r.coastalMarginFt, m < 3, let w = r.worstWaterMLLW, let k = r.navdToMLLW { needNAVD = w + 2 - k }
+        if let rv = r.river, (r.riverMajorAboveGroundFt ?? -1) > 0 { needNAVD = max(needNAVD ?? -.infinity, rv.majorNAVD88 + 1) }
+        if let need = needNAVD, let g = r.ground?.navd88Ft, g < need {
+            r.higherGround = await Task.detached(priority: .userInitiated) {
+                ElevationGrid.covering(c)?.higherGround(near: c, aboveNAVD88Ft: need, maxM: 3000)
+            }.value
         }
-        if r.ground == nil { r.problems.append("Ground elevation unavailable (no network, and outside the bundled SF lidar).") }
+        if r.ground == nil { r.problems.append("Ground elevation unavailable (no network, and no offline grid here: download this region's pack).") }
         if r.tide == nil, r.inSF { r.problems.append("NOAA tide data unavailable right now.") }
         if r.rain == nil { r.problems.append("NWS rain forecast unavailable right now.") }
         return r

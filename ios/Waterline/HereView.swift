@@ -4,6 +4,7 @@ import CoreLocation
 /// The main screen: what flooding looks like at this spot, in words first, numbers second.
 struct HereView: View {
     @EnvironmentObject var model: AppModel
+    @ObservedObject private var packs = PackStore.shared
     @State private var showInfo = false
 
     var body: some View {
@@ -20,7 +21,9 @@ struct HereView: View {
                         }
                     } else if let r = model.report {
                         summary(r)
+                        regionOffer(r)
                         coast(r)
+                        river(r)
                         rain(r)
                         if !r.actions.isEmpty { todo(r) }
                         seeIt(r)
@@ -34,6 +37,7 @@ struct HereView: View {
                 .padding()
             }
             .refreshable { model.refresh(force: true) }
+            .task { await PackStore.shared.load() }
             .navigationTitle("Waterline")
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
@@ -95,6 +99,46 @@ struct HereView: View {
                 Text("Heights in ft above MLLW at NOAA \(t.stationName) (\(Int(t.stationKm.rounded())) km away).")
                     .font(.caption2).foregroundStyle(.secondary)
             }
+        }
+    }
+
+    @ViewBuilder private func river(_ r: SpotReport) -> some View {
+        if !r.gauges.isEmpty || r.fema != nil {
+            Card {
+                Text("Rivers and flood zone").font(.headline)
+                if let f = r.fema {
+                    Row(label: "FEMA flood zone", value: f.zone, prov: .official, note: f.plain)
+                    if let b = f.bfe { Row(label: "Base flood elevation", value: String(format: "%.0f ft", b), prov: .official, note: f.bfeDatum ?? "") }
+                }
+                if let rv = r.river {
+                    Row(label: "Major flood stage", value: String(format: "%.1f ft", rv.majorNAVD88), prov: .official,
+                        note: "\(rv.gauge.name), \(String(format: "%.0f", rv.km)) km · NAVD88")
+                    if let d = r.riverMajorAboveGroundFt {
+                        Row(label: d > 0 ? "River above your ground" : "Your ground above it", value: String(format: "%.1f ft", abs(d)), prov: .derived,
+                            note: "At major stage, if water got past the levee or bank")
+                    }
+                }
+                ForEach(r.gauges.prefix(4)) { g in
+                    Row(label: g.name, value: g.observed.map { String(format: "%.1f ft", $0) } ?? "–", prov: .official,
+                        note: "\(g.categoryLabel) · \(Geo.walk(Geo.distance(r.coordinate, g.coordinate))) \(Geo.compass(from: r.coordinate, to: g.coordinate))")
+                }
+                Text("Live from the NWS National Water Prediction Service and FEMA's National Flood Hazard Layer. The Water line tab tags every gauge within 50 miles.")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    /// Offer the region pack when this spot is inside one that isn't downloaded.
+    @ViewBuilder private func regionOffer(_ r: SpotReport) -> some View {
+        if r.grid == nil, let p = packs.manifest?.packs.first(where: { pk in
+            guard pk.kind == "region", let b = pk.bbox, b.count == 4 else { return false }
+            return (b[0]...b[2]).contains(r.coordinate.longitude) && (b[1]...b[3]).contains(r.coordinate.latitude)
+        }) {
+            NavigationLink { DataPacksView() } label: {
+                Label("Download \(p.title) (\(ByteCountFormatter.string(fromByteCount: p.total_bytes, countStyle: .file))) for bowl and levee detail here",
+                      systemImage: "arrow.down.circle").font(.subheadline)
+            }
+            .buttonStyle(.bordered)
         }
     }
 

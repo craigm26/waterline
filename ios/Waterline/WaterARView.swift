@@ -14,10 +14,16 @@ import ARKit
 struct WaterARView: UIViewRepresentable {
     enum Mode { case water, measure }
 
+    /// A tag to place by true bearing (degrees from north) and ground distance (m).
+    struct Placement: Equatable { let id: String; let bearing: Double; let metres: Double }
+
     var mode: Mode
     var depthFt: Double?
+    var placements: [Placement] = []
     var onGround: (Bool) -> Void = { _ in }
     var onMeasure: (Double) -> Void = { _ in }
+    /// Screen points of the visible tags, about 15 times a second.
+    var onProject: ([String: CGPoint]) -> Void = { _ in }
 
     static var hasLiDAR: Bool { ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) }
 
@@ -27,6 +33,8 @@ struct WaterARView: UIViewRepresentable {
         let view = ARView(frame: .zero)
         let config = ARWorldTrackingConfiguration()
         config.planeDetection = [.horizontal, .vertical]
+        // -z = true north, +x = east, so tags can sit at their real bearings
+        config.worldAlignment = .gravityAndHeading
         if ARWorldTrackingConfiguration.supportsSceneReconstruction(.meshWithClassification) {
             config.sceneReconstruction = .meshWithClassification
             view.environment.sceneUnderstanding.options.insert(.occlusion)
@@ -35,8 +43,9 @@ struct WaterARView: UIViewRepresentable {
             view.environment.sceneUnderstanding.options.insert(.occlusion)
         }
         if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) { config.frameSemantics.insert(.sceneDepth) }
-        view.session.run(config)
         let co = context.coordinator
+        view.session.delegate = co
+        view.session.run(config)
         co.view = view
         view.addGestureRecognizer(UITapGestureRecognizer(target: co, action: #selector(Coordinator.tap(_:))))
         co.startAutoGround()
@@ -48,6 +57,8 @@ struct WaterARView: UIViewRepresentable {
         co.mode = mode
         co.onGround = onGround
         co.onMeasure = onMeasure
+        co.onProject = onProject
+        co.placements = placements
         co.setDepth(depthFt)
     }
 
@@ -56,8 +67,11 @@ struct WaterARView: UIViewRepresentable {
         view.session.pause()
     }
 
-    final class Coordinator: NSObject {
+    final class Coordinator: NSObject, ARSessionDelegate {
         weak var view: ARView?
+        var placements: [Placement] = []
+        var onProject: ([String: CGPoint]) -> Void = { _ in }
+        private var lastProject: TimeInterval = 0
         var mode: Mode = .water
         var onGround: (Bool) -> Void = { _ in }
         var onMeasure: (Double) -> Void = { _ in }
@@ -78,6 +92,27 @@ struct WaterARView: UIViewRepresentable {
             pole = ModelEntity(mesh: .generateBox(size: SIMD3<Float>(0.02, 1, 0.02)),
                                materials: [UnlitMaterial(color: .white)])
             super.init()
+        }
+
+        /// Project each tag onto the screen: a point 10 m out along its bearing, dipped below the
+        /// horizon by its true angle from eye height, so near drains sit low and far gauges near the horizon.
+        func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            guard let view, !placements.isEmpty, frame.timestamp - lastProject > 1.0 / 15 else { return }
+            lastProject = frame.timestamp
+            let t = frame.camera.transform
+            let cam = SIMD3<Float>(t.columns.3.x, t.columns.3.y, t.columns.3.z)
+            let fwd = -SIMD3<Float>(t.columns.2.x, t.columns.2.y, t.columns.2.z)
+            var out: [String: CGPoint] = [:]
+            for p in placements {
+                let th = Float(p.bearing * .pi / 180)
+                let el = Float(max(-0.26, -atan(1.4 / max(p.metres, 1))))
+                let dir = SIMD3<Float>(sin(th) * cos(el), sin(el), -cos(th) * cos(el))
+                guard simd_dot(dir, fwd) > 0.3, let pt = view.project(cam + dir * 10),
+                      view.bounds.insetBy(dx: -40, dy: -40).contains(pt) else { continue }
+                out[p.id] = pt
+            }
+            let cb = onProject
+            DispatchQueue.main.async { cb(out) }
         }
 
         /// Until the ground is found, raycast a spot ahead of your feet twice a second.

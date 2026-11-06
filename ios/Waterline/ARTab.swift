@@ -11,19 +11,41 @@ struct ARTab: View {
     @State private var mode: WaterARView.Mode = .water
     @State private var groundFound = false
     @State private var showFloor = false
+    @State private var zoom: ARZoom = .neighborhood
+    @State private var screen: [String: CGPoint] = [:]
+    @State private var picked: POI?
     @AppStorage("stepFt") private var stepFt: Double = 0     // doorstep / curb above the street
     @AppStorage("floorFt") private var floorFt: Double = 0   // floor above the street (barometer)
 
     private var report: SpotReport? { model.usingPin ? nil : model.report }
     private var scenario: WaterScenario? { report?.scenarios.first { $0.id == model.arScenarioID } }
 
+    /// Tags inside the current zoom ring, most important first (flooding gauges, then near things).
+    private var visiblePOIs: [(POI, Double)] {
+        guard let r = report else { return [] }
+        return r.pois.map { ($0, Geo.distance(r.coordinate, $0.coordinate)) }
+            .filter { $0.1 <= zoom.maxM && $0.1 > 3 }
+            .sorted { ($0.0.severity, -$0.1) > ($1.0.severity, -$1.1) }
+            .prefix(30).map { $0 }
+    }
+    private var placements: [WaterARView.Placement] {
+        guard let r = report else { return [] }
+        return visiblePOIs.map { .init(id: $0.0.id, bearing: Geo.bearing(from: r.coordinate, to: $0.0.coordinate), metres: $0.1) }
+    }
+
     var body: some View {
         ZStack {
-            WaterARView(mode: mode, depthFt: scenario?.depthFt,
+            WaterARView(mode: mode, depthFt: scenario?.depthFt, placements: placements,
                         onGround: { found in groundFound = found },
-                        onMeasure: { ft in stepFt = max(0, ft); mode = .water })
+                        onMeasure: { ft in stepFt = max(0, ft); mode = .water },
+                        onProject: { screen = $0 })
                 .ignoresSafeArea()
+            tags.ignoresSafeArea()
             VStack {
+                Picker("Zoom", selection: $zoom) {
+                    ForEach(ARZoom.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented).padding(.horizontal).padding(.top, 6)
                 pointers
                 Spacer()
                 panel
@@ -32,6 +54,29 @@ struct ARTab: View {
         .onAppear { compass.start() }
         .onDisappear { compass.stop(); floor.stop() }
         .sheet(isPresented: $showFloor) { floorSheet.presentationDetents([.medium]) }
+        .sheet(item: $picked) { p in POIDetail(poi: p, from: report?.coordinate ?? p.coordinate).presentationDetents([.medium, .large]) }
+    }
+
+    /// Tags at their projected screen points. Greedy declutter: a tag that would overlap one
+    /// already placed moves up a row, so the most important tag keeps its true position.
+    private var tags: some View {
+        var placed: [CGRect] = []
+        var items: [PlacedTag] = []
+        for (p, d) in visiblePOIs {
+            guard var pt = screen[p.id] else { continue }
+            var box = CGRect(x: pt.x - 100, y: pt.y - 18, width: 200, height: 36)
+            var tries = 0
+            while placed.contains(where: { $0.intersects(box) }) && tries < 6 { box.origin.y -= 40; pt.y -= 40; tries += 1 }
+            placed.append(box)
+            items.append(PlacedTag(poi: p, metres: d, point: pt))
+        }
+        return ZStack {
+            ForEach(items) { item in
+                POITag(poi: item.poi, metres: item.metres)
+                    .position(item.point)
+                    .onTapGesture { picked = item.poi }
+            }
+        }
     }
 
     @ViewBuilder private var pointers: some View {
@@ -120,4 +165,11 @@ struct ARTab: View {
         }
         .padding()
     }
+}
+
+private struct PlacedTag: Identifiable {
+    let poi: POI
+    let metres: Double
+    let point: CGPoint
+    var id: String { poi.id }
 }

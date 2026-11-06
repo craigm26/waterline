@@ -77,8 +77,8 @@ enum GroundElevation {
         if let r: EPQS = try? await Net.json(url), let v = r.value, v > -1000 {
             return Result(navd88Ft: v, source: "USGS 3DEP (EPQS), ft NAVD88")
         }
-        if let s = SFGrid.shared?.sample(c) {
-            return Result(navd88Ft: s.groundNAVD88Ft, source: "USGS 3DEP lidar, 5 m grid in the app (offline)")
+        if let g = ElevationGrid.covering(c), let s = g.sample(c) {
+            return Result(navd88Ft: s.groundNAVD88Ft, source: "USGS 3DEP, \(Int(g.resolutionM)) m \(g.name) grid (offline)")
         }
         return nil
     }

@@ -11,6 +11,7 @@ struct TideOutlook {
     let stationID: String
     let stationName: String
     let stationKm: Double
+    let stationCoordinate: CLLocationCoordinate2D
     let highs: [High]              // next 30 days
     let anomalyFt: Double?         // nil when the station has no recent observations
     let thresholds: [Threshold]    // NOAA flood levels that exist at this station, ascending
@@ -48,12 +49,12 @@ struct TideOutlook {
             .map { ($0, Geo.distance(c, .init(latitude: $0.lat, longitude: $0.lng)) / 1000) }
             .filter { $0.1 <= maxKm }.sorted { $0.1 < $1.1 }
         for (s, km) in near.prefix(3) {
-            if let o = try? await outlook(s.id, s.name, km) { return o }
+            if let o = try? await outlook(s.id, s.name, km, .init(latitude: s.lat, longitude: s.lng)) { return o }
         }
         return nil
     }
 
-    private static func outlook(_ id: String, _ name: String, _ km: Double) async throws -> TideOutlook {
+    private static func outlook(_ id: String, _ name: String, _ km: Double, _ at: CLLocationCoordinate2D) async throws -> TideOutlook {
         let now = Date()
         async let hilo = rows(id, "predictions", now, now.addingTimeInterval(30 * 86400), "&interval=hilo")
         async let obs = try? rows(id, "water_level", now.addingTimeInterval(-30 * 86400), now, "")
@@ -86,7 +87,7 @@ struct TideOutlook {
             thresholds = pairs.compactMap { n, v in v.map { Threshold(name: n, ft: $0 - mllw) } }.sorted { $0.ft < $1.ft }
         }
         let tie: Double? = (d["NAVD88"] != nil && mllw != nil) ? d["NAVD88"]! - mllw! : nil
-        return TideOutlook(stationID: id, stationName: name, stationKm: km, highs: highs, anomalyFt: anomaly,
+        return TideOutlook(stationID: id, stationName: name, stationKm: km, stationCoordinate: at, highs: highs, anomalyFt: anomaly,
                            thresholds: thresholds, navd88ToMLLW: tie)
     }
 

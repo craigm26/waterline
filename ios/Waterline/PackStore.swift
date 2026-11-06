@@ -15,6 +15,7 @@ final class PackStore: ObservableObject {
         let files: [File]
         let total_bytes: Int64
         let license: String?
+        let bbox: [Double]?
     }
     enum State: Equatable { case notInstalled, downloading(Double), verifying, installed, failed(String) }
 
@@ -113,6 +114,7 @@ final class PackStore: ObservableObject {
                 try mark.write(to: Self.marker(p.id))
                 states[p.id] = .installed
                 Ground1m.reload()
+                ElevationGrid.reloadRegions()
             } catch is CancellationError {
                 states[p.id] = .notInstalled
             } catch {
@@ -127,6 +129,7 @@ final class PackStore: ObservableObject {
         try? FileManager.default.removeItem(at: Self.folder(id))
         states[id] = .notInstalled
         Ground1m.reload()
+        ElevationGrid.reloadRegions()
     }
 
     /// SHA-256 of a file, streamed in 1 MB chunks off the main actor.
