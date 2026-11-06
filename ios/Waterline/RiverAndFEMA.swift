@@ -86,7 +86,9 @@ struct RiverFloodLevels {
 
     /// The nearest gauge within `maxKm` whose stages convert to NAVD88 and pass a sanity check
     /// against the ground at the gauge (a missing datum can show up as 0).
-    static func load(_ gauges: [RiverGauge], near c: CLLocationCoordinate2D, maxKm: Double = 15) async -> RiverFloodLevels? {
+    /// Only within `maxKm`: a river's surface rises upstream (the American River drops ~80 ft from Nimbus
+    /// to H Street), so a gauge's stage says little about the water level a long way from it.
+    static func load(_ gauges: [RiverGauge], near c: CLLocationCoordinate2D, maxKm: Double = 8) async -> RiverFloodLevels? {
         for g in gauges.prefix(4) {
             let km = Geo.distance(c, g.coordinate) / 1000
             guard km <= maxKm else { break }

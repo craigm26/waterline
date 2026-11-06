@@ -116,9 +116,9 @@ struct SpotReport {
         if let rv = river, let d = riverMajorAboveGroundFt {
             let name = rv.gauge.name
             if d > 0 {
-                out.append(String(format: "At major flood stage, the %@ stands %.1f ft (NAVD88): %.1f ft above the ground here. Levees and banks keep it out; if one failed nearby, water could approach that depth.", name, rv.majorNAVD88, d))
+                out.append(String(format: "At major flood stage, the %@ stands %.1f ft (NAVD88) at the gauge %.0f km away: %.1f ft above the ground here. Levees and banks keep it out; if one failed nearby, water could approach that depth. The river surface rises upstream, so treat this as a floor.", name, rv.majorNAVD88, rv.km, d))
             } else {
-                out.append(String(format: "You're %.1f ft above the %@ at major flood stage.", -d, name))
+                out.append(String(format: "You're %.1f ft above the %@ at major flood stage, measured at the gauge %.0f km away (the river runs higher upstream).", -d, name, rv.km))
             }
         }
         if let g = gauges.first(where: { $0.severity >= 1 }) {
