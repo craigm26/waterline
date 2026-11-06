@@ -1,0 +1,200 @@
+import SwiftUI
+import CoreLocation
+
+/// The main screen: what flooding looks like at this spot, in words first, numbers second.
+struct HereView: View {
+    @EnvironmentObject var model: AppModel
+    @State private var showInfo = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    whereBar
+                    if model.locationDenied && model.pinned == nil {
+                        Card {
+                            Text("Location is off").font(.headline)
+                            Text("Waterline needs your location to read the ground under you. Turn it on in Settings, or pick a spot on the Map tab.")
+                                .font(.subheadline)
+                            Button("Open Settings") { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
+                        }
+                    } else if let r = model.report {
+                        summary(r)
+                        coast(r)
+                        rain(r)
+                        if !r.actions.isEmpty { todo(r) }
+                        seeIt(r)
+                        ForEach(r.problems, id: \.self) { Text($0).font(.caption).foregroundStyle(.orange) }
+                        footer
+                    } else {
+                        ProgressView("Reading the ground, tides and forecast…").frame(maxWidth: .infinity).padding(.top, 60)
+                    }
+                }
+                .padding()
+            }
+            .refreshable { model.refresh(force: true) }
+            .navigationTitle("Waterline")
+            .toolbar { Button { showInfo = true } label: { Image(systemName: "info.circle") } }
+            .sheet(isPresented: $showInfo) { InfoView() }
+        }
+    }
+
+    private var whereBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: model.usingPin ? "mappin.circle.fill" : "location.fill").foregroundStyle(.blue)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(model.report?.placeLabel ?? (model.usingPin ? "Pinned spot" : "Your location")).font(.subheadline.bold())
+                Text(model.usingPin ? "Pinned on the map" : model.gpsAccuracyM.map { "GPS ±\(Int(($0 * Geo.ftPerM).rounded())) ft" } ?? "Finding you…")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            if model.loading { ProgressView() }
+            if model.usingPin { Button("Use my location") { model.unpin() }.font(.caption) }
+        }
+    }
+
+    private func summary(_ r: SpotReport) -> some View {
+        let tint: Color = r.level == .high ? .red : r.level == .watch ? .orange : .green
+        return Card(tint: tint) {
+            Text(r.title).font(.title3.bold())
+            ForEach(r.findings, id: \.self) { f in
+                Label { Text(f) } icon: { Image(systemName: "circle.fill").font(.system(size: 6)).foregroundStyle(tint) }
+                    .font(.subheadline)
+            }
+        }
+    }
+
+    private func coast(_ r: SpotReport) -> some View {
+        Card {
+            Text("Ground and tide").font(.headline)
+            if let g = r.groundMLLW {
+                Row(label: "Ground here", value: String(format: "%.1f ft", g), prov: .derived,
+                    note: r.ground?.source ?? "")
+            } else if let g = r.ground {
+                Row(label: "Ground here", value: String(format: "%.1f ft NAVD88", g.navd88Ft), prov: .derived, note: g.source)
+            }
+            if let b = r.bayReachesMLLW, r.connectivityKnown, r.bowlFt >= 0.1 {
+                Row(label: "Bay reaches here at", value: String(format: "%.1f ft", b), prov: .derived,
+                    note: "Lowest Bay level that gets here overland (lidar, 5 m)")
+            }
+            if let t = r.tide {
+                if let n = t.nextHigh { Row(label: "Next high tide", value: String(format: "%.1f ft", n.ft), prov: .official, note: SpotReport.day.string(from: n.time)) }
+                if let h = t.highest { Row(label: "Highest in 30 days", value: String(format: "%.1f ft", h.ft), prov: .official, note: SpotReport.day.string(from: h.time)) }
+                if let a = t.anomalyFt { Row(label: "Running above prediction", value: String(format: "%+.2f ft", a), prov: .derived, note: "30-day mean, observed − predicted") }
+                if let m = r.coastalMarginFt {
+                    Row(label: "Margin to highest water", value: String(format: "%+.1f ft", m), prov: .derived,
+                        note: r.connectivityKnown ? "Overland, from lidar" : "Assumes an open connection to the water (bathtub)")
+                }
+                Text("Heights in ft above MLLW at NOAA \(t.stationName) (\(Int(t.stationKm.rounded())) km away).")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func rain(_ r: SpotReport) -> some View {
+        Card {
+            Text("Rain").font(.headline)
+            if let rr = r.rain {
+                Row(label: "Next 24 h", value: String(format: "%.2f in", rr.next24In), prov: .official, note: "\(rr.chance24Pct)% chance · NWS")
+                Row(label: "Next 3 days", value: String(format: "%.2f in", rr.next72In), prov: .official, note: "NWS gridpoint forecast")
+            }
+            if r.inSF {
+                Row(label: "Bowl depth here", value: String(format: "%.1f ft", r.bowlFt), prov: .derived, note: "Ponding before it spills (lidar)")
+                Row(label: "311 flooding reports", value: "\(r.flood311Near)", prov: .official, note: "Within 500 ft, all years on DataSF")
+                Row(label: "SFPUC 100-yr flood zone", value: r.inZone ? "Inside" : "Outside", prov: .official, note: "SFPUC storm flood risk map")
+                ForEach(r.drains.map { NearDrain(drain: $0.0, metres: $0.1) }) { n in
+                    Row(label: "Drain #\(n.drain.rank)", value: Geo.walk(n.metres) + " " + Geo.compass(from: r.coordinate, to: n.drain.coordinate),
+                        prov: .derived,
+                        note: n.drain.deep_pit ? "Deep pit: report, don't clear" : "\(n.drain.hood) · \(n.drain.flood311) reports within 250 ft")
+                }
+            } else {
+                Text("Street-level rain detail (bowls, drains, 311 history) is San Francisco only for now.").font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func todo(_ r: SpotReport) -> some View {
+        Card {
+            Text("What you can do").font(.headline)
+            ForEach(Array(r.actions.enumerated()), id: \.offset) { i, a in
+                Label { Text(a).font(.subheadline) } icon: { Text("\(i + 1)").font(.caption.bold()) }
+            }
+        }
+    }
+
+    private func seeIt(_ r: SpotReport) -> some View {
+        Button {
+            model.tab = .ar
+        } label: {
+            Label("See the water line here", systemImage: "camera.viewfinder").frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(r.scenarios.isEmpty || model.usingPin)
+    }
+
+    private var footer: some View {
+        Text("● official  ○ derived  ▨ assumed. A screening view, not an engineered flood model or an official alert. Ground ±0.5 ft; your GPS position adds more on slopes.")
+            .font(.caption2).foregroundStyle(.secondary)
+    }
+}
+
+struct Card<Content: View>: View {
+    var tint: Color = .secondary
+    @ViewBuilder var content: Content
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) { content }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(tint.opacity(0.25)))
+    }
+}
+
+struct Row: View {
+    let label: String
+    let value: String
+    let prov: Provenance
+    var note: String = ""
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            HStack {
+                Text(label).font(.subheadline)
+                Spacer()
+                Text(value + " " + prov.mark).font(.subheadline.monospacedDigit().bold())
+            }
+            if !note.isEmpty { Text(note).font(.caption2).foregroundStyle(.secondary) }
+        }
+    }
+}
+
+struct InfoView: View {
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("What it does") {
+                    Text("Waterline reads the ground where you stand from USGS lidar, then compares it with NOAA's tide forecast and the National Weather Service rain forecast. In San Francisco it also knows the bowls rain collects in, the drains that matter, 26,458 past 311 flooding reports and SFPUC's 100-year flood zone.")
+                }
+                Section("How to read it") {
+                    Text("● official numbers come straight from NOAA, NWS, USGS, SFPUC or 311. ○ derived numbers are computed from them. ▨ assumed numbers are scenarios, not forecasts. A stress test is labelled as one.")
+                    Text("\"Bay reaches here at\" is the lowest Bay level that gets to this spot over the ground. It ignores seawalls the lidar doesn't see, and water coming up through storm drains.")
+                    Text("This is screening, not an engineered flood model (HEC-RAS or similar), and not an official alert. In SF, text your ZIP code to 888-777 for AlertSF.")
+                }
+                Section("Sources") {
+                    Link("NOAA CO-OPS tides and datums", destination: URL(string: "https://tidesandcurrents.noaa.gov/")!)
+                    Link("NWS forecast (api.weather.gov)", destination: URL(string: "https://www.weather.gov/documentation/services-web-api")!)
+                    Link("USGS 3DEP elevation", destination: URL(string: "https://www.usgs.gov/3d-elevation-program")!)
+                    Link("SF drains, 311 and SFPUC flood map (DataSF)", destination: URL(string: "https://datasf.org/opendata/")!)
+                    Link("City-manager view", destination: URL(string: "https://craigmerry.com/waterline/")!)
+                    Link("Code, data and method", destination: URL(string: "https://github.com/craigm26/waterline")!)
+                }
+                Section {
+                    Text("Built with Claude Code by Craig Merry. Your location stays on the phone; the app sends coordinates only to NOAA, NWS and USGS to get the numbers for that spot.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("About Waterline")
+            .toolbar { Button("Done") { dismiss() } }
+        }
+    }
+}

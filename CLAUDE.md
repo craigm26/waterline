@@ -10,7 +10,8 @@ Waterline does street-level flood screening for San Francisco this El Niño wint
 - **Build-day demo** (`demo/index.html`) is an ARCHIVE at `https://craigmerry.com/waterline/build-day/`: the page written before the Oct 25 Argon hackathon to guide a build day with Antigravity + Gemini 4 Argon, whose target was the city-manager site. The build day never happened. Its banner says so; never present its Argon claims as results anywhere.
 - **Publish:** commit here, then in `~/projects/craigm26/personalsite` run `scripts/sync-waterline.sh` (site/ -> /waterline/, demo/ -> /waterline/build-day/), commit and push `master` (that push deploys). GitHub Pages is off.
 - **WeatherNext 3 access approved Oct 25** for Craig's Google account. The table, schema, query and licensing caveat are in `plan/v2-roadmap.md`. **It's the last task, not the first.** NOAA is in: `scripts/refresh_live.py` pulls CO-OPS tide + NWS rain into `site/data/forecast.json`, run by hand; `scripts/build_city_data.py` packs the citywide analysis into `site/data/`. The scheduled refresh and the WeatherNext pull come after everything else.
-- **iOS AR app:** 1.0 (1) marker mode in `ios/`, bundle `com.craigmerry.waterline` (registered Oct 26): live NOAA scenarios, help + about sheets, icon. Archive + TestFlight upload: `ios/archive_upload.sh` on the MacInCloud Mac. Anchoring math is in `plan/ar-anchoring.md`.
+- **iOS app 1.1 (2), branch `ios-anywhere`, Nov 6:** the app reads the ground wherever you stand, with Here, Map and Water line tabs. It uses the bundled SF lidar grid (`scripts/build_ios_data.py`), plus NOAA tides from the nearest station, NWS rain and USGS EPQS anywhere in the US, and the LiDAR step measure, barometer floor height and compass arrows. **Not compiled yet: compile on MacInCloud first.** See `ios/README.md`.
+- **iOS 1.0 (1)** was marker mode in `ios/`, bundle `com.craigmerry.waterline` (registered Oct 26): live NOAA scenarios, help + about sheets, icon. Archive + TestFlight upload: `ios/archive_upload.sh` on the MacInCloud Mac. Anchoring math is in `plan/ar-anchoring.md`.
 
 ## This machine (Raspberry Pi 5)
 
@@ -49,7 +50,7 @@ Pages and apps read **only** these files; field names are listed in `CONTRIBUTIN
 3. No number goes on screen until it's computed, and every number links to its source.
 4. Every outbound action (alerts, work orders, adopter notices) is a draft that waits for a person. Nothing gets sent automatically.
 5. It's a screening model, not HEC-RAS, and the UI says so.
-6. Datums: CO-OPS 9414290 MLLW = 5.98 ft STND; NAVD88 zero = −0.06 ft MLLW; SF City Datum + 11.35 ft = NAVD88. Thresholds in ft MLLW: NWS minor 7.04, NOS minor 7.71, NOS moderate 8.64, NOS major 9.91.
+6. Datums: CO-OPS 9414290 MLLW = 5.98 ft STND, NAVD88 = 5.92 ft STND, so **ft MLLW = ft NAVD88 − 0.06** (a water level in MLLW is +0.06 in NAVD88; fixed repo-wide Nov 6, it was backwards); SF City Datum + 11.35 ft = NAVD88. Thresholds in ft MLLW: NWS minor 7.04, NOS minor 7.71, NOS moderate 8.64, NOS major 9.91.
 
 ## Writing
 

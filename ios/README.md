@@ -1,6 +1,30 @@
 # Waterline for iOS
 
-Draws a forecast water level on the camera view at the Ferry Building seawall. **v0 is marker mode:** you tap a seawall mark whose elevation you know, enter its height in ft MLLW, and pick a scenario. The water plane then sits at (scenario − mark) above that point, and LiDAR iPhones hide it behind people and bollards. Absolute anchoring with ARCore Geospatial terrain anchors comes next (`plan/ar-anchoring.md`).
+Waterline answers "does it flood here?" for wherever you're standing, with no setup. 1.0 only worked at the Ferry Building after you typed in a mark's height. 1.1 reads the ground under you and checks it against tides, rain and the city's own flood history.
+
+**Here** (from GPS, or any spot you tap on the map):
+- **Ground height.** USGS 3DEP via EPQS when online (1 m lidar in SF). Offline, the bundled 5 m SF grid.
+- **Where the Bay gets in.** "Bay reaches here at" is the lowest Bay level that gets to this spot overland, from a priority flood over the lidar. A spot below the tide but behind higher ground shows as dry until the water tops the rim.
+- **Tides anywhere on a US coast.** The nearest NOAA CO-OPS station (within 60 km): highs for 30 days, the 30-day anomaly, NOAA flood thresholds, and the station's own NAVD88 to MLLW tie.
+- **Rain anywhere in the US.** NWS gridpoint rain for the next 24 h and 3 days.
+- **SF only:**
+  - bowl depth here and nearby
+  - SFPUC 100-year zone
+  - 311 flooding reports within 500 ft
+  - the closest top-500 drains, with deep pits flagged
+  - the nearest of the 50 worst low spots
+  - higher ground that stays dry in a strong storm on this month's highest tide
+- **A plain-language verdict** (low / some / higher risk), the reasons behind it, and what to do.
+
+**Map:** tap anywhere to check it. Drains are colored by citywide rank, past 311 reports show as dots, and the SFPUC zone is outlined.
+
+**Water line (camera):**
+- **Ground anchoring, no mark.** ARKit finds the pavement ahead of you, and the water floats at the scenario's depth above it, with a pole and label. Scenarios: the bowl filling with rain, the next high tide, this month's highest, plus the gauge anomaly, plus a strong storm (▨), and a labelled stress test. A level that can't get here overland shows as "doesn't reach this spot".
+- **LiDAR.** Scene reconstruction with classification hides the water behind people and objects. *Measure a step:* tap the street, then your doorstep or curb, and the mesh gives the height. The panel then says whether each scenario goes over your step.
+- **Barometer.** *Floor height:* start on the street, walk up, save. CMAltimeter measures the climb to about a foot.
+- **Compass.** Arrows to higher ground and to the drain that matters, which turn as you turn.
+
+Data for the app is rebuilt with `python scripts/build_ios_data.py --check` (about 25 s), which writes `Resources/sfgrid.bin` (9 MB) and `Resources/places.json` (0.9 MB). `scripts/check_geo.py` checks the Swift UTM math against pyproj.
 
 Bundle `com.craigmerry.waterline`, team WYGG3JXWMG, 1.0. Builds run on the MacInCloud Mac over SSH from the Pi; there is no GitHub Actions job.
 
@@ -16,7 +40,9 @@ That unsigned build is the free compile check. A signed archive goes to TestFlig
 ## Gotchas
 
 - ARKit doesn't run in the Simulator; test on a device.
-- Marker mode is only as good as the mark's elevation. Use a surveyed point or the lidar plaza grade (10.1 ft MLLW), and say which one you used on screen.
+- Datum: ft MLLW = ft NAVD88 + (NAVD88 − MLLW on the station datum). In SF that's −0.06 ft. Before Nov 6 the project had this sign backwards everywhere, which put levels 0.12 ft low.
+- The ground anchor assumes the pavement the camera finds is the ground the lidar describes. On a slope, GPS error (±15 ft) shifts it by slope × error, so the UI says "±0.5 ft, more on slopes".
+- "Bay reaches here at" ignores seawalls the 5 m grid can't see and water coming up through storm drains. Both are screening limits, and the About sheet says so.
 - `Waterline.xcodeproj` is generated, so edit `project.yml`, not the project file.
 
 ## TestFlight
