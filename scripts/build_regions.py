@@ -158,7 +158,7 @@ def add_to_manifest(regions, built):
         m["packs"].append({
             "id": f"region-{r['id']}", "kind": "region", "version": 1,
             "title": f"{r['name']}, {r['state']}: ground + bowls (10 m)",
-            "summary": r["why"] + " Adds ground height offline and how deep water can stand at each spot (behind levees, the basin depth).",
+            "summary": r["why"] + " Adds ground height offline and how deep water can stand at each spot (behind levees, the basin depth)." + (" " + r["caveat"] if r.get("caveat") else ""),
             "bbox": r["bbox"], "hazards": r["hazards"],
             "files": [{"name": p.name, "url": f"{REL}/{p.name}", "bytes": p.stat().st_size, "sha256": sha(p)}],
             "total_bytes": p.stat().st_size, "license": "Public domain (USGS 3DEP)",
