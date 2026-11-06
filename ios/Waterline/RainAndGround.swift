@@ -67,7 +67,11 @@ enum GroundElevation {
         }
     }
 
+    /// 1 m pack (offline, exact) first, then USGS EPQS (online), then the bundled 5 m grid.
     static func load(_ c: CLLocationCoordinate2D) async -> Result? {
+        if let v = await Task.detached(priority: .userInitiated, operation: { Ground1m.shared?.groundNAVD88Ft(c) }).value {
+            return Result(navd88Ft: v, source: "USGS 3DEP 1 m lidar, downloaded pack (offline)")
+        }
         let url = URL(string: String(format: "https://epqs.nationalmap.gov/v1/json?x=%.6f&y=%.6f&wkid=4326&units=Feet&includeDate=false",
                                      c.longitude, c.latitude))!
         if let r: EPQS = try? await Net.json(url), let v = r.value, v > -1000 {

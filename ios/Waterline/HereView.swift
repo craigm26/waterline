@@ -24,6 +24,7 @@ struct HereView: View {
                         rain(r)
                         if !r.actions.isEmpty { todo(r) }
                         seeIt(r)
+                        lidarLink(r)
                         ForEach(r.problems, id: \.self) { Text($0).font(.caption).foregroundStyle(.orange) }
                         footer
                     } else {
@@ -34,7 +35,13 @@ struct HereView: View {
             }
             .refreshable { model.refresh(force: true) }
             .navigationTitle("Waterline")
-            .toolbar { Button { showInfo = true } label: { Image(systemName: "info.circle") } }
+            .toolbar {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    NavigationLink { DataPacksView() } label: { Image(systemName: "arrow.down.circle") }
+                        .accessibilityLabel("Offline data")
+                    Button { showInfo = true } label: { Image(systemName: "info.circle") }
+                }
+            }
             .sheet(isPresented: $showInfo) { InfoView() }
         }
     }
@@ -130,6 +137,21 @@ struct HereView: View {
         }
         .buttonStyle(.borderedProminent)
         .disabled(r.scenarios.isEmpty || model.usingPin)
+    }
+
+    /// The point cloud of this block when it's downloaded; otherwise a pointer to the packs.
+    @ViewBuilder private func lidarLink(_ r: SpotReport) -> some View {
+        if let scene = LidarScene.nearest(to: r.coordinate) {
+            NavigationLink { LidarSceneView(scene: scene) } label: {
+                Label("See the lidar of this block", systemImage: "cube.transparent").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+        } else if r.inSF, PackStore.installedVersion("sf-ground-1m") == nil {
+            NavigationLink { DataPacksView() } label: {
+                Label("Download 1 m lidar for offline use (45 MB)", systemImage: "arrow.down.circle").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered).font(.footnote)
+        }
     }
 
     private var footer: some View {
