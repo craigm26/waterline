@@ -20,7 +20,7 @@ final class PackStore: ObservableObject {
     enum State: Equatable { case notInstalled, downloading(Double), verifying, installed, failed(String) }
 
     static let shared = PackStore()
-    static let manifestURL = URL(string: "https://raw.githubusercontent.com/craigm26/waterline/main/packs/manifest.json")!
+    nonisolated static let manifestURL = URL(string: "https://raw.githubusercontent.com/craigm26/waterline/main/packs/manifest.json")!
 
     @Published var manifest: Manifest?
     @Published var manifestError: String?
@@ -28,7 +28,7 @@ final class PackStore: ObservableObject {
 
     private var jobs: [String: Task<Void, Never>] = [:]
 
-    static var root: URL {
+    nonisolated static var root: URL {
         let d = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("Waterline", isDirectory: true)
         if !FileManager.default.fileExists(atPath: d.path) {
             try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
@@ -37,16 +37,16 @@ final class PackStore: ObservableObject {
         }
         return d
     }
-    static func folder(_ id: String) -> URL { root.appendingPathComponent(id, isDirectory: true) }
-    private static func marker(_ id: String) -> URL { folder(id).appendingPathComponent(".installed.json") }
+    nonisolated static func folder(_ id: String) -> URL { root.appendingPathComponent(id, isDirectory: true) }
+    nonisolated private static func marker(_ id: String) -> URL { folder(id).appendingPathComponent(".installed.json") }
 
     /// Installed version of a pack, read from disk (works before the manifest loads, and offline).
-    static func installedVersion(_ id: String) -> Int? {
+    nonisolated static func installedVersion(_ id: String) -> Int? {
         guard let d = try? Data(contentsOf: marker(id)),
               let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { return nil }
         return o["version"] as? Int
     }
-    static func file(_ id: String, _ name: String) -> URL? {
+    nonisolated static func file(_ id: String, _ name: String) -> URL? {
         guard installedVersion(id) != nil else { return nil }
         let u = folder(id).appendingPathComponent(name)
         return FileManager.default.fileExists(atPath: u.path) ? u : nil
@@ -133,7 +133,7 @@ final class PackStore: ObservableObject {
     }
 
     /// SHA-256 of a file, streamed in 1 MB chunks off the main actor.
-    static func hash(_ url: URL) async -> String? {
+    nonisolated static func hash(_ url: URL) async -> String? {
         await Task.detached(priority: .utility) {
             guard let h = try? FileHandle(forReadingFrom: url) else { return nil }
             defer { try? h.close() }
