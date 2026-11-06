@@ -24,6 +24,16 @@ Waterline answers "does it flood here?" for wherever you're standing, with no se
 - **Barometer.** *Floor height:* start on the street, walk up, save. CMAltimeter measures the climb to about a foot.
 - **Compass.** Arrows to higher ground and to the drain that matters, which turn as you turn.
 
+**Offline data** (the ⬇ button on Here): download packs listed in `packs/manifest.json`, served from GitHub release `packs-v1`. Every file is checked against SHA-256 before it's used.
+
+| Pack | Size | What the app does with it |
+|---|---|---|
+| SF ground, 1 m lidar (low-lying areas) | 45 MB | Ground to the inch offline, for all SF land at or below 30 ft MLLW; takes over from the 5 m grid |
+| Lidar point clouds | 26 MB | Ferry Building + 5 hotspots in a 3D viewer with a water slider and "% of ground under" |
+| Raw LAZ / GeoTIFF / citywide 1 m tiles | 22 / 19 / 523 MB | Nothing in-app: they're for other apps, via Files › On My iPhone › Waterline |
+
+Rebuild and republish packs on the desktop (it has the 1 m tiles): `python scripts/build_packs.py --dem1m data/raw/citywide/dem`, then `gh release create packs-vN dist/packs/*` and commit `packs/manifest.json`. Bump each pack's `version` so installed copies update. The app reads the manifest from `main`, so the Offline data screen works only after this branch merges.
+
 Data for the app is rebuilt with `python scripts/build_ios_data.py --check` (about 25 s), which writes `Resources/sfgrid.bin` (9 MB) and `Resources/places.json` (0.9 MB). `scripts/check_geo.py` checks the Swift UTM math against pyproj.
 
 Bundle `com.craigmerry.waterline`, team WYGG3JXWMG, 1.0. Builds run on the MacInCloud Mac over SSH from the Pi; there is no GitHub Actions job.
