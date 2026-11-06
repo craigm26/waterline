@@ -56,8 +56,11 @@ def read_dem(r, pad=0.0):
     transform = rasterio.transform.from_origin(x0, y1, RES, RES)
     z = np.full((rows, cols), np.nan, dtype="float32")
     os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
-    with rasterio.Env(GDAL_HTTP_CAINFO=os.environ.get("CURL_CA_BUNDLE", "/root/.ccr/ca-bundle.crt"),
-                      CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif", GDAL_HTTP_MAX_RETRY="4", GDAL_HTTP_RETRY_DELAY="2"):
+    env = dict(CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif", GDAL_HTTP_MAX_RETRY="4", GDAL_HTTP_RETRY_DELAY="2")
+    ca = os.environ.get("CURL_CA_BUNDLE") or os.environ.get("SSL_CERT_FILE")
+    if ca and os.path.exists(ca):   # behind a TLS-inspecting proxy; otherwise GDAL's default trust store
+        env["GDAL_HTTP_CAINFO"] = ca
+    with rasterio.Env(**env):
         for t in tiles_for([w, s, e, n]):
             with rasterio.open(COG.format(t=t)) as src:
                 with WarpedVRT(src, crs=f"EPSG:{r['epsg']}", transform=transform, width=cols, height=rows,
