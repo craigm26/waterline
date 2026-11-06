@@ -1,0 +1,240 @@
+{
+ "schema": "waterline.packs.v1",
+ "release": "packs-v1",
+ "packs": [
+  {
+   "id": "sf-ground-1m",
+   "kind": "ground1m",
+   "version": 1,
+   "title": "SF ground, 1 m lidar (low-lying areas)",
+   "summary": "Ground height to the inch, offline, everywhere in San Francisco that sits 30 ft or less above the Bay. The app uses it in place of the 5 m grid.",
+   "files": [
+    {
+     "name": "sf_ground_1m.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sf_ground_1m.bin",
+     "bytes": 44801243,
+     "sha256": "64cf2b53ddee05acd7ac574d521c30280ff48755fd2f19adb71e344b8a0b6b17"
+    }
+   ],
+   "total_bytes": 44801243,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+  },
+  {
+   "id": "sf-lidar-scenes",
+   "kind": "scenes",
+   "version": 1,
+   "title": "Lidar point clouds: Ferry Building + 5 flood hotspots",
+   "summary": "The USGS point clouds behind the city analysis. Open them in the app to orbit the block and raise the water.",
+   "files": [
+    {
+     "name": "coast_scene.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/coast_scene.bin",
+     "bytes": 9262386,
+     "sha256": "954fcb29e75bf67ea615b09dac26f46c29049363e60ca9bed8a03fcb55944f67"
+    },
+    {
+     "name": "coast_scene.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/coast_scene.json",
+     "bytes": 678,
+     "sha256": "c7cd87493d96fbaf29b6237cba5d8bc7460e765a9b2129895e2aab8881653286"
+    },
+    {
+     "name": "hs01_soma.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs01_soma.bin",
+     "bytes": 3606694,
+     "sha256": "2a0267560f59551ba248442d226465f81e5e6ea9de63d34af73dd26902a54600"
+    },
+    {
+     "name": "hs01_soma.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs01_soma.json",
+     "bytes": 635,
+     "sha256": "80b1672ebbd1c8b87635c5d33cfda87669d002c68eb9e3d126d877d73df0eb9b"
+    },
+    {
+     "name": "hs02_folsom.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs02_folsom.bin",
+     "bytes": 3505670,
+     "sha256": "f8770ecf84c89120a28b06ffdcfcecc1f8708c29b3099aed4f775ade84486696"
+    },
+    {
+     "name": "hs02_folsom.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs02_folsom.json",
+     "bytes": 635,
+     "sha256": "9aaf614d3184c374c2df19089a8274dea169a19f31eff2898274a1bc55fc79bd"
+    },
+    {
+     "name": "hs03_greathwy.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs03_greathwy.bin",
+     "bytes": 3241994,
+     "sha256": "028d9a5da4c806a4e48ed9d06ba24cd3912778a3c9be789068cfe21dbadb0993"
+    },
+    {
+     "name": "hs03_greathwy.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs03_greathwy.json",
+     "bytes": 622,
+     "sha256": "9a0ec543e36eae1f8182804246e69c54f03bfd2118030bdf1b0f1f0c04e3a012"
+    },
+    {
+     "name": "hs04_islais.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs04_islais.bin",
+     "bytes": 3446310,
+     "sha256": "0be197a476adb6f8184e2e10faee137809ce6414d61c0a8309936d6ebc3312ec"
+    },
+    {
+     "name": "hs04_islais.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs04_islais.json",
+     "bytes": 634,
+     "sha256": "83f1aa2949b0c3b59e15d4437326248af9be6c9ebaaa62df649da5d17f4a679e"
+    },
+    {
+     "name": "hs07_bayview.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs07_bayview.bin",
+     "bytes": 3319456,
+     "sha256": "83a96834f8a73a10e9e0de69dbf8b039d73e6843346667affce4150553a5011b"
+    },
+    {
+     "name": "hs07_bayview.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs07_bayview.json",
+     "bytes": 662,
+     "sha256": "ae52999b4f4b5a355845bb06b8be484eb4b5cf204ecf41a00cec01a478647354"
+    }
+   ],
+   "total_bytes": 26386376,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+  },
+  {
+   "id": "raw-laz",
+   "kind": "raw",
+   "version": 1,
+   "title": "Raw lidar (LAZ)",
+   "summary": "The same places as standard LAZ point clouds, for any lidar app. Saved to Files \u203a On My iPhone \u203a Waterline.",
+   "files": [
+    {
+     "name": "coast_scene.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/coast_scene.laz",
+     "bytes": 5424967,
+     "sha256": "be17f8becc766eb09743ac30f4d7b66a611a59e7da01c779ac8c087db2ff1c68"
+    },
+    {
+     "name": "hs01_soma.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs01_soma.laz",
+     "bytes": 2252562,
+     "sha256": "0479f9515be51595a1dd19455f28b15a18ee63c5ad30ee595eeeaf04ca01ea66"
+    },
+    {
+     "name": "hs02_folsom.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs02_folsom.laz",
+     "bytes": 2166455,
+     "sha256": "f859a57314da51d56ef6aae7dddad090a251fc0e310349b8935fb5691b301a5e"
+    },
+    {
+     "name": "hs03_greathwy.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs03_greathwy.laz",
+     "bytes": 2017557,
+     "sha256": "4c93b6f61aa1ed88cdbb3d6a03c7d76e7da9a4b8558638a8fc17db2ce11e3acd"
+    },
+    {
+     "name": "hs04_islais.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs04_islais.laz",
+     "bytes": 2164423,
+     "sha256": "f9d1b4256c41fc1adb333264a6cd210e0b76a479dca68f993154ee5c50b5f997"
+    },
+    {
+     "name": "hs07_bayview.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/hs07_bayview.laz",
+     "bytes": 2096185,
+     "sha256": "a7169dacafedf902c5270ddbbadc4123fa3e34cf5d7f83995d0d204ad7c50232"
+    },
+    {
+     "name": "coast_edge.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/coast_edge.laz",
+     "bytes": 1815357,
+     "sha256": "8138e7899ecb9fadeeb268036073ec78c677d224595d2941b458567bb7c5a383"
+    },
+    {
+     "name": "rain_xsec.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/rain_xsec.laz",
+     "bytes": 1139786,
+     "sha256": "ca5679bbae5730b488acd68c63232e5c3c4cc9cbc26e8912cb3bd2fb641f9ad6"
+    },
+    {
+     "name": "rain_scene.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/rain_scene.laz",
+     "bytes": 3018844,
+     "sha256": "db70031e60d8b024eb479fc617cd630c1359b7e390e895988305d804656440f9"
+    }
+   ],
+   "total_bytes": 22096136,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+  },
+  {
+   "id": "raw-dem",
+   "kind": "raw",
+   "version": 1,
+   "title": "Elevation models (GeoTIFF)",
+   "summary": "5 m citywide DEM, plus 1 m DEMs of the Ferry Building and 17th & Folsom. Ft = m \u00d7 3.28084; heights are NAVD88.",
+   "files": [
+    {
+     "name": "sf_dem_5m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sf_dem_5m.tif",
+     "bytes": 12878637,
+     "sha256": "6b0a9639165e64b158c2ec9f43d018f65b180d824a71cb0f8b25be1b356743b0"
+    },
+    {
+     "name": "coast_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/coast_dem_1m.tif",
+     "bytes": 1919255,
+     "sha256": "fcee33ff093a0d439c3f0b2523a3820dc2b751233742c3e0f9013993ee888032"
+    },
+    {
+     "name": "rain_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/rain_dem_1m.tif",
+     "bytes": 4512288,
+     "sha256": "8047954dfe08700607fe503df8ee5725755b9fccd1fb88705447775a851d938d"
+    }
+   ],
+   "total_bytes": 19310180,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+  },
+  {
+   "id": "raw-dem-1m",
+   "kind": "raw",
+   "version": 1,
+   "title": "Citywide 1 m DEM tiles (510 MB)",
+   "summary": "The four USGS 1 m tiles that cover San Francisco. Large: use Wi-Fi.",
+   "files": [
+    {
+     "name": "USGS_1M_10_x54y418_CA_SanFrancisco_B23.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/data-v1/USGS_1M_10_x54y418_CA_SanFrancisco_B23.tif",
+     "bytes": 176580019,
+     "sha256": "ff3afb13eb3bc64996aa3318825efef82b34ead35ad4c8342b7136e04ca4d07f"
+    },
+    {
+     "name": "USGS_1M_10_x54y419_CA_SanFrancisco_B23.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/data-v1/USGS_1M_10_x54y419_CA_SanFrancisco_B23.tif",
+     "bytes": 111944984,
+     "sha256": "34ade3c7249f61ac8d8eaf7973f67c9e5c3304ec9d4500dcb79d11b332cb9957"
+    },
+    {
+     "name": "USGS_1M_10_x55y418_CA_SanFrancisco_B23.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/data-v1/USGS_1M_10_x55y418_CA_SanFrancisco_B23.tif",
+     "bytes": 147948547,
+     "sha256": "a7bdf929446234f06642452bb43600cc650e93ccf8713d6f479becf848c69781"
+    },
+    {
+     "name": "USGS_1M_10_x55y419_CA_SanFrancisco_B23.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/data-v1/USGS_1M_10_x55y419_CA_SanFrancisco_B23.tif",
+     "bytes": 86461076,
+     "sha256": "9cc9c03f4ddaf8ec6712951b980157ea02293c7723761466e6e60f21147a9424"
+    }
+   ],
+   "total_bytes": 522934626,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+  }
+ ]
+}
