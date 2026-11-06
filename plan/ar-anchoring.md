@@ -6,7 +6,7 @@ The water line is only credible if it sits at the right height. Absolute altitud
 
 1. Create an ARCore **Terrain anchor** (Geospatial API) at a surveyed point P on the promenade or street. ARCore places it on its own ground surface at P.
 2. Look up the ground elevation at P from our 1 m DEM: `G_P` (ft NAVD88).
-3. Water plane offset from the anchor: **`Δ = (W − 0.06) − G_P`**, where `W` is the scenario water level in ft MLLW (NAVD88 zero = −0.06 ft MLLW at SF). Negative = below the promenade.
+3. Water plane offset from the anchor: **`Δ = (W + 0.06) − G_P`**, where `W` is the scenario water level in ft MLLW (NAVD88 zero = −0.06 ft MLLW at SF). Negative = below the promenade.
 4. Render the plane at `Δ` relative to the anchor, extending bayward (coast) or along the street (rain).
 
 This cancels datum and geoid errors, because both ARCore's terrain and our DEM describe the same ground. What remains is DEM-vs-ARCore terrain disagreement at P (check by eye: the anchor should sit on the pavement).

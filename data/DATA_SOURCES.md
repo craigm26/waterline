@@ -27,7 +27,7 @@ Provenance class: **O** = official, **D** = derived from official inputs, **A** 
 ## Datum conversions (critical; get these wrong and the water is in the wrong place)
 
 - Station datum: **MLLW = 5.98 ft STND**, MHHW = 11.82 STND → **MHHW = 5.84 ft MLLW**.
-- **NAVD88 zero = −0.06 ft MLLW** at SF, so DEM elevations (NAVD88) ≈ ft MLLW (add 0.06).
+- **NAVD88 zero = −0.06 ft MLLW** at SF, so ft MLLW = ft NAVD88 − 0.06 (subtract 0.06 from DEM elevations; add 0.06 to turn a water level in ft MLLW into NAVD88).
 - **SF City Datum: NAVD88 = SFCD + 11.35 ft** (City & County Surveyor constant; local benchmarks vary 10.9–11.8).
 - CO-OPS flood levels come in STND: subtract 5.98 to get MLLW.
 - AR anchors use WGS84 ellipsoid height: NAVD88 → ellipsoid needs the GEOID18 offset (about −32 m around SF; compute exactly on the day).

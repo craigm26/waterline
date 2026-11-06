@@ -650,9 +650,9 @@ ${rows || "  none"}
     const wm = new THREE.MeshBasicMaterial({ color: 0x3aa0ff, transparent: true, opacity: 0.55, alphaMap: tex, depthWrite: false, side: THREE.DoubleSide });
     const water = new THREE.Mesh(new THREE.PlaneGeometry(GW * CS, GH * CS), wm);
     water.rotation.x = -Math.PI / 2; water.position.set(xmin + GW * CS / 2, 0, -(ymin + GH * CS / 2)); scene.add(water);
-    const toY = ft => (ft - 0.06) / M * EX;
+    const toY = ft => (ft + 0.06) / M * EX;   // ft MLLW -> m NAVD88: NAVD88 = MLLW + 0.06 ft
     let cur = toY(0.6);
-    setLevel = ft => { target = ft; flood((ft - 0.06) / M); };
+    setLevel = ft => { target = ft; flood((ft + 0.06) / M); };
     setLevel(target);
     let az = Math.atan2(240, -150), elev = 0.5, dist = 470, drag = null, auto = !matchMedia("(prefers-reduced-motion: reduce)").matches;
     const resize = () => { const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); };

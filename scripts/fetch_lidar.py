@@ -33,7 +33,7 @@ ROOT = Path(__file__).resolve().parent.parent
 EPT = "https://s3-us-west-2.amazonaws.com/usgs-lidar-public/CA_SanFrancisco_1_B23"
 UA = {"User-Agent": "waterline-hackathon-prep/0.4"}
 M_TO_FT = 3.28084
-NAVD88_TO_MLLW_FT = 0.06
+NAVD88_TO_MLLW_FT = -0.06  # ft MLLW = ft NAVD88 + this (CO-OPS 9414290 datums)
 
 # crops: (lon, lat) center, half-size in metres, max EPT depth (deeper = denser)
 CROPS = {

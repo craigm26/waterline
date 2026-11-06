@@ -225,7 +225,7 @@ footer .wrap { display: grid; gap: 8px; }
 const STATION = "9414290", GRID = "MTR/85,105";
 const TH = { nws_minor: 7.04, nos_minor: 7.71, nos_moderate: 8.64, nos_major: 9.91 };
 const TH_LABEL = { nws_minor: "NWS minor", nos_minor: "NOS minor", nos_moderate: "NOS moderate", nos_major: "NOS major" };
-const PLAZA = 10.16;
+const PLAZA = 10.04;   // USGS 1 m DEM 10.1 ft NAVD88 - 0.06 = ft MLLW
 const COOPS = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter";
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -361,7 +361,7 @@ function drawChart() {
   s += `<text x="${L - 8}" y="${T - 2}" text-anchor="end" font-size="10" fill="#8fa3b5">ft</text>`;
   const lines = [["nws_minor", "#f2b33d"], ["nos_minor", "#f08a3c"], ["nos_moderate", "#ff6b5b"], ["nos_major", "#ff6b5b"]];
   for (const [k, c] of lines) s += `<line x1="${L}" x2="${W - R}" y1="${y(TH[k])}" y2="${y(TH[k])}" stroke="${c}" stroke-width="1.5"/><text x="${W - R + 6}" y="${y(TH[k]) + 4}" font-size="11" fill="${c}">${TH_LABEL[k]} ${TH[k]}</text>`;
-  s += `<line x1="${L}" x2="${W - R}" y1="${y(PLAZA)}" y2="${y(PLAZA)}" stroke="#b79f7d" stroke-dasharray="5 4"/><text x="${W - R + 6}" y="${y(PLAZA) - 6}" font-size="11" fill="#b79f7d">Ferry plaza ~10.2</text>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${y(PLAZA)}" y2="${y(PLAZA)}" stroke="#b79f7d" stroke-dasharray="5 4"/><text x="${W - R + 6}" y="${y(PLAZA) - 6}" font-size="11" fill="#b79f7d">Ferry plaza ~10.0</text>`;
   F.days.forEach((d, i) => {
     const xi = x(i), p = d.high.predicted_ft, w = d.high.with_anomaly_ft;
     s += `<line x1="${xi}" x2="${xi}" y1="${y(p)}" y2="${y(w)}" stroke="#f2b33d" stroke-opacity=".5" stroke-width="1.5"/>`;

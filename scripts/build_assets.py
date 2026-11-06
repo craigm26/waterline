@@ -41,7 +41,7 @@ SITES = {
     "coast": {"name": "Ferry Building / Embarcadero", "lat": 37.7955, "lon": -122.3935,
               "bbox": (-122.3990, 37.7905, -122.3880, 37.8000)},
 }
-NAVD88_TO_MLLW_FT = 0.06   # NAVD88 zero = -0.06 ft MLLW at 9414290 (stage_data tide_datums)
+NAVD88_TO_MLLW_FT = -0.06  # ft MLLW = ft NAVD88 + this; NAVD88 zero = -0.06 ft MLLW at 9414290 (CO-OPS datums: NAVD88 5.92, MLLW 5.98 ft STND)
 M_TO_FT = 3.28084
 
 # --- palette: muted, colorblind-safe; provenance encoded by fill style, not hue ---
@@ -212,7 +212,7 @@ def chart_coastal_stack():
     fig.text(0.07, 0.86, "Solid = measured or predicted by NOAA.  Hatched = assumed scenario (surge size).  "
              "Waves on top of still water are not modeled.", fontsize=14, color=INK)
     source_note(ax, "NOAA CO-OPS 9414290 predictions, observed residuals and flood levels; USGS 3DEP 1 m ground "
-                "elevation (NAVD88 ≈ MLLW + 0.06 ft). Stress test is not a forecast.")
+                "elevation (MLLW = NAVD88 − 0.06 ft). Stress test is not a forecast.")
     save_fig(fig, "coastal_stack")
 
 

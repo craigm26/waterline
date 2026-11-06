@@ -34,7 +34,7 @@ The `CA_SanFrancisco_1_B23` survey is public on AWS as an Entwine (EPT) octree: 
 
 ### How the build uses it
 
-- **Three.js backdrop without a Maps key:** load `data/lidar/{site}_scene.bin` (14-byte stride: float32 x,y,z in metres, local UTM 10N origin from the `.json`; uint8 class; uint8 intensity) as a `THREE.Points` cloud. Draw the water plane at `(W_ft_MLLW − 0.06) / 3.28084` metres. That's the trace-view and city-manager 3D scene even if Photorealistic 3D Tiles never get a key, and it's measured geometry rather than photogrammetry.
+- **Three.js backdrop without a Maps key:** load `data/lidar/{site}_scene.bin` (14-byte stride: float32 x,y,z in metres, local UTM 10N origin from the `.json`; uint8 class; uint8 intensity) as a `THREE.Points` cloud. Draw the water plane at `(W_ft_MLLW + 0.06) / 3.28084` metres. That's the trace-view and city-manager 3D scene even if Photorealistic 3D Tiles never get a key, and it's measured geometry rather than photogrammetry.
 - **Hydraulics:** the bare-earth DEM stays the model surface. Lidar class 1 points give building footprints if Argon wants to block flow through buildings.
 - **Street-level depth meaning:** the coordinator translates depth into curb terms using the measured profile. "4 in: gutters full; above that, water on the sidewalk."
 - **Renders:** `assets/lidar/coast_scene.png` (base) and `coast_scene_stress_test.png` (ground at or below 10.3 ft tinted). The realistic scenarios tint no ground at all, which is the honest result, so they aren't rendered.

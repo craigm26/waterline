@@ -58,7 +58,7 @@ ORDER BY f.hours;
 
 **What it does:** you stand at the Ferry Building, point the phone at the seawall, and see the water line for a scenario drawn at true height on the real world: today's predicted high, + Kelvin baseline, + storm, + stress test. LiDAR occlusion hides the water behind people and bollards. The scenario levels come from the same JSON contracts the city view uses, so the app and the page always agree.
 
-**Stack:** SwiftUI + RealityKit, with ARCore Geospatial terrain anchors for absolute height. Plain ARKit only knows height relative to where the session started, which is exactly the error we can't afford here. Then a relative offset Δ = (W − 0.06) − G_P, as worked out in `plan/ar-anchoring.md`. Scene reconstruction (`sceneReconstruction = .mesh`) handles occlusion on LiDAR iPhones.
+**Stack:** SwiftUI + RealityKit, with ARCore Geospatial terrain anchors for absolute height. Plain ARKit only knows height relative to where the session started, which is exactly the error we can't afford here. Then a relative offset Δ = (W + 0.06) − G_P, as worked out in `plan/ar-anchoring.md`. Scene reconstruction (`sceneReconstruction = .mesh`) handles occlusion on LiDAR iPhones.
 
 **The constraint the Pi can't remove:** iOS apps build only with Xcode on macOS. The Pi session can write Swift, but it can't compile, sign or install it. The workflow:
 - **Compile check without a local Mac:** an unsigned `xcodebuild build` on the MacInCloud Mac over SSH (`CODE_SIGNING_ALLOWED=NO`). It costs nothing and catches what an upload would. No GitHub Actions.

@@ -55,7 +55,7 @@ infiltration 0-15 mm/h, drain capacity 10-60 mm/h. Stop and report if you can't 
 ```
 Build a single-page web app (Three.js) with two tabs. 3D scene: load the USGS lidar point cloud
 data/lidar/{site}_scene.bin (14-byte stride: float32 x,y,z m local UTM10N, uint8 class, uint8 intensity;
-header in the .json) as THREE.Points colored by class; water plane at (W_ft_MLLW - 0.06)/3.28084 m.
+header in the .json) as THREE.Points colored by class; water plane at (W_ft_MLLW + 0.06)/3.28084 m.
 Optionally add Google Photorealistic 3D Tiles if a Maps key is set.
 - TRACE: left = live agent/MCP log from runs/mcp_log.jsonl with provenance chips (solid = official,
   outlined = derived, hatched = assumed); right = 3D site with the water surface rising as each agent
@@ -73,7 +73,7 @@ Verify by taking browser screenshots of both tabs and fixing layout issues until
 ```
 Build an iOS (Swift, ARCore Geospatial via CocoaPods 'ARCore/Geospatial') screen that:
 - checks VPS availability, localizes, and places a TERRAIN anchor at a surveyed point P; renders the
-  water plane at offset Δ = (W_ft_MLLW - 0.06) - G_P_ft_NAVD88 relative to that anchor (see
+  water plane at offset Δ = (W_ft_MLLW + 0.06) - G_P_ft_NAVD88 relative to that anchor (see
   plan/ar-anchoring.md); do NOT rely on absolute altitude
 - shows the P10-P90 band, a label "X.X ft below promenade" at the coastal site, and toggles
   tide / +El Niño baseline / +storm / stress test
