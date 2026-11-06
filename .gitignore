@@ -20,3 +20,4 @@ renders/*/_vid/
 ios/*.xcodeproj/
 ios/build.log
 ios/build/
+dist/
