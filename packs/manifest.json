@@ -235,6 +235,236 @@
    "total_bytes": 522934626,
    "license": "Public domain (USGS 3DEP)",
    "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+  },
+  {
+   "id": "region-sacramento",
+   "kind": "region",
+   "version": 1,
+   "title": "Sacramento, CA: ground + bowls (10 m)",
+   "summary": "Two rivers held back by levees. Natomas and the Pocket sit 15-25 ft below the Sacramento River at flood stage; FEMA maps Natomas A99 (levee still being built to the 1% standard). Adds ground height offline and how deep water can stand at each spot (behind levees, the basin depth).",
+   "bbox": [
+    -121.62,
+    38.43,
+    -121.36,
+    38.72
+   ],
+   "hazards": [
+    "river",
+    "levee",
+    "rain"
+   ],
+   "files": [
+    {
+     "name": "sacramento_grid.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_grid.bin",
+     "bytes": 13697411,
+     "sha256": "1c9fac26f965e8633e671c799e14a260ad5247e9a4d5e4ab29cdc66c776e3a84"
+    }
+   ],
+   "total_bytes": 13697411,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+  },
+  {
+   "id": "region-new-orleans",
+   "kind": "region",
+   "version": 1,
+   "title": "New Orleans, LA: ground + bowls (10 m)",
+   "summary": "Much of the city is below sea level inside levees and depends on pumps; heavy rain ponds where the pumps can't keep up. Adds ground height offline and how deep water can stand at each spot (behind levees, the basin depth). Caveat: the drainage-canal floodwalls are thinner than the 10 m grid, so the city's rim reads near lake level and the bowl understates how deep a protection failure could get. Compare the ground with lake and river levels instead.",
+   "bbox": [
+    -90.17,
+    29.88,
+    -89.92,
+    30.05
+   ],
+   "hazards": [
+    "surge",
+    "levee",
+    "rain"
+   ],
+   "files": [
+    {
+     "name": "new-orleans_grid.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_grid.bin",
+     "bytes": 7505381,
+     "sha256": "8864e6a92185dbc8ee2d005202f29ce8143fdeebd95ed9e616cd379606f5b153"
+    }
+   ],
+   "total_bytes": 7505381,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+  },
+  {
+   "id": "region-miami",
+   "kind": "region",
+   "version": 1,
+   "title": "Miami & Miami Beach, FL: ground + bowls (10 m)",
+   "summary": "High-tide flooding on sunny days, porous limestone under the seawalls, and hurricane surge. Adds ground height offline and how deep water can stand at each spot (behind levees, the basin depth). Caveat: seawalls are thinner than the 10 m grid, and sunny-day flooding comes up through storm drains and porous rock, so compare the ground with the tide rather than relying on the bowl.",
+   "bbox": [
+    -80.35,
+    25.7,
+    -80.11,
+    25.88
+   ],
+   "hazards": [
+    "tide",
+    "surge",
+    "rain"
+   ],
+   "files": [
+    {
+     "name": "miami_grid.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_grid.bin",
+     "bytes": 5533925,
+     "sha256": "d0f7ad2dc65cfaa710b78d858297b8189364a38ea90c46edea5ea9efc0d1fb24"
+    }
+   ],
+   "total_bytes": 5533925,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+  },
+  {
+   "id": "region-norfolk",
+   "kind": "region",
+   "version": 1,
+   "title": "Norfolk, VA: ground + bowls (10 m)",
+   "summary": "The fastest relative sea-level rise on the US East Coast; tidal flooding closes streets many times a year. Adds ground height offline and how deep water can stand at each spot (behind levees, the basin depth).",
+   "bbox": [
+    -76.36,
+    36.82,
+    -76.17,
+    36.97
+   ],
+   "hazards": [
+    "tide",
+    "surge",
+    "rain"
+   ],
+   "files": [
+    {
+     "name": "norfolk_grid.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_grid.bin",
+     "bytes": 3101596,
+     "sha256": "4922dd93d61f4a37d865aa021c0525d2a0a211f5356d37da236d7a030115effc"
+    }
+   ],
+   "total_bytes": 3101596,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+  },
+  {
+   "id": "region-charleston",
+   "kind": "region",
+   "version": 1,
+   "title": "Charleston, SC: ground + bowls (10 m)",
+   "summary": "The peninsula's low streets flood at king tides and in ordinary heavy rain when the outfalls are under water. Adds ground height offline and how deep water can stand at each spot (behind levees, the basin depth). Caveat: the Battery seawall and outfall flap gates are thinner than the 10 m grid; compare the ground with the tide.",
+   "bbox": [
+    -80.02,
+    32.7,
+    -79.86,
+    32.86
+   ],
+   "hazards": [
+    "tide",
+    "surge",
+    "rain"
+   ],
+   "files": [
+    {
+     "name": "charleston_grid.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_grid.bin",
+     "bytes": 3136918,
+     "sha256": "082a9f37f740d564ab57b6f6afcc983fbcfc7aa277512ddb4c107f6434244482"
+    }
+   ],
+   "total_bytes": 3136918,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+  },
+  {
+   "id": "region-houston",
+   "kind": "region",
+   "version": 1,
+   "title": "Houston, TX: ground + bowls (10 m)",
+   "summary": "Flat land, clay soil and bayous that overtop in heavy rain; Harvey put 50 in of rain on the region. Adds ground height offline and how deep water can stand at each spot (behind levees, the basin depth).",
+   "bbox": [
+    -95.55,
+    29.62,
+    -95.2,
+    29.88
+   ],
+   "hazards": [
+    "rain",
+    "bayou"
+   ],
+   "files": [
+    {
+     "name": "houston_grid.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_grid.bin",
+     "bytes": 15910915,
+     "sha256": "0550a2bd3c670cbc9eafd26d992b275724c3db5b8c669e371291566ca0d78b4a"
+    }
+   ],
+   "total_bytes": 15910915,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+  },
+  {
+   "id": "region-nyc",
+   "kind": "region",
+   "version": 1,
+   "title": "New York City (harbor shore), NY: ground + bowls (10 m)",
+   "summary": "Lower Manhattan, Red Hook and the south Brooklyn and Queens shore flooded in Sandy; basement apartments flood in cloudbursts. Adds ground height offline and how deep water can stand at each spot (behind levees, the basin depth).",
+   "bbox": [
+    -74.06,
+    40.56,
+    -73.83,
+    40.76
+   ],
+   "hazards": [
+    "surge",
+    "tide",
+    "rain"
+   ],
+   "files": [
+    {
+     "name": "nyc_grid.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_grid.bin",
+     "bytes": 4473051,
+     "sha256": "2c67dce8830a038e68b724df24032c76d2a329cdd394240523515580005eb2e5"
+    }
+   ],
+   "total_bytes": 4473051,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+  },
+  {
+   "id": "region-boston",
+   "kind": "region",
+   "version": 1,
+   "title": "Boston, MA: ground + bowls (10 m)",
+   "summary": "Much of downtown, the Seaport and East Boston is filled marsh a few feet above today's high tides. Adds ground height offline and how deep water can stand at each spot (behind levees, the basin depth).",
+   "bbox": [
+    -71.12,
+    42.32,
+    -70.98,
+    42.4
+   ],
+   "hazards": [
+    "surge",
+    "tide"
+   ],
+   "files": [
+    {
+     "name": "boston_grid.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_grid.bin",
+     "bytes": 1469987,
+     "sha256": "ea440eb6965c531dea1f422193bcfb25ece5e7881c786652089fcbe642212123"
+    }
+   ],
+   "total_bytes": 1469987,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
   }
  ]
 }
