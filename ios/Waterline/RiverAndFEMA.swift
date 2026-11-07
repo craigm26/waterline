@@ -61,6 +61,58 @@ struct RiverGauge: Identifiable, Hashable {
     }
 }
 
+/// The rest of what NOAA publishes about a gauge, read when someone opens its sheet.
+struct GaugeDetail {
+    struct Impact: Identifiable { let stage: Double, statement: String; var id: String { "\(stage)\(statement)" } }
+    var action: Double?, minor: Double?, moderate: Double?, major: Double?
+    var flowNow: String?
+    var forecastTime: Date?
+    /// Highest crest NOAA lists in the gauge's current datum. Older crests can be in another datum.
+    var topCrest: (stage: Double, time: Date)?
+    var impacts: [Impact] = []
+    var photo: URL?
+    var photoCaption: String?
+    var credit: String?
+
+    private struct Resp: Decodable {
+        struct V: Decodable { let secondary: Double?; let secondaryUnit: String?; let validTime: String? }
+        struct Status: Decodable { let observed: V?; let forecast: V? }
+        struct Stage: Decodable { let stage: Double? }
+        struct Cats: Decodable { let action: Stage?; let minor: Stage?; let moderate: Stage?; let major: Stage? }
+        struct Crest: Decodable { let occurredTime: String?; let stage: Double?; let olddatum: Bool? }
+        struct Crests: Decodable { let historic: [Crest]?; let recent: [Crest]? }
+        struct Imp: Decodable { let stage: Double?; let statement: String? }
+        struct Flood: Decodable { let categories: Cats?; let crests: Crests?; let impacts: [Imp]? }
+        struct Photo: Decodable { struct P: Decodable { let image: URL?; let caption: String? }; let properties: P? }
+        struct Images: Decodable { let photos: [Photo]? }
+        struct Credit: Decodable { let title: String? }
+        let status: Status?; let flood: Flood?; let images: Images?; let dataAttribution: [Credit]?
+    }
+
+    static func load(_ id: String) async -> GaugeDetail? {
+        guard let r: Resp = try? await Net.json(URL(string: "https://api.water.noaa.gov/nwps/v1/gauges/\(id.lowercased())")!) else { return nil }
+        func v(_ x: Double?) -> Double? { x.flatMap { $0 > -900 ? $0 : nil } }
+        let iso = ISO8601DateFormatter()
+        var d = GaugeDetail()
+        let c = r.flood?.categories
+        d.action = v(c?.action?.stage); d.minor = v(c?.minor?.stage); d.moderate = v(c?.moderate?.stage); d.major = v(c?.major?.stage)
+        if let f = v(r.status?.observed?.secondary), f > 0, let u = r.status?.observed?.secondaryUnit, !u.isEmpty { d.flowNow = String(format: "%.1f %@", f, u) }
+        d.forecastTime = r.status?.forecast?.validTime.flatMap(iso.date)
+        let crests = (r.flood?.crests?.historic ?? []) + (r.flood?.crests?.recent ?? [])
+        d.topCrest = crests.compactMap { c -> (stage: Double, time: Date)? in
+            guard c.olddatum != true, let s = v(c.stage), let t = c.occurredTime.flatMap(iso.date) else { return nil }
+            return (s, t)
+        }.max { $0.stage < $1.stage }
+        d.impacts = (r.flood?.impacts ?? []).compactMap { i in
+            guard let s = v(i.stage), let t = i.statement, !t.isEmpty else { return nil }
+            return Impact(stage: s, statement: t)
+        }.sorted { $0.stage < $1.stage }
+        if let p = r.images?.photos?.first?.properties { d.photo = p.image; d.photoCaption = p.caption }
+        d.credit = r.dataAttribution?.first?.title
+        return d
+    }
+}
+
 /// One gauge's flood stages as elevations (ft NAVD88), when its datum checks out.
 struct RiverFloodLevels {
     let gauge: RiverGauge

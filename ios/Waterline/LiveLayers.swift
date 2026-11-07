@@ -183,6 +183,41 @@ enum LiveLayers {
         return rings
     }
 
+    /// What the National Levee Database says about the levee, floodwall or pump at a point. Read
+    /// when someone opens its sheet, so the packs don't have to carry it.
+    static func nldRecord(_ kind: POI.Kind, at c: CLLocationCoordinate2D) async -> (name: String?, facts: [POI.Fact])? {
+        let layer: Int
+        switch kind { case .pump: layer = 4; case .floodwall: layer = 12; case .levee: layer = 7; default: return nil }
+        let d = 0.0006      // about 60 m, for a tag that sits on the line
+        var u = URLComponents(string: "\(nld)/\(layer)/query")!
+        u.queryItems = [.init(name: "geometry", value: String(format: "%.5f,%.5f,%.5f,%.5f", c.longitude - d, c.latitude - d, c.longitude + d, c.latitude + d)),
+                        .init(name: "geometryType", value: "esriGeometryEnvelope"), .init(name: "inSR", value: "4326"),
+                        .init(name: "spatialRel", value: "esriSpatialRelIntersects"), .init(name: "where", value: "1=1"),
+                        .init(name: "outFields", value: "*"), .init(name: "returnGeometry", value: "false"),
+                        .init(name: "resultRecordCount", value: "1"), .init(name: "f", value: "json")]
+        var r = URLRequest(url: u.url!, timeoutInterval: 20)
+        r.setValue(Net.userAgent, forHTTPHeaderField: "User-Agent")
+        guard let (data, resp) = try? await URLSession.shared.data(for: r), (resp as? HTTPURLResponse)?.statusCode == 200,
+              let o = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let a = (o["features"] as? [[String: Any]])?.first?["attributes"] as? [String: Any] else { return nil }
+        func text(_ k: String) -> String? {
+            if let s = a[k] as? String { let t = s.trimmingCharacters(in: .whitespaces); return t.isEmpty ? nil : t }
+            if let n = a[k] as? Double, n > 0 { return n == n.rounded() ? String(Int(n)) : String(n) }
+            return nil
+        }
+        let rows: [(String, String)]
+        switch kind {
+        case .pump: rows = [("Pumps", "NUMBER_PUMPS"), ("Capacity", "PUMP_CAPACITY"), ("Backup power", "BACKUP_POWER"), ("Built", "CONSTRUCTION_YEAR"),
+                            ("Levee system", "SYSTEM_NAME"), ("Responsible", "RESPONSIBLE_ORGANIZATION")]
+        case .floodwall: rows = [("Height", "WALL_HEIGHT_FEET"), ("Material", "PRIMARY_MATERIAL"), ("Segment", "SEGMENT_NAME"), ("Levee system", "SYSTEM_NAME"),
+                                 ("Holds back", "FLOOD_SOURCES"), ("Sponsors", "SPONSORS"), ("Responsible", "RESPONSIBLE_ORGANIZATION")]
+        default: rows = [("Segment", "SEGMENT_NAME"), ("Levee system", "SYSTEM_NAME"), ("Holds back", "FLOOD_SOURCES"), ("Communities", "COMMUNITY_NAMES"),
+                         ("Sponsors", "SPONSORS"), ("Responsible", "RESPONSIBLE_ORGANIZATION")]
+        }
+        let facts = rows.compactMap { row in text(row.1).map { POI.Fact(label: row.0, value: row.0 == "Height" ? "\($0) ft" : $0, provenance: .official) } }
+        return (text("PUMPSTATION_NAME"), facts)
+    }
+
     private static func levees(_ box: [Double]) async -> [Places.Line]? {
         var out: [Places.Line]?
         for (layer, kind) in [(7, "levee"), (12, "floodwall")] {

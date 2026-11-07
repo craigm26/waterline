@@ -46,6 +46,7 @@ struct SpotReport {
     /// This place's layers (bundled, pack or live), and the tags built from them.
     var layers: Places?
     var layerPOIs: [POI] = []
+    var pois: [POI] = []
     /// River gauges within 60 km (NWS), nearest first; the AR view tags them.
     var gauges: [RiverGauge] = []
     /// The nearest gauge within 15 km whose flood stages convert to elevations.
@@ -269,6 +270,7 @@ struct SpotReport {
         if r.ground == nil { r.problems.append("Ground elevation unavailable (no network, and no offline grid here: download this region's pack).") }
         if r.tide == nil, r.inSF { r.problems.append("NOAA tide data unavailable right now.") }
         if r.rain == nil { r.problems.append("NWS rain forecast unavailable right now.") }
+        r.pois = r.makePOIs()
         return r
     }
 

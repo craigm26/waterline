@@ -11,22 +11,32 @@ struct ARTab: View {
     @State private var mode: WaterARView.Mode = .water
     @State private var groundFound = false
     @State private var showFloor = false
-    @State private var zoom: ARZoom = .neighborhood
+    @AppStorage("arRange") private var rangeT = ARRange.defaultT     // slider position, 0...1
+    @AppStorage("arHidden") private var hiddenRaw = ""               // filter chips turned off
     @State private var screen: [String: CGPoint] = [:]
     @State private var picked: POI?
+    @State private var showList = false
+    @State private var topEdge: CGFloat = 200
+    @State private var panelEdge: CGFloat = 500
     @AppStorage("stepFt") private var stepFt: Double = 0     // doorstep / curb above the street
     @AppStorage("floorFt") private var floorFt: Double = 0   // floor above the street (barometer)
 
     private var report: SpotReport? { model.usingPin ? nil : model.report }
     private var scenario: WaterScenario? { report?.scenarios.first { $0.id == model.arScenarioID } }
 
-    /// Tags inside the current zoom ring, most important first (flooding gauges, then near things).
-    private var visiblePOIs: [(POI, Double)] {
+    private var rangeM: Double { ARRange.metres(rangeT) }
+    private var hidden: Set<String> { Set(hiddenRaw.split(separator: ",").map(String.init)) }
+
+    /// Everything inside the distance filter, before the type filter.
+    private var inRange: [(POI, Double)] {
         guard let r = report else { return [] }
-        return r.pois.map { ($0, Geo.distance(r.coordinate, $0.coordinate)) }
-            .filter { $0.1 <= zoom.maxM && $0.1 > 3 }
+        return r.pois.map { ($0, Geo.distance(r.coordinate, $0.coordinate)) }.filter { $0.1 <= rangeM && $0.1 > 3 }
+    }
+    /// Tags that pass both filters, most important first (flooding gauges, then near things).
+    private var visiblePOIs: [(POI, Double)] {
+        let off = hidden
+        return inRange.filter { !off.contains($0.0.group.rawValue) }
             .sorted { ($0.0.severity, -$0.1) > ($1.0.severity, -$1.1) }
-            .prefix(30).map { $0 }
     }
     private var placements: [WaterARView.Placement] {
         guard let r = report else { return [] }
@@ -42,39 +52,88 @@ struct ARTab: View {
                 .ignoresSafeArea()
             tags.ignoresSafeArea()
             VStack {
-                Picker("Zoom", selection: $zoom) {
-                    ForEach(ARZoom.allCases) { Text($0.rawValue).tag($0) }
+                VStack(spacing: 6) {
+                    filters
+                    pointers
                 }
-                .pickerStyle(.segmented).padding(.horizontal).padding(.top, 6)
-                pointers
+                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxY } action: { topEdge = $0 }
                 Spacer()
-                panel
+                panel.onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { panelEdge = $0 }
             }
         }
         .onAppear { compass.start() }
         .onDisappear { compass.stop(); floor.stop() }
         .sheet(isPresented: $showFloor) { floorSheet.presentationDetents([.medium]) }
-        .sheet(item: $picked) { p in POIDetail(poi: p, from: report?.coordinate ?? p.coordinate).presentationDetents([.medium, .large]) }
+        .sheet(item: $picked) { p in POIDetail(poi: p, report: report).presentationDetents([.medium, .large]) }
+        .sheet(isPresented: $showList) {
+            POIList(items: visiblePOIs, report: report, rangeLabel: "Within \(Geo.walk(rangeM))").presentationDetents([.medium, .large])
+        }
     }
 
-    /// Tags at their projected screen points. Greedy declutter: a tag that would overlap one
-    /// already placed moves up a row, so the most important tag keeps its true position.
-    private var tags: some View {
-        var placed: [CGRect] = []
-        var items: [PlacedTag] = []
-        for (p, d) in visiblePOIs {
-            guard var pt = screen[p.id] else { continue }
-            var box = CGRect(x: pt.x - 100, y: pt.y - 18, width: 200, height: 36)
-            var tries = 0
-            while placed.contains(where: { $0.intersects(box) }) && tries < 6 { box.origin.y -= 40; pt.y -= 40; tries += 1 }
-            placed.append(box)
-            items.append(PlacedTag(poi: p, metres: d, point: pt))
+    /// Distance and type, like the filters in a flight tracker: what's left is what gets tagged.
+    private var filters: some View {
+        let near = inRange, off = hidden
+        let shown = near.filter { !off.contains($0.0.group.rawValue) }.count
+        return VStack(spacing: 4) {
+            HStack(spacing: 8) {
+                Text("Within \(Geo.walk(rangeM))").font(.caption.bold().monospacedDigit()).frame(width: 92, alignment: .leading)
+                Slider(value: $rangeT, in: 0...1).accessibilityLabel("Distance")
+                Button { showList = true } label: { Label("\(shown)", systemImage: "list.bullet").font(.caption.bold().monospacedDigit()) }
+                    .buttonStyle(.bordered).accessibilityLabel("List \(shown) places")
+            }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(POIGroup.allCases) { g in
+                        let n = near.filter { $0.0.group == g }.count
+                        if n > 0 { chip(g, count: n, on: !off.contains(g.rawValue)) }
+                    }
+                }
+            }
         }
-        return ZStack {
-            ForEach(items) { item in
-                POITag(poi: item.poi, metres: item.metres)
-                    .position(item.point)
-                    .onTapGesture { picked = item.poi }
+        .padding(.horizontal, 10).padding(.vertical, 6)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 10).padding(.top, 4)
+    }
+
+    private func chip(_ g: POIGroup, count: Int, on: Bool) -> some View {
+        Button {
+            var h = hidden
+            if on { h.insert(g.rawValue) } else { h.remove(g.rawValue) }
+            hiddenRaw = h.sorted().joined(separator: ",")
+        } label: {
+            Text("\(g.rawValue) \(count)").font(.caption2.bold()).padding(.horizontal, 9).padding(.vertical, 5)
+                .foregroundStyle(on ? Color.black : Color.primary)
+                .background(on ? Color.white.opacity(0.9) : Color.black.opacity(0.25), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+
+    /// Tags at their projected screen points, kept between the filters and the panel. Moved tags
+    /// keep a thin line to their true bearing.
+    private var tags: some View {
+        GeometryReader { geo in
+            let lookup = Dictionary(visiblePOIs.map { ($0.0.id, $0) }, uniquingKeysWith: { a, _ in a })
+            let band = CGRect(x: 6, y: topEdge + 4, width: geo.size.width - 12, height: max(0, panelEdge - topEdge - 8))
+            let items = visiblePOIs.compactMap { p in screen[p.0.id].map { (id: p.0.id, at: $0) } }
+            let spots = TagLayout.place(items, in: band).spots
+            ZStack {
+                Path { path in
+                    for s in spots where hypot(s.point.x - s.anchor.x, s.point.y - s.anchor.y) > 14 {
+                        path.move(to: s.point); path.addLine(to: s.anchor)
+                    }
+                }
+                .stroke(.white.opacity(0.45), lineWidth: 1)
+                .allowsHitTesting(false)
+                ForEach(spots, id: \.id) { s in
+                    if let (poi, m) = lookup[s.id] {
+                        Group {
+                            if s.compact { POIDot(poi: poi) } else { POITag(poi: poi, metres: m) }
+                        }
+                        .position(s.point)
+                        .onTapGesture { picked = poi }
+                    }
+                }
             }
         }
     }
@@ -165,11 +224,4 @@ struct ARTab: View {
         }
         .padding()
     }
-}
-
-private struct PlacedTag: Identifiable {
-    let poi: POI
-    let metres: Double
-    let point: CGPoint
-    var id: String { poi.id }
 }
