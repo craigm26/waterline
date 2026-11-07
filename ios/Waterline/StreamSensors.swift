@@ -40,9 +40,12 @@ struct Sensor: Identifiable, Hashable {
         async let cdec = CDEC.near(c, km: km, stations: local?.cdec ?? [])
         async let street = StreetSensors.near(c, km: km, feeds: local)
         var taken = gauges.map(\.coordinate)
+        var streets = 0
         var out: [Sensor] = []
-        for s in await usgs + cdec + street {
+        let all = (await usgs + cdec + street).sorted { Geo.distance(c, $0.coordinate) < Geo.distance(c, $1.coordinate) }
+        for s in all {
             if !s.street, taken.contains(where: { Geo.distance($0, s.coordinate) < 150 }) { continue }
+            if s.street { streets += 1; if streets > 80 { continue } }
             taken.append(s.coordinate)
             out.append(s)
         }
@@ -159,8 +162,16 @@ enum CDEC {
         let day = DateFormatter(); day.dateFormat = "yyyy-MM-dd"; day.timeZone = TimeZone(secondsFromGMT: -8 * 3600)
         let start = day.string(from: Date().addingTimeInterval(-2 * 86400)), end = day.string(from: Date().addingTimeInterval(86400))
         let ids = near.map(\.id).joined(separator: ",")
-        guard let u = URL(string: "https://cdec.water.ca.gov/dynamicapp/req/JSONDataServlet?Stations=\(ids)&SensorNums=1,6,15,20,23&dur_code=H&Start=\(start)&End=\(end)"),
-              let rows: [Row] = try? await Net.json(u) else { return [] }
+        // Most river stations report every 15 minutes ("E"); reservoirs report hourly ("H").
+        func fetch(_ dur: String) async -> [Row]? {
+            guard let u = URL(string: "https://cdec.water.ca.gov/dynamicapp/req/JSONDataServlet?Stations=\(ids)&SensorNums=1,6,15,20,23&dur_code=\(dur)&Start=\(start)&End=\(end)") else { return nil }
+            return try? await Net.json(u)
+        }
+        async let event = fetch("E")
+        async let hourly = fetch("H")
+        let e = await event, h = await hourly
+        guard e != nil || h != nil else { return [] }
+        let rows = (e ?? []) + (h ?? [])
         var latest: [String: [Int: (Double, Date)]] = [:]
         for r in rows {
             guard let v = r.value, v > -9000, let t = pacific.date(from: r.date) else { continue }

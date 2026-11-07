@@ -171,7 +171,7 @@ struct CAFloodplains {
 /// from the colour of the pixel at this spot.
 struct SurgeHazard {
     enum Band: Int, Comparable {
-        case none = 0, under3, over3, over6, over9, levee
+        case none = 0, under3, over3, over6, over9, levee, notModeled
         static func < (a: Band, b: Band) -> Bool { a.rawValue < b.rawValue }
         var words: String {
             switch self {
@@ -181,6 +181,7 @@ struct SurgeHazard {
             case .over6: return "over 6 ft"
             case .over9: return "over 9 ft"
             case .levee: return "levee-protected area (not modeled)"
+            case .notModeled: return "not modeled here"
             }
         }
         /// The least depth the band promises, ft above ground.
@@ -206,8 +207,8 @@ struct SurgeHazard {
             var r = URLRequest(url: u, timeoutInterval: 20)
             r.setValue(Net.userAgent, forHTTPHeaderField: "User-Agent")
             guard let (data, resp) = try? await URLSession.shared.data(for: r), let code = (resp as? HTTPURLResponse)?.statusCode else { return nil }
-            // A missing tile is open water or land outside every surge zone.
-            if code == 404 { bands.append(.none); continue }
+            // NHC publishes a tile only where it ran that category (NYC and Norfolk stop at Category 4).
+            if code == 404 { bands.append(.notModeled); continue }
             guard code == 200, let px = pixel(data, px, py) else { return nil }
             bands.append(band(px))
         }
@@ -238,11 +239,14 @@ struct SurgeHazard {
     }
 
     var plain: String? {
-        guard let first = bands.firstIndex(where: { $0 != .none && $0 != .levee }) else {
+        guard let first = bands.firstIndex(where: { $0.atLeastFt != nil || $0 == .under3 }) else {
             return bands.contains(.levee) ? "NOAA's hurricane surge map marks this as a levee-protected area, where it doesn't model surge." : nil
         }
         var s = "NOAA's hurricane surge map, worst case at high tide: surge first reaches this spot in a Category \(first + 1) storm (\(bands[first].words) above ground)"
-        if first < 4 { s += ", and Category 5 brings \(bands[4].words)" }
+        if first < 4, let top = bands.lastIndex(where: { $0.atLeastFt != nil || $0 == .under3 }), top > first {
+            s += ", and Category \(top + 1) brings \(bands[top].words)"
+        }
+        if bands.last == .notModeled { s += ". NHC doesn't model Category 5 here" }
         return s + ". NHC made the map for community planning, not a single lot."
     }
 }
