@@ -6,7 +6,7 @@ Each row says how the phone gets the data, one of:
   bundled   ships inside the app (San Francisco)
   live      read from the source when online
   program   a volunteer drain program           (row has `url`)
-  link      exists, not in the app yet          (row has `url`)
+  link      only at the source, e.g. too big for a phone (row has `url`)
   missing   the source doesn't publish it
 
   python3 scripts/build_catalog.py --probe   count every live source inside each place -> regions/coverage.json
@@ -23,17 +23,23 @@ COVERAGE = ROOT / "regions/coverage.json"
 UA = {"User-Agent": "Waterline catalog (https://github.com/craigm26/waterline)"}
 NFHL = "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query"
 NLD = "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer"
+SLR = "https://api.tidesandcurrents.noaa.gov/dpapi/prod/webapi/product/slr_projections.json"
+USGS = "https://api.waterdata.usgs.gov/ogcapi/v0/collections"
+SENSORS = ROOT / "regions/sensors.json"
 SF = "san-francisco"
 GULF_ATLANTIC = {"new-orleans", "miami", "norfolk", "charleston", "houston", "nyc", "boston"}
 COASTAL = GULF_ATLANTIC | {SF}
 
-# Real sources the app doesn't read yet, by place. Every URL answered 200 on Nov 6, 2026.
+# Harris County publishes no reuse terms for its sensor feed, so it stays a link until HCFCD says yes.
 ELSEWHERE = {
-    "sacramento": [("water", "California river and reservoir sensors", "State stage, flow and storage readings, including sites NOAA doesn't carry.", "California DWR CDEC", "https://cdec.water.ca.gov/"),
-                   ("maps", "California floodplain maps", "State Best Available Maps of 100, 200 and 500 year floodplains.", "California DWR", "https://gis.bam.water.ca.gov/bam/")],
-    "houston": [("water", "Harris County rain and bayou sensors", "County network of rain and channel gauges.", "Harris County Flood Warning System", "https://www.harriscountyfws.org/")],
-    "nyc": [("water", "FloodNet street sensors", "Street-level flood depth sensors in the five boroughs.", "FloodNet NYC", "https://www.floodnet.nyc/")],
-    "norfolk": [("water", "StormSense water sensors", "Tide and flood sensors around Hampton Roads.", "StormSense", "https://www.stormsense.com/")],
+    "houston": [("water", "Harris County rain and bayou sensors", "County rain and channel gauges. The county publishes no reuse terms for its feed, so the app links to it.", "Harris County Flood Warning System", "https://www.harriscountyfws.org/")],
+}
+# Read live by the app (access "live").
+LIVE_EXTRA = {
+    "sacramento": [("maps", "California floodplain maps", "Which 100, 200 and 500 year floodplains contain the spot, and how deep DWR maps water if a state-federal levee failed.", "California DWR Best Available Maps")],
+    "san-francisco": [("maps", "California floodplain maps", "Which 100, 200 and 500 year floodplains contain the spot.", "California DWR Best Available Maps")],
+    "nyc": [("water", "FloodNet street sensors", "Every street flood each sensor near you has recorded, deepest and most recent. FloodNet's live feed isn't licensed for reuse, so this is NYC Open Data's record, updated every two weeks.", "FloodNet via NYC Open Data")],
+    "norfolk": [("water", "StormSense water sensors", "Carried by NOAA's gauge feed with flood stages, so they're in River gauges on the Map and in the camera.", "StormSense via NOAA NWPS")],
 }
 
 
@@ -93,8 +99,20 @@ def tide_station(stations, lat, lon):
     for t in near[:3]:
         d = km(lat, lon, t["lat"], t["lng"])
         if d <= 60 and attempt(lambda: has_predictions(t["id"])):
-            return {"name": t["name"], "km": round(d, 1)}
+            slr = attempt(lambda: bool(get(SLR, {"station": t["id"]}).get("SlrProjections")))
+            return {"id": t["id"], "name": t["name"], "km": round(d, 1), "slr": slr}
     return None
+
+
+def usgs_count(b):
+    """Stream sites in the box that reported gage height or flow in the last 3 days (the app's filter)."""
+    w, s, e, n = b
+    r = get(f"{USGS}/latest-continuous/items", {"f": "json", "bbox": f"{w},{s},{e},{n}", "parameter_code": "00065,00060", "limit": 2000,
+                                                 "properties": "monitoring_location_id,time"})
+    now = datetime.datetime.now(datetime.timezone.utc)
+    ids = {f["properties"]["monitoring_location_id"] for f in r["features"]
+           if (now - datetime.datetime.fromisoformat(f["properties"]["time"])).days < 3}
+    return len(ids)
 
 
 def gauge_count(lat, lon):
@@ -113,7 +131,7 @@ def probe():
         w, s, e, n = b = g["bbox"]
         lat, lon = (s + n) / 2, (w + e) / 2
         print(g["id"])
-        c = {"tide": tide_station(stations, lat, lon), "gauges": attempt(lambda: gauge_count(lat, lon))}
+        c = {"tide": tide_station(stations, lat, lon), "gauges": attempt(lambda: gauge_count(lat, lon)), "usgs": attempt(lambda: usgs_count(b))}
         c["fema"] = attempt(lambda: arcgis_count(NFHL, "SFHA_TF='T'", b))
         for name, layer in (("levees", 7), ("floodwalls", 12), ("pumps", 4)):
             c[name] = attempt(lambda: arcgis_count(f"{NLD}/{layer}/query", "1=1", b))
@@ -130,7 +148,7 @@ def n(v, one, many=None):
     return f"{v:,} {one if v == 1 else (many or one + 's')}"
 
 
-def rows(g, packs, cov, places, programs):
+def rows(g, packs, cov, places, programs, sensors):
     """The rows for one place, grouped by section in the order the app shows them."""
     rid, sf = g["id"], g["id"] == SF
     c = cov.get(rid, {})
@@ -173,11 +191,17 @@ def rows(g, packs, cov, places, programs):
         pack(M, f"{rid}-layers", "FEMA zones, any levees and pumps, and mapped low spots together, offline.", "FEMA, USACE, Waterline low spots")
         v = c.get("fema")
         add(M, "FEMA flood zones", (f"{n(v, 'high-risk zone')} in this area. " if v is not None else "") + "Loaded around you without the pack.", "FEMA NFHL", "live")
-    add(M, "Rainfall frequency", "How much rain a 10, 100 or 1000 year storm brings at a spot.", "NOAA Atlas 14", "link", url="https://hdsc.nws.noaa.gov/pfds/")
-    if rid in COASTAL:
-        add(M, "Sea level rise scenarios", "Mapped inundation at each foot of sea level rise.", "NOAA Office for Coastal Management", "link", url="https://coast.noaa.gov/slr/")
+    add(M, "Rainfall frequency", "The 10 and 100 year storms at the spot you're checking. Their heaviest hour runs through the rain water estimate on the Map and in the camera.", "NOAA Atlas 14", "live")
+    t = c.get("tide")
+    if rid in COASTAL and t and t.get("slr"):
+        add(M, "Sea level rise scenarios", f"NOAA's 2050 and 2100 rise at {t['name']}, added to this month's highest tide and run over the ground here.", "NOAA 2022 Sea Level Rise Technical Report", "live")
+    elif rid in COASTAL:
+        add(M, "Sea level rise scenarios", "Mapped inundation at each foot of sea level rise. The nearest tide station has no NOAA projection.", "NOAA Office for Coastal Management", "link", url="https://coast.noaa.gov/slr/")
     if rid in GULF_ATLANTIC:
-        add(M, "Hurricane storm surge risk", "Worst-case surge depth for each hurricane category.", "NOAA National Hurricane Center", "link", url="https://www.nhc.noaa.gov/nationalsurge/")
+        add(M, "Hurricane storm surge risk", "Worst-case surge for each hurricane category at the spot, in NHC's depth bands (up to 3, over 3, 6 or 9 ft). The camera shows the least depth each band promises.", "NOAA National Hurricane Center", "live")
+    for sec, name, detail, source in LIVE_EXTRA.get(rid, []):
+        if sec == "maps":
+            add(M, name, detail, source, "live")
     for sec, name, detail, source, url in ELSEWHERE.get(rid, []):
         if sec == "maps":
             add(M, name, detail, source, "link", url=url)
@@ -195,7 +219,14 @@ def rows(g, packs, cov, places, programs):
         add(W, "Rain water estimate", est, "Waterline, from NWS rain and USGS ground", "bundled")
     else:
         add(W, "Rain water estimate", est + " Uses Ground and bowls, 10 m.", "Waterline, from NWS rain and USGS ground", "download", pack=f"region-{rid}")
-    add(W, "USGS stream gauges", "Stage and flow history for rivers and creeks.", "USGS Water Data", "link", url="https://api.waterdata.usgs.gov/")
+    v = c.get("usgs")
+    add(W, "USGS stream gauges", (f"{n(v, 'site')} reporting in this area. " if v else "") + "Latest gage height and flow on the Map and in the camera.", "USGS Water Data", "live")
+    st = (sensors.get(rid) or {}).get("cdec")
+    if st:
+        add(W, "California river and reservoir sensors", f"{n(len(st), 'station')} in and around this area: river stage and flow, reservoir storage and releases, on the Map and in the camera.", "California DWR CDEC", "live")
+    for sec, name, detail, source in LIVE_EXTRA.get(rid, []):
+        if sec == "water":
+            add(W, name, detail, source, "live")
     for sec, name, detail, source, url in ELSEWHERE.get(rid, []):
         if sec == "water":
             add(W, name, detail, source, "link", url=url)
@@ -211,7 +242,7 @@ def rows(g, packs, cov, places, programs):
         add(S, "Worst storm drains", f"{n(len(pl['drains']), 'drain')} ranked citywide by how much water can stand over them.", "DataSF, Waterline ranking", "bundled")
         add(S, "Street low spots", f"The {len(pl['hotspots'])} worst, measured from the lidar.", "Derived by Waterline", "bundled")
         add(S, "Past flooding reports", f"{n(pl['flood311_total'], '311 report')}.", "DataSF 311", "bundled")
-        add(S, "Levees and pumps", "Mapped nationally. San Francisco's Map doesn't show them yet.", "USACE National Levee Database", "link", url="https://levees.sec.usace.army.mil/")
+        add(S, "Levees and pumps", "Read from the national database around you and tagged on the Map and in the camera.", "USACE National Levee Database", "live")
     else:
         lv, fw, pu = c.get("levees"), c.get("floodwalls"), c.get("pumps")
         if (lv, fw, pu) == (0, 0, 0):
@@ -241,9 +272,12 @@ def attach(m):
     """Write every place's rows into the manifest dict."""
     cov = json.loads(COVERAGE.read_text())
     places = json.loads((ROOT / "ios/Waterline/Resources/places.json").read_text())
+    sensors = json.loads(SENSORS.read_text()) if SENSORS.exists() else {}
     programs = json.loads((ROOT / "regions/drain_programs.json").read_text())
     for g in m["groups"]:
-        g["datasets"] = rows(g, [p for p in m["packs"] if p.get("group") == g["id"]], cov["places"], places, programs)
+        g["datasets"] = rows(g, [p for p in m["packs"] if p.get("group") == g["id"]], cov["places"], places, programs, sensors)
+        if sensors.get(g["id"]):
+            g["sensors"] = sensors[g["id"]]
         if g["id"] in programs:
             g["adopt"] = programs[g["id"]]
     m["catalog_checked"] = cov["checked"]

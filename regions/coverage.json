@@ -1,12 +1,15 @@
 {
- "checked": "2026-11-06",
+ "checked": "2026-11-07",
  "places": {
   "san-francisco": {
    "tide": {
+    "id": "9414290",
     "name": "San Francisco",
-    "km": 4.6
+    "km": 4.6,
+    "slr": true
    },
    "gauges": 119,
+   "usgs": 0,
    "fema": 114,
    "levees": 1,
    "floodwalls": 0,
@@ -14,10 +17,13 @@
   },
   "sacramento": {
    "tide": {
+    "id": "9416131",
     "name": "Port of West Sacramento, Washington Lake",
-    "km": 5.1
+    "km": 5.1,
+    "slr": null
    },
    "gauges": 25,
+   "usgs": 1,
    "fema": 513,
    "levees": 209,
    "floodwalls": 294,
@@ -27,23 +33,29 @@
   },
   "new-orleans": {
    "tide": {
+    "id": "8761927",
     "name": "New Canal Station",
-    "km": 9.5
+    "km": 9.5,
+    "slr": null
    },
    "gauges": 71,
+   "usgs": 1,
    "fema": 2289,
    "levees": 891,
    "floodwalls": 460,
    "pumps": 48,
    "drains": 77656,
-   "reports": 18144
+   "reports": 18146
   },
   "miami": {
    "tide": {
+    "id": "8723214",
     "name": "Virginia Key",
-    "km": 9.4
+    "km": 9.4,
+    "slr": true
    },
    "gauges": 12,
+   "usgs": 4,
    "fema": 945,
    "levees": 0,
    "floodwalls": 0,
@@ -53,10 +65,13 @@
   },
   "norfolk": {
    "tide": {
+    "id": "8638610",
     "name": "Sewells Point",
-    "km": 7.8
+    "km": 7.8,
+    "slr": true
    },
    "gauges": 70,
+   "usgs": 2,
    "fema": 480,
    "levees": 26,
    "floodwalls": 20,
@@ -66,10 +81,13 @@
   },
   "charleston": {
    "tide": {
+    "id": "8665530",
     "name": "Charleston",
-    "km": 1.5
+    "km": 1.5,
+    "slr": true
    },
    "gauges": 23,
+   "usgs": 4,
    "fema": 343,
    "levees": 0,
    "floodwalls": 0,
@@ -79,10 +97,13 @@
   },
   "houston": {
    "tide": {
+    "id": "8770777",
     "name": "Manchester",
-    "km": 10.9
+    "km": 10.9,
+    "slr": null
    },
    "gauges": 49,
+   "usgs": 19,
    "fema": 1051,
    "levees": 0,
    "floodwalls": 0,
@@ -92,23 +113,29 @@
   },
   "nyc": {
    "tide": {
+    "id": "8518750",
     "name": "The Battery",
-    "km": 7.4
+    "km": 7.4,
+    "slr": true
    },
-   "gauges": 93,
+   "gauges": 94,
+   "usgs": 0,
    "fema": 115,
    "levees": 0,
    "floodwalls": 0,
    "pumps": 0,
    "drains": 65149,
-   "reports": null
+   "reports": 35474
   },
   "boston": {
    "tide": {
+    "id": "8443970",
     "name": "Boston",
-    "km": 0.7
+    "km": 0.7,
+    "slr": true
    },
    "gauges": 51,
+   "usgs": 6,
    "fema": 173,
    "levees": 8,
    "floodwalls": 17,

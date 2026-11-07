@@ -36,6 +36,16 @@ struct SpotReport {
     var tide: TideOutlook?
     var rain: RainOutlook?
     var rainEstimate: RainEstimate?
+    /// NOAA Atlas 14 storm depths at this spot.
+    var frequency: RainFrequency?
+    /// NOAA sea level rise scenarios at the tide station.
+    var slr: SeaLevelRise?
+    /// USGS, state and local water sensors near the spot (no flood stages; context only).
+    var sensors: [Sensor] = []
+    /// California DWR's Best Available Maps and levee flood protection zone (California only).
+    var caMaps: CAFloodplains?
+    /// NOAA NHC surge bands by hurricane category (Atlantic and Gulf).
+    var surge: SurgeHazard?
     var drains: [(Places.Drain, Double)] = []
     var flood311Near = 0        // within 150 m (~500 ft)
     var lowSpot: (Places.LowSpot, Double)?
@@ -87,7 +97,7 @@ struct SpotReport {
         let riverNow = gauges.first.map { $0.severity >= 2 && Geo.distance(coordinate, $0.coordinate) < 15_000 } ?? false
         if m < 1 || (bowlFt >= 1 && (inZone || floodReports >= 10)) || riverNow || ["V", "VE"].contains(fema?.zone ?? "") { return .high }
         if m < 3 || bowlFt >= 0.5 || inZone || floodReports >= 5 || (nearbyBowl?.valueFt ?? 0) >= 1.5
-            || (fema?.inSFHA ?? false) || (riverMajorAboveGroundFt ?? -1) > 0 || (fema?.subtype ?? "").uppercased().contains("LEVEE") { return .watch }
+            || (fema?.inSFHA ?? false) || !(caMaps?.in100.isEmpty ?? true) || !(caMaps?.in200.isEmpty ?? true) || (riverMajorAboveGroundFt ?? -1) > 0 || (fema?.subtype ?? "").uppercased().contains("LEVEE") { return .watch }
         return .low
     }
 
@@ -122,6 +132,12 @@ struct SpotReport {
         } else if tide == nil, ground != nil {
             out.append("No tide gauge within 60 km, so coastal flooding isn't assessed here.")
         }
+        if let rise = slr?.ft(by: 2050), let m = coastalMarginFt {
+            let left = m - rise
+            out.append(String(format: "NOAA's intermediate scenario adds %.1f ft of sea level by 2050 at %@. This month's highest tide would then %@.",
+                              rise, tide?.stationName ?? "the station",
+                              left < 0 ? "reach this spot" : String(format: "stay %.1f ft below it", left)))
+        }
         if let rv = river, let d = riverMajorAboveGroundFt {
             let name = rv.gauge.name
             if d > 0 {
@@ -134,6 +150,8 @@ struct SpotReport {
             out.append("\(g.name) is at \(g.categoryLabel.lowercased()) now (\(g.observed.map { String(format: "%.1f ft", $0) } ?? "no reading")).")
         }
         if let f = fema { out.append("FEMA: \(f.plain).") }
+        if let m = caMaps, !m.isEmpty { out.append(m.plain) }
+        if let s = surge?.plain { out.append(s) }
         if bowlFt >= 0.5 {
             out.append(String(format: "This spot sits %.1f ft below the lowest rim around it%@: rain collects here before it can drain away, and a flood that tops the rim fills it.", bowlFt, gridName.map { " (\($0) lidar)" } ?? ""))
         } else if let b = nearbyBowl, b.valueFt >= 0.5 {
@@ -144,10 +162,18 @@ struct SpotReport {
             out.append(inSF ? "You're at one of the city's 50 worst street low spots: \(ls.0.name) (#\(ls.0.rank))."
                              : "You're near a mapped low spot in the ground: \(ls.0.name). This comes from elevation, not flood records.")
         }
-        if inZone { out.append("Inside SFPUC's 100-year storm flood zone.") }
+        if inZone, inSF { out.append("Inside SFPUC's 100-year storm flood zone.") }
         if flood311Near > 0 {
             out.append(inSF ? "\(flood311Near) flooding report\(flood311Near == 1 ? "" : "s") to 311 within 500 ft."
                             : "\(layers?.reportsLabel ?? "City requests") within 500 ft: \(flood311Near).")
+        }
+        if let f = frequency, let h = f.hour100, let d = f.day100 {
+            var line = String(format: "NOAA Atlas 14: a 100-year storm here drops %.1f in in its heaviest hour and %.1f in over 24 h.", h, d)
+            if let e = rainEstimate?.year100 {
+                line += e.ft >= 0.05 ? String(format: " Waterline estimates %.1f ft standing here from that hour, drains working.", e.ft)
+                                      : " Waterline estimates no standing water here from that hour, drains working."
+            }
+            out.append(line)
         }
         if let r = rain {
             out.append(r.next72In >= 0.05
@@ -190,6 +216,14 @@ struct SpotReport {
                              depthFt: d(e.workingFt), provenance: .derived, isStressTest: false))
             out.append(.init(id: "rain-block", label: "Next 24 h rain, drains blocked", detail: "\(rain) · Waterline estimate",
                              depthFt: d(e.blockedFt), provenance: .assumed, isStressTest: false))
+            if let y = e.year10 {
+                out.append(.init(id: "rain-10", label: "10-year storm, heaviest hour", detail: String(format: "%.2f in, NOAA Atlas 14 · Waterline estimate, drains working", y.inches),
+                                 depthFt: d(y.ft), provenance: .derived, isStressTest: false))
+            }
+            if let y = e.year100 {
+                out.append(.init(id: "rain-100", label: "100-year storm, heaviest hour", detail: String(format: "%.2f in, NOAA Atlas 14 · Waterline estimate, drains working", y.inches),
+                                 depthFt: d(y.ft), provenance: .derived, isStressTest: false))
+            }
             out.append(.init(id: "rain-stress", label: "2 in in an hour, drains blocked", detail: "Waterline estimate",
                              depthFt: d(e.stressFt), provenance: .assumed, isStressTest: true))
         }
@@ -203,6 +237,16 @@ struct SpotReport {
             }
             out.append(.init(id: "river-major", label: "River at major flood stage", detail: "If a levee failed nearby · \(rv.gauge.name)",
                              depthFt: rv.majorNAVD88 > gNAVD ? rv.majorNAVD88 - gNAVD : nil, provenance: .assumed, isStressTest: false))
+        }
+        if let s = surge {
+            // NHC gives bands, so the water shown is the least depth the band promises.
+            var shown = Set<Double>()
+            for (i, b) in s.bands.enumerated() where [0, 2, 4].contains(i) {
+                guard let ft = b.atLeastFt, !shown.contains(ft) else { continue }
+                shown.insert(ft)
+                out.append(.init(id: "surge-\(i + 1)", label: "Category \(i + 1) hurricane surge", detail: "At least \(Int(ft)) ft (\(b.words)), NOAA NHC worst case at high tide",
+                                 depthFt: ft, provenance: .official, isStressTest: false))
+            }
         }
         guard let t = tide, let g = groundMLLW, let reach = bayReachesMLLW else { return out }
         func depth(_ level: Double) -> Double? { level >= reach ? level - g : nil }
@@ -221,6 +265,12 @@ struct SpotReport {
                              depthFt: depth(h.ft + anomaly + 2), provenance: .assumed, isStressTest: false))
             out.append(.init(id: "stress", label: "Stress test", detail: "+3.07 ft, the Feb 1998 peak storm residual at SF",
                              depthFt: depth(h.ft + 3.07), provenance: .assumed, isStressTest: true))
+            for y in [2050, 2100] {
+                guard let rise = slr?.ft(by: y) else { continue }
+                out.append(.init(id: "slr-\(y)", label: "Highest tide this month, with \(y) sea level",
+                                 detail: String(format: "+%.1f ft, NOAA intermediate scenario", rise),
+                                 depthFt: depth(h.ft + rise), provenance: .derived, isStressTest: false))
+            }
         }
         return out
     }
@@ -238,6 +288,9 @@ struct SpotReport {
         async let label = placeName(c)
         async let gauges = (try? RiverGauge.near(c)) ?? []
         async let fema = FEMAZone.load(c)
+        async let frequency = RainFrequency.load(c)
+        async let caMaps = CAFloodplains.load(c)
+        async let surge = SurgeHazard.load(c)
         await LiveLayers.prepare(near: c)
         // the grids and city layers are local but heavy on first load: keep them off the main actor
         let local = await Task.detached(priority: .userInitiated) { () -> (ElevationGrid.Sample?, ElevationGrid.GridSpot?, String?, [(Places.Drain, Double)], Int, (Places.LowSpot, Double)?, Bool, Places?, [POI]) in
@@ -250,13 +303,22 @@ struct SpotReport {
         r.ground = await ground
         r.tide = await tide
         r.rain = await rain
+        r.frequency = await frequency
         if let hours = r.rain?.hourlyNext24In {
-            r.rainEstimate = await Task.detached(priority: .userInitiated) { RainEstimate.make(c, forecast: hours) }.value
+            let f = r.frequency
+            r.rainEstimate = await Task.detached(priority: .userInitiated) { RainEstimate.make(c, forecast: hours, frequency: f) }.value
         }
         r.placeLabel = await label
         r.gauges = await gauges
         r.fema = await fema
+        r.caMaps = await caMaps
+        r.surge = await surge
+        let gaugeList = r.gauges, stationID = r.tide?.stationID
+        async let sensors = Sensor.near(c, skipping: gaugeList)
+        async let slr: SeaLevelRise? = stationID == nil ? nil : SeaLevelRise.load(station: stationID!)
         r.river = await RiverFloodLevels.load(r.gauges, near: c)
+        r.sensors = await sensors
+        r.slr = await slr
         // Higher ground: dry for this month's highest tide + anomaly + a 2 ft storm, and above the
         // nearby river at major flood stage, whichever is higher.
         var needNAVD: Double?

@@ -13,8 +13,18 @@ enum DrainageAssumptions {
 }
 
 enum StormCase: String, CaseIterable, Identifiable {
-    case last6 = "Last 6 h", next24 = "Next 24 h", stress = "Stress test"
+    case last6 = "Last 6 h", next24 = "Next 24 h", year10 = "10-yr", year100 = "100-yr", stress = "Stress"
     var id: String { rawValue }
+    /// Where the rain comes from, for the labels under the map.
+    var rainSource: (String, Provenance) {
+        switch self {
+        case .stress: return ("stress test, not a forecast", .assumed)
+        case .last6: return ("measured, last 6 h", .official)
+        case .next24: return ("NWS forecast, next 24 h", .official)
+        case .year10: return ("NOAA Atlas 14, the 10-year storm's heaviest hour", .official)
+        case .year100: return ("NOAA Atlas 14, the 100-year storm's heaviest hour", .official)
+        }
+    }
 }
 
 /// Rain measured at the nearest NWS station, plus the forecast, by the hour.
@@ -22,12 +32,15 @@ struct RainSeries {
     var observedIn: [Double]?      // nil when the station didn't report rain
     var station: String?
     var forecastIn: [Double]
+    var frequency: RainFrequency?
     static let stress = [2.0]
 
     func hours(_ s: StormCase) -> [Double] {
         switch s {
         case .last6: return observedIn ?? []
         case .next24: return forecastIn
+        case .year10: return frequency?.hour10.map { [$0] } ?? []
+        case .year100: return frequency?.hour100.map { [$0] } ?? []
         case .stress: return Self.stress
         }
     }
@@ -40,8 +53,9 @@ struct RainSeries {
     }
 
     static func load(_ c: CLLocationCoordinate2D) async -> RainSeries {
+        async let freq = RainFrequency.load(c)
         let rain = try? await RainOutlook.load(c)
-        var out = RainSeries(observedIn: nil, station: nil, forecastIn: rain?.hourlyNext24In ?? [])
+        var out = RainSeries(observedIn: nil, station: nil, forecastIn: rain?.hourlyNext24In ?? [], frequency: await freq)
         guard let u = rain?.observationStations.flatMap(URL.init(string:)),
               let list: Stations = try? await Net.json(u, accept: "application/geo+json") else { return out }
         for s in list.features.prefix(3) {
@@ -156,14 +170,20 @@ struct DrainageMap {
 struct RainEstimate {
     let forecastIn: Double
     let workingFt: Double, blockedFt: Double, stressFt: Double
+    /// NOAA Atlas 14's heaviest hour of the 10- and 100-year storms, drains working.
+    var year10: (inches: Double, ft: Double)?
+    var year100: (inches: Double, ft: Double)?
     let ponds: [DrainageMap.Pond]
 
-    static func make(_ c: CLLocationCoordinate2D, forecast: [Double]) -> RainEstimate? {
+    static func make(_ c: CLLocationCoordinate2D, forecast: [Double], frequency: RainFrequency?) -> RainEstimate? {
         guard let f = DrainageField.near(c) else { return nil }
         let work = DrainageMap.build(f, hours: forecast, drainsWorking: true)
         let block = DrainageMap.build(f, hours: forecast, drainsWorking: false)
         let stress = DrainageMap.build(f, hours: RainSeries.stress, drainsWorking: false)
-        return RainEstimate(forecastIn: forecast.reduce(0, +), workingFt: work.depthFt(c), blockedFt: block.depthFt(c), stressFt: stress.depthFt(c), ponds: block.ponds)
+        var e = RainEstimate(forecastIn: forecast.reduce(0, +), workingFt: work.depthFt(c), blockedFt: block.depthFt(c), stressFt: stress.depthFt(c), ponds: block.ponds)
+        if let i = frequency?.hour10 { e.year10 = (i, DrainageMap.build(f, hours: [i], drainsWorking: true).depthFt(c)) }
+        if let i = frequency?.hour100 { e.year100 = (i, DrainageMap.build(f, hours: [i], drainsWorking: true).depthFt(c)) }
+        return e
     }
 }
 

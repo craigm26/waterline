@@ -1,0 +1,1175 @@
+{
+ "san-francisco": {
+  "cdec": [
+   {
+    "id": "ACW",
+    "name": "ALHAMBRA CREEK AT WARD STREET",
+    "lon": -122.13588,
+    "lat": 38.01678,
+    "kind": "river"
+   },
+   {
+    "id": "ACZ",
+    "name": "ALHAMBRA CREEK AT D STREET",
+    "lon": -122.12967,
+    "lat": 38.0034,
+    "kind": "river"
+   },
+   {
+    "id": "ALN",
+    "name": "ALAMEDA CK NR NILES",
+    "lon": -121.96079,
+    "lat": 37.58716,
+    "kind": "river"
+   },
+   {
+    "id": "APN",
+    "name": "ALPINE LAKE",
+    "lon": -122.637,
+    "lat": 37.94,
+    "kind": "reservoir"
+   },
+   {
+    "id": "BDL",
+    "name": "BELDON LANDING",
+    "lon": -121.9708,
+    "lat": 38.1869,
+    "kind": "river"
+   },
+   {
+    "id": "BIO",
+    "name": "BRIONES DAM",
+    "lon": -122.207,
+    "lat": 37.9151,
+    "kind": "reservoir"
+   },
+   {
+    "id": "BMP",
+    "name": "BON TEMPE",
+    "lon": -122.61,
+    "lat": 37.957,
+    "kind": "reservoir"
+   },
+   {
+    "id": "CHB",
+    "name": "CHABOT",
+    "lon": -122.122,
+    "lat": 37.73,
+    "kind": "reservoir"
+   },
+   {
+    "id": "CRY",
+    "name": "LOWER CRYSTAL SPRINGS RESERVOIR",
+    "lon": -122.35583,
+    "lat": 37.51528,
+    "kind": "reservoir"
+   },
+   {
+    "id": "CVC",
+    "name": "CASTRO VALLEY CR AT HAYWARD CA",
+    "lon": -122.08052,
+    "lat": 37.67993,
+    "kind": "river"
+   },
+   {
+    "id": "CYG",
+    "name": "CYGNUS-CORDELIA SLOUGH",
+    "lon": -122.0908,
+    "lat": 38.1527,
+    "kind": "river"
+   },
+   {
+    "id": "GCA",
+    "name": "GRAYSON CREEK AT CENTER AVE",
+    "lon": -122.06853,
+    "lat": 37.98333,
+    "kind": "river"
+   },
+   {
+    "id": "GCC",
+    "name": "GRAYSON CREEK AT CITY YARD",
+    "lon": -122.06639,
+    "lat": 37.96296,
+    "kind": "river"
+   },
+   {
+    "id": "GTB",
+    "name": "GALINDO CREEK AT TREAT BLVD",
+    "lon": -121.99191,
+    "lat": 37.96153,
+    "kind": "river"
+   },
+   {
+    "id": "GVD",
+    "name": "GREEN VALLEY CREEK AT DIABLO ROAD",
+    "lon": -121.98673,
+    "lat": 37.82687,
+    "kind": "river"
+   },
+   {
+    "id": "GYS",
+    "name": "GOODYEAR SLOUGH",
+    "lon": -122.095,
+    "lat": 38.118,
+    "kind": "river"
+   },
+   {
+    "id": "HSL",
+    "name": "HILL SLOUGH",
+    "lon": -122.024,
+    "lat": 38.2222,
+    "kind": "river"
+   },
+   {
+    "id": "HUN",
+    "name": "HUNTER CUT AT MONTEZUMA SLOUGH",
+    "lon": -122.0527,
+    "lat": 38.156,
+    "kind": "river"
+   },
+   {
+    "id": "IBS",
+    "name": "IBIS",
+    "lon": -122.113,
+    "lat": 38.157,
+    "kind": "river"
+   },
+   {
+    "id": "KNT",
+    "name": "KENT",
+    "lon": -122.702,
+    "lat": 37.997,
+    "kind": "reservoir"
+   },
+   {
+    "id": "MOZ",
+    "name": "MONTEZUMA SLOUGH AT GRIZZLY BAY",
+    "lon": -122.05678,
+    "lat": 38.15079,
+    "kind": "river"
+   },
+   {
+    "id": "MRZ",
+    "name": "MARTINEZ",
+    "lon": -122.14049,
+    "lat": 38.02764,
+    "kind": "river"
+   },
+   {
+    "id": "NCA",
+    "name": "NICASIO",
+    "lon": -122.757,
+    "lat": 38.075,
+    "kind": "reservoir"
+   },
+   {
+    "id": "PEL",
+    "name": "PELICAN POINT AT ROARING RIVER",
+    "lon": -121.9718,
+    "lat": 38.11087,
+    "kind": "river"
+   },
+   {
+    "id": "PIL",
+    "name": "PILARCITOS CREEK BL STONE DAM",
+    "lon": -122.39941,
+    "lat": 37.52466,
+    "kind": "river"
+   },
+   {
+    "id": "PSP",
+    "name": "PINOLE CREEK AT SAN PABLO",
+    "lon": -122.28918,
+    "lat": 38.00586,
+    "kind": "river"
+   },
+   {
+    "id": "PTB",
+    "name": "PETALUMA RIVER AT D STREET BRIDGE",
+    "lon": -122.635,
+    "lat": 38.233,
+    "kind": "river"
+   },
+   {
+    "id": "RHW",
+    "name": "RODEO CREEK AT HAWTHORNE DRIVE",
+    "lon": -122.26303,
+    "lat": 38.02462,
+    "kind": "river"
+   },
+   {
+    "id": "RMB",
+    "name": "TICE CREEK AT ROSSMOOR BASIN",
+    "lon": -122.07245,
+    "lat": 37.87608,
+    "kind": "river"
+   },
+   {
+    "id": "SLJ",
+    "name": "SOULAJULE DAM",
+    "lon": -122.782,
+    "lat": 38.153,
+    "kind": "reservoir"
+   },
+   {
+    "id": "SNC",
+    "name": "SUNRISE CLUB",
+    "lon": -122.083,
+    "lat": 38.185,
+    "kind": "river"
+   },
+   {
+    "id": "SNN",
+    "name": "SAN ANDREAS",
+    "lon": -122.41328,
+    "lat": 37.58016,
+    "kind": "reservoir"
+   },
+   {
+    "id": "SNP",
+    "name": "SAN PABLO CREEK AT LA HONDA ROAD",
+    "lon": -122.28722,
+    "lat": 37.96343,
+    "kind": "river"
+   },
+   {
+    "id": "SPB",
+    "name": "SAN PABLO",
+    "lon": -122.2587,
+    "lat": 37.9423,
+    "kind": "reservoir"
+   },
+   {
+    "id": "SRN",
+    "name": "SAN RAMON CK AT SAN RAMON",
+    "lon": -121.99361,
+    "lat": 37.77306,
+    "kind": "river"
+   },
+   {
+    "id": "SUI",
+    "name": "SUISUN SLOUGH AT GRIZZLY BAY",
+    "lon": -122.08236,
+    "lat": 38.13277,
+    "kind": "river"
+   },
+   {
+    "id": "USL",
+    "name": "U SAN LEANDRO",
+    "lon": -122.1016,
+    "lat": 37.7644,
+    "kind": "reservoir"
+   },
+   {
+    "id": "VBR",
+    "name": "WILDCAT CREEK AT VALE",
+    "lon": -122.3383,
+    "lat": 37.95319,
+    "kind": "river"
+   },
+   {
+    "id": "VOL",
+    "name": "VOLANTI",
+    "lon": -122.046,
+    "lat": 38.181,
+    "kind": "river"
+   },
+   {
+    "id": "WCY",
+    "name": "WALNUT CREEK AT YGNACIO VALLEY ROAD",
+    "lon": -122.0567,
+    "lat": 37.9069,
+    "kind": "river"
+   },
+   {
+    "id": "WDB",
+    "name": "WALNUT CREEK AT DIAMOND",
+    "lon": -122.05385,
+    "lat": 37.96945,
+    "kind": "river"
+   },
+   {
+    "id": "WMR",
+    "name": "WALNUT CREEK AT MARSH DRIVE",
+    "lon": -122.05631,
+    "lat": 37.999,
+    "kind": "river"
+   }
+  ]
+ },
+ "sacramento": {
+  "cdec": [
+   {
+    "id": "ACK",
+    "name": "ARCADE CK NR DEL PASO HTS",
+    "lon": -121.3825,
+    "lat": 38.6416,
+    "kind": "river"
+   },
+   {
+    "id": "AFO",
+    "name": "AMERICAN RIVER AT FAIR OAKS",
+    "lon": -121.22773,
+    "lat": 38.63546,
+    "kind": "river"
+   },
+   {
+    "id": "AMC",
+    "name": "ARCADE CREEK AT WINDING WAY",
+    "lon": -121.347,
+    "lat": 38.645,
+    "kind": "river"
+   },
+   {
+    "id": "ARD",
+    "name": "ARCADE CREEK AT SUNRISE BLVD",
+    "lon": -121.271,
+    "lat": 38.684,
+    "kind": "river"
+   },
+   {
+    "id": "ARW",
+    "name": "ARDEN WAY",
+    "lon": -121.413,
+    "lat": 38.596,
+    "kind": "river"
+   },
+   {
+    "id": "B89",
+    "name": "BUCKEYE CREEK AT RD 89",
+    "lon": -121.97074,
+    "lat": 38.90287,
+    "kind": "river"
+   },
+   {
+    "id": "BC9",
+    "name": "BIRD CREEK AT RD 90B",
+    "lon": -121.95172,
+    "lat": 38.85409,
+    "kind": "river"
+   },
+   {
+    "id": "BDL",
+    "name": "BELDON LANDING",
+    "lon": -121.9708,
+    "lat": 38.1869,
+    "kind": "river"
+   },
+   {
+    "id": "BEN",
+    "name": "MOKELUMNE R @ BENSON'S FERRY NR THORNTON",
+    "lon": -121.44009,
+    "lat": 38.25514,
+    "kind": "river"
+   },
+   {
+    "id": "BJP",
+    "name": "BYRON JACKSON PUMPS",
+    "lon": -121.753,
+    "lat": 38.87,
+    "kind": "river"
+   },
+   {
+    "id": "BK2",
+    "name": "BUCKEYE CREEK AT RD 2",
+    "lon": -122.01384,
+    "lat": 38.91062,
+    "kind": "river"
+   },
+   {
+    "id": "BPG",
+    "name": "BEAR RIVER AT PLEASANT GROVE RD",
+    "lon": -121.48798,
+    "lat": 38.9841,
+    "kind": "river"
+   },
+   {
+    "id": "BRW",
+    "name": "BEAR RIVER NEAR WHEATLAND",
+    "lon": -121.40731,
+    "lat": 38.99993,
+    "kind": "river"
+   },
+   {
+    "id": "BYL",
+    "name": "BRYTE LAB",
+    "lon": -121.53954,
+    "lat": 38.6001,
+    "kind": "river"
+   },
+   {
+    "id": "C42",
+    "name": "SAN JOAQUIN R AT CHANNEL MARKER 42",
+    "lon": -121.60268,
+    "lat": 38.10066,
+    "kind": "river"
+   },
+   {
+    "id": "C51",
+    "name": "SACRAMENTO R DW SHIP CHANNEL MARKER 51",
+    "lon": -121.67395,
+    "lat": 38.23739,
+    "kind": "river"
+   },
+   {
+    "id": "C72",
+    "name": "SACRAMENTO R DW SHIP CHANNEL NR FREEPORT",
+    "lon": -121.58364,
+    "lat": 38.47687,
+    "kind": "river"
+   },
+   {
+    "id": "CCY",
+    "name": "CACHE CREEK AT YOLO",
+    "lon": -121.80715,
+    "lat": 38.72664,
+    "kind": "river"
+   },
+   {
+    "id": "CFW",
+    "name": "BEAR RIVER AT CAMP FAR WEST DAM",
+    "lon": -121.31594,
+    "lat": 39.04986,
+    "kind": "reservoir"
+   },
+   {
+    "id": "CMN",
+    "name": "CAMANCHE RESERVOIR",
+    "lon": -121.021,
+    "lat": 38.225,
+    "kind": "reservoir"
+   },
+   {
+    "id": "CRB",
+    "name": "CIRBY CREEK - TINA WAY",
+    "lon": -121.278,
+    "lat": 38.732,
+    "kind": "river"
+   },
+   {
+    "id": "CSE",
+    "name": "COLLINSVILLE ON SACRAMENTO RIVER",
+    "lon": -121.8501,
+    "lat": 38.074,
+    "kind": "river"
+   },
+   {
+    "id": "DCW",
+    "name": "DRY CREEK NEAR WHEATLAND",
+    "lon": -121.4361,
+    "lat": 39.0236,
+    "kind": "river"
+   },
+   {
+    "id": "DEK",
+    "name": "DEER CREEK",
+    "lon": -120.98546,
+    "lat": 38.63013,
+    "kind": "river"
+   },
+   {
+    "id": "DHI",
+    "name": "DEAD HORSE CUT AT DEAD HORSE ISLAND",
+    "lon": -121.49429,
+    "lat": 38.2282,
+    "kind": "river"
+   },
+   {
+    "id": "DKB",
+    "name": "DRY CREEK - BLEECHER",
+    "lon": -121.06252,
+    "lat": 38.29912,
+    "kind": "river"
+   },
+   {
+    "id": "DKR",
+    "name": "DEER CREEK",
+    "lon": -121.11003,
+    "lat": 38.55148,
+    "kind": "river"
+   },
+   {
+    "id": "DLC",
+    "name": "DELTA CROSS CHANNEL BTW SAC R & SNODGRAS",
+    "lon": -121.505,
+    "lat": 38.245,
+    "kind": "river"
+   },
+   {
+    "id": "DRK",
+    "name": "DEER CREEK AT OLD VINE ROAD",
+    "lon": -121.20896,
+    "lat": 38.48117,
+    "kind": "river"
+   },
+   {
+    "id": "DWS",
+    "name": "SACRAMENTO DEEP WATER SHIPPING CHANNEL",
+    "lon": -121.66667,
+    "lat": 38.25611,
+    "kind": "river"
+   },
+   {
+    "id": "EGN",
+    "name": "LAGUNA CR - FLORIN NEAR EAGLES NEST ROAD",
+    "lon": -121.26083,
+    "lat": 38.48528,
+    "kind": "river"
+   },
+   {
+    "id": "FAL",
+    "name": "FALSE RIVER NEAR OAKLEY",
+    "lon": -121.6669,
+    "lat": 38.0558,
+    "kind": "river"
+   },
+   {
+    "id": "FCT",
+    "name": "FISHERMANS CUT",
+    "lon": -121.64884,
+    "lat": 38.06782,
+    "kind": "river"
+   },
+   {
+    "id": "FEW",
+    "name": "SACRAMENTO R AT FREMONT WEIR EAST END",
+    "lon": -121.63562,
+    "lat": 38.76536,
+    "kind": "river"
+   },
+   {
+    "id": "FOL",
+    "name": "FOLSOM LAKE",
+    "lon": -121.183,
+    "lat": 38.683,
+    "kind": "reservoir"
+   },
+   {
+    "id": "FPT",
+    "name": "SACRAMENTO RIVER AT FREEPORT",
+    "lon": -121.5003,
+    "lat": 38.45611,
+    "kind": "river"
+   },
+   {
+    "id": "FRE",
+    "name": "SACRAMENTO R @ FREMONT WEIR(CREST 32.0')",
+    "lon": -121.66727,
+    "lat": 38.75926,
+    "kind": "river"
+   },
+   {
+    "id": "FSB",
+    "name": "FEATHER R AT BOYD'S LNDNG ABV STAR BEND",
+    "lon": -121.61043,
+    "lat": 39.0455,
+    "kind": "river"
+   },
+   {
+    "id": "FW1",
+    "name": "FREMONT WEIR FISH PASSAGE UPSTREAM",
+    "lon": -121.64691,
+    "lat": 38.76437,
+    "kind": "river"
+   },
+   {
+    "id": "FW2",
+    "name": "FREMONT WEIR FISH PASSAGE DOWNSTREAM",
+    "lon": -121.6469,
+    "lat": 38.76414,
+    "kind": "river"
+   },
+   {
+    "id": "FWB",
+    "name": "FREMONT WEIR BIG NOTCH FISH PASSAGE GATE",
+    "lon": -121.63633,
+    "lat": 38.76486,
+    "kind": "river"
+   },
+   {
+    "id": "FWD",
+    "name": "FREMONT WEIR BIG NOTCH DOWNSTREAM",
+    "lon": -121.63633,
+    "lat": 38.76486,
+    "kind": "river"
+   },
+   {
+    "id": "FWU",
+    "name": "FREMONT WEIR BIG NOTCH UPSTREAM",
+    "lon": -121.63633,
+    "lat": 38.76486,
+    "kind": "river"
+   },
+   {
+    "id": "GES",
+    "name": "SACRAMENTO RIVER BELOW GEORGIANA SLOUGH",
+    "lon": -121.5234,
+    "lat": 38.2389,
+    "kind": "river"
+   },
+   {
+    "id": "GSM",
+    "name": "GEORGIANA SLOUGH AT MOKELUMNE R",
+    "lon": -121.58297,
+    "lat": 38.12953,
+    "kind": "river"
+   },
+   {
+    "id": "GSS",
+    "name": "GEORGIANA SLOUGH AT SACRAMENTO RIVER",
+    "lon": -121.518,
+    "lat": 38.237,
+    "kind": "river"
+   },
+   {
+    "id": "HRY",
+    "name": "STRONG RANCH - HURLEY WAY",
+    "lon": -121.40528,
+    "lat": 38.58695,
+    "kind": "river"
+   },
+   {
+    "id": "HSC",
+    "name": "HADSELVILLE CREEK",
+    "lon": -121.17136,
+    "lat": 38.33458,
+    "kind": "river"
+   },
+   {
+    "id": "HST",
+    "name": "AMERICAN RIVER AT H STREET BRIDGE",
+    "lon": -121.42369,
+    "lat": 38.56871,
+    "kind": "river"
+   },
+   {
+    "id": "I80",
+    "name": "TULE CANAL AT INTERSTATE 80",
+    "lon": -121.58387,
+    "lat": 38.5793,
+    "kind": "river"
+   },
+   {
+    "id": "IST",
+    "name": "SACRAMENTO RIVER AT I STREET BRIDGE",
+    "lon": -121.50497,
+    "lat": 38.58867,
+    "kind": "river"
+   },
+   {
+    "id": "KLG",
+    "name": "COLUSA BASIN DRAIN AT KNIGHTS LANDING",
+    "lon": -121.7252,
+    "lat": 38.79947,
+    "kind": "river"
+   },
+   {
+    "id": "KNL",
+    "name": "SACRAMENTO RIVER AT KNIGHTS LANDING",
+    "lon": -121.71639,
+    "lat": 38.80335,
+    "kind": "river"
+   },
+   {
+    "id": "LCO",
+    "name": "LINDA CREEK AT CHAMPION OAKS",
+    "lon": -121.247,
+    "lat": 38.727,
+    "kind": "river"
+   },
+   {
+    "id": "LIR",
+    "name": "LIBERTY ISLAND - RD2068",
+    "lon": -121.69397,
+    "lat": 38.32928,
+    "kind": "river"
+   },
+   {
+    "id": "LIS",
+    "name": "YOLO BYPASS AT LISBON",
+    "lon": -121.58823,
+    "lat": 38.47478,
+    "kind": "river"
+   },
+   {
+    "id": "LOR",
+    "name": "LINDA CREEK AT OAK RIDGE ROAD",
+    "lon": -121.266,
+    "lat": 38.731,
+    "kind": "river"
+   },
+   {
+    "id": "LPS",
+    "name": "LITTLE POTATO SLOUGH AT TERMINOUS",
+    "lon": -121.4961,
+    "lat": 38.0964,
+    "kind": "river"
+   },
+   {
+    "id": "LUC",
+    "name": "LAGUNA CREEK",
+    "lon": -121.18917,
+    "lat": 38.33396,
+    "kind": "river"
+   },
+   {
+    "id": "MAL",
+    "name": "SACRAMENTO RIVER AT MALLARD ISLAND",
+    "lon": -121.92009,
+    "lat": 38.04281,
+    "kind": "river"
+   },
+   {
+    "id": "MCC",
+    "name": "COSUMNES RIVER NEAR MCCONNELL",
+    "lon": -121.34373,
+    "lat": 38.35767,
+    "kind": "river"
+   },
+   {
+    "id": "MFR",
+    "name": "MORRISON CREEK AT FLORIN ROAD",
+    "lon": -121.45273,
+    "lat": 38.49852,
+    "kind": "river"
+   },
+   {
+    "id": "MFV",
+    "name": "MINER SLOUGH AT FIVE POINTS",
+    "lon": -121.64478,
+    "lat": 38.29012,
+    "kind": "river"
+   },
+   {
+    "id": "MHB",
+    "name": "COSUMNES RIVER AT MICHIGAN BAR",
+    "lon": -121.04522,
+    "lat": 38.50019,
+    "kind": "river"
+   },
+   {
+    "id": "MHN",
+    "name": "COSUMNES RIVER AT MAHON",
+    "lon": -121.32475,
+    "lat": 38.37166,
+    "kind": "river"
+   },
+   {
+    "id": "MIR",
+    "name": "MINER SLOUGH NEAR SACRAMENTO RIVER",
+    "lon": -121.66606,
+    "lat": 38.23603,
+    "kind": "river"
+   },
+   {
+    "id": "MOK",
+    "name": "MOKELUMNE R AT SAN JOAQUIN RIVER",
+    "lon": -121.5711,
+    "lat": 38.1061,
+    "kind": "river"
+   },
+   {
+    "id": "MRS",
+    "name": "MORMON SLOUGH AT BELLOTA (USACE)",
+    "lon": -121.01417,
+    "lat": 38.05,
+    "kind": "river"
+   },
+   {
+    "id": "MSL",
+    "name": "MONTEZUMA SLOUGH AT ROARING R",
+    "lon": -121.8872,
+    "lat": 38.0934,
+    "kind": "river"
+   },
+   {
+    "id": "NAT",
+    "name": "LAKE NATOMA  (NIMBUS DAM)",
+    "lon": -121.22004,
+    "lat": 38.63614,
+    "kind": "reservoir"
+   },
+   {
+    "id": "NFD",
+    "name": "NF AMERICAN R AT NORTH FORK DAM",
+    "lon": -121.02383,
+    "lat": 38.93601,
+    "kind": "river"
+   },
+   {
+    "id": "NIC",
+    "name": "FEATHER RIVER NEAR NICOLAUS",
+    "lon": -121.60476,
+    "lat": 38.88983,
+    "kind": "river"
+   },
+   {
+    "id": "NMR",
+    "name": "NORTH MOKELUMNE R AT W WALNUT GROVE RD",
+    "lon": -121.5071,
+    "lat": 38.2232,
+    "kind": "river"
+   },
+   {
+    "id": "NSL",
+    "name": "NATIONAL STEEL",
+    "lon": -121.8881,
+    "lat": 38.1221,
+    "kind": "river"
+   },
+   {
+    "id": "OSJ",
+    "name": "OLD RIVER AT FRANKS TRACT NEAR TERMINOUS",
+    "lon": -121.5789,
+    "lat": 38.0711,
+    "kind": "river"
+   },
+   {
+    "id": "PEL",
+    "name": "PELICAN POINT AT ROARING RIVER",
+    "lon": -121.9718,
+    "lat": 38.11087,
+    "kind": "river"
+   },
+   {
+    "id": "PM1",
+    "name": "PUMPING PLANT 1",
+    "lon": -121.63415,
+    "lat": 38.93185,
+    "kind": "river"
+   },
+   {
+    "id": "PM2",
+    "name": "PUMPING PLANT 2",
+    "lon": -121.72677,
+    "lat": 39.02632,
+    "kind": "river"
+   },
+   {
+    "id": "PP2",
+    "name": "PUMPING PLANT 2 TEMPORARY",
+    "lon": -121.72677,
+    "lat": 39.02632,
+    "kind": "river"
+   },
+   {
+    "id": "PRF",
+    "name": "PARSHAL FLUME FLOW",
+    "lon": -122.00564,
+    "lat": 38.4921,
+    "kind": "river"
+   },
+   {
+    "id": "PRH",
+    "name": "PARSHAL FLUME HEAD",
+    "lon": -122.00564,
+    "lat": 38.4921,
+    "kind": "river"
+   },
+   {
+    "id": "PRI",
+    "name": "SAN JOAQUIN R AT PRISONERS PT NR TERMINO",
+    "lon": -121.5572,
+    "lat": 38.0594,
+    "kind": "river"
+   },
+   {
+    "id": "PTC",
+    "name": "PUTAH CREEK",
+    "lon": -121.92453,
+    "lat": 38.5282,
+    "kind": "river"
+   },
+   {
+    "id": "PTF",
+    "name": "PUTAH CREEK",
+    "lon": -122.00564,
+    "lat": 38.4921,
+    "kind": "river"
+   },
+   {
+    "id": "RCS",
+    "name": "RIDGE CUT SLOUGH AT KNIGHTS LANDING",
+    "lon": -121.72535,
+    "lat": 38.79356,
+    "kind": "river"
+   },
+   {
+    "id": "RIG",
+    "name": "COLUSA BASIN DRAIN AT RIGGS RANCH PUMP S",
+    "lon": -121.94643,
+    "lat": 38.98363,
+    "kind": "river"
+   },
+   {
+    "id": "RNY",
+    "name": "COSUMNES RIVER AT ROONEY",
+    "lon": -121.20323,
+    "lat": 38.46671,
+    "kind": "river"
+   },
+   {
+    "id": "RTM",
+    "name": "DES REAL TIME MONITORING TEST STATION",
+    "lon": -121.567,
+    "lat": 38.587,
+    "kind": "river"
+   },
+   {
+    "id": "RVB",
+    "name": "SACRAMENTO RIVER AT RIO VISTA BRIDGE",
+    "lon": -121.68636,
+    "lat": 38.15974,
+    "kind": "river"
+   },
+   {
+    "id": "RYF",
+    "name": "CACHE SLOUGH ABOVE RYER ISLAND FERRY",
+    "lon": -121.65801,
+    "lat": 38.19385,
+    "kind": "river"
+   },
+   {
+    "id": "RYP",
+    "name": "ROYER PARK-DRY CREEK",
+    "lon": -121.28,
+    "lat": 38.749,
+    "kind": "river"
+   },
+   {
+    "id": "SB1",
+    "name": "SUTTER BYPASS CHANNEL AT PUMPING PLANT 1",
+    "lon": -121.63533,
+    "lat": 38.93232,
+    "kind": "river"
+   },
+   {
+    "id": "SB2",
+    "name": "SUTTER BYPASS CHANNEL AT PUMPING PLANT 2",
+    "lon": -121.72718,
+    "lat": 39.02568,
+    "kind": "river"
+   },
+   {
+    "id": "SDC",
+    "name": "SACRAMENTO R ABOVE DELTA CROSS CHANNEL",
+    "lon": -121.518,
+    "lat": 38.257,
+    "kind": "river"
+   },
+   {
+    "id": "SGG",
+    "name": "SHAG SLOUGH A LIBERTY ISLAND NR COURTLAN",
+    "lon": -121.69306,
+    "lat": 38.31833,
+    "kind": "river"
+   },
+   {
+    "id": "SGX",
+    "name": "SACRAMENTO R AT SNODGRASS",
+    "lon": -121.53355,
+    "lat": 38.3497,
+    "kind": "river"
+   },
+   {
+    "id": "SJJ",
+    "name": "SAN JOAQUIN RIVER AT JERSEY POINT (USGS)",
+    "lon": -121.689,
+    "lat": 38.052,
+    "kind": "river"
+   },
+   {
+    "id": "SMR",
+    "name": "SOUTH MOKELUMNE R AT W WALNUT GROVE RD",
+    "lon": -121.4911,
+    "lat": 38.2255,
+    "kind": "river"
+   },
+   {
+    "id": "SOI",
+    "name": "SACRAMENTO R DOWNSTREAM OF ISLETON",
+    "lon": -121.65686,
+    "lat": 38.17548,
+    "kind": "river"
+   },
+   {
+    "id": "SPE",
+    "name": "SAC REGIONAL WASTEWATER TREATMENT PLANT",
+    "lon": -121.502,
+    "lat": 38.441,
+    "kind": "river"
+   },
+   {
+    "id": "SR3",
+    "name": "THREE MILE SLOUGH AT SAN JOAQUIN R",
+    "lon": -121.68677,
+    "lat": 38.09011,
+    "kind": "river"
+   },
+   {
+    "id": "SRV",
+    "name": "SACRAMENTO RIVER AT RIO VISTA (USGS)",
+    "lon": -121.686,
+    "lat": 38.16,
+    "kind": "river"
+   },
+   {
+    "id": "SSS",
+    "name": "STEAMBOAT SLOUGH BTW SAC R AND SUTTER SL",
+    "lon": -121.587,
+    "lat": 38.285,
+    "kind": "river"
+   },
+   {
+    "id": "SSW",
+    "name": "SACRAMENTO R ABV SACRAMENTO WEIR",
+    "lon": -121.5593,
+    "lat": 38.60805,
+    "kind": "river"
+   },
+   {
+    "id": "SUT",
+    "name": "SUTTER SLOUGH AT COURTLAND",
+    "lon": -121.5772,
+    "lat": 38.3286,
+    "kind": "river"
+   },
+   {
+    "id": "SWV",
+    "name": "STATEWIDE STORAGE ESTIMATE (154)",
+    "lon": -121.5,
+    "lat": 38.582,
+    "kind": "reservoir"
+   },
+   {
+    "id": "SXS",
+    "name": "STEAMBOAT SLOUGH NR SACRAMENTO R",
+    "lon": -121.63788,
+    "lat": 38.19127,
+    "kind": "river"
+   },
+   {
+    "id": "TC1",
+    "name": "TULE CANAL AT AGRICULTURAL ROAD CROSSING",
+    "lon": -121.63386,
+    "lat": 38.73823,
+    "kind": "river"
+   },
+   {
+    "id": "TIS",
+    "name": "SACTO R AT TISDALE WEIR (CREST 44.1')",
+    "lon": -121.82208,
+    "lat": 39.02644,
+    "kind": "river"
+   },
+   {
+    "id": "TOE",
+    "name": "TOE DRAIN AT LIBERTY ISLAND NR COURTLAND",
+    "lon": -121.64472,
+    "lat": 38.34917,
+    "kind": "river"
+   },
+   {
+    "id": "TSL",
+    "name": "THREEMILE SLOUGH AT SAN JOAQUIN RIVER",
+    "lon": -121.6861,
+    "lat": 38.1033,
+    "kind": "river"
+   },
+   {
+    "id": "UCS",
+    "name": "UPPER CACHE SLOUGH",
+    "lon": -121.70917,
+    "lat": 38.27556,
+    "kind": "river"
+   },
+   {
+    "id": "UEB",
+    "name": "RECLAMATION DISTRICT 1600 DRAINAGE CANAL",
+    "lon": -121.63287,
+    "lat": 38.73087,
+    "kind": "river"
+   },
+   {
+    "id": "ULC",
+    "name": "ULTATIS CREEK",
+    "lon": -121.75972,
+    "lat": 38.29417,
+    "kind": "river"
+   },
+   {
+    "id": "VNI",
+    "name": "SAN JOAQUIN RIVER AT VENICE ISLAND",
+    "lon": -121.4967,
+    "lat": 38.05018,
+    "kind": "river"
+   },
+   {
+    "id": "VNM",
+    "name": "VAN MAREN",
+    "lon": -121.30869,
+    "lat": 38.69831,
+    "kind": "river"
+   },
+   {
+    "id": "VON",
+    "name": "SACRAMENTO RIVER AT VERONA",
+    "lon": -121.59807,
+    "lat": 38.77416,
+    "kind": "river"
+   },
+   {
+    "id": "VRS",
+    "name": "DRY CREEK AT VERNON STREET BRIDGE",
+    "lon": -121.301,
+    "lat": 38.734,
+    "kind": "river"
+   },
+   {
+    "id": "WBR",
+    "name": "MOKELUMNE RIVER AT WOODBRIDGE",
+    "lon": -121.302,
+    "lat": 38.159,
+    "kind": "river"
+   },
+   {
+    "id": "WGS",
+    "name": "SACRAMENTO R AT WALNUT GROVE STAGE",
+    "lon": -121.51672,
+    "lat": 38.23941,
+    "kind": "river"
+   },
+   {
+    "id": "WLK",
+    "name": "SACRAMENTO RIVER BELOW WILKINS SLOUGH",
+    "lon": -121.82469,
+    "lat": 39.0099,
+    "kind": "river"
+   },
+   {
+    "id": "WSL",
+    "name": "WILLOW SLOUGH AT SB WEST BURROW PIT",
+    "lon": -121.62756,
+    "lat": 38.91459,
+    "kind": "river"
+   },
+   {
+    "id": "YBT",
+    "name": "YOLO BYPASS AT TULE POND",
+    "lon": -121.63525,
+    "lat": 38.75058,
+    "kind": "river"
+   },
+   {
+    "id": "YBY",
+    "name": "YOLO BYPASS NEAR WOODLAND",
+    "lon": -121.64413,
+    "lat": 38.67768,
+    "kind": "river"
+   }
+  ]
+ },
+ "nyc": {
+  "floodnet": true
+ }
+}

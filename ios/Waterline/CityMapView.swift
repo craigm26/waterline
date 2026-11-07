@@ -145,16 +145,11 @@ struct CityMapView: View {
         }.filter { $0.1 <= 24 }.min { $0.1 < $1.1 }?.0
     }
 
-    /// River gauges and the tide station come with the report, not the place's layers.
-    private var reportPOIs: [POI] { (model.report?.pois ?? []).filter { $0.kind == .gauge || $0.kind == .tide } }
+    /// River gauges, sensors and the tide station come with the report, not the place's layers.
+    private var reportPOIs: [POI] { (model.report?.pois ?? []).filter { [.gauge, .tide, .sensor].contains($0.kind) } }
 
     private func pondPOI(_ w: DrainageMap.Pond, _ m: DrainageMap) -> POI {
-        let rain: (String, Provenance)
-        switch storm {
-        case .stress: rain = ("stress test, not a forecast", .assumed)
-        case .last6: rain = ("measured, last 6 h", .official)
-        default: rain = ("NWS forecast, next 24 h", .official)
-        }
+        let rain = storm.rainSource
         return .pond(w, rainIn: m.rainIn, rain: rain.0, rainProvenance: rain.1, drainsWorking: drainsWorking)
     }
 
@@ -178,7 +173,7 @@ struct CityMapView: View {
             Text(rainLine(m)).font(.caption.bold())
             Text("Light to dark blue: under 0.5, to 1.5, over 1.5 ft. Cyan: main flow paths. Blue ring: drain under the estimate.").font(.caption2).foregroundStyle(.secondary)
             Text(String(format: "Waterline estimate, not a forecast of flooding. Rain is %@. Assumed: %.0f%% runs off, working drains take %.1f in/h. Pipes, backups and tides aren't modeled.",
-                        storm == .stress ? "a stress test" : storm == .last6 ? "measured" : "NWS forecast", DrainageAssumptions.runoff * 100, DrainageAssumptions.drainInPerHour))
+                        storm == .stress ? "a stress test" : storm == .last6 ? "measured" : storm == .next24 ? "NWS forecast" : "NOAA Atlas 14 for this spot", DrainageAssumptions.runoff * 100, DrainageAssumptions.drainInPerHour))
                 .font(.caption2).foregroundStyle(.secondary)
         } else if drainage.working {
             ProgressView("Working out the water…").font(.caption)
@@ -190,7 +185,14 @@ struct CityMapView: View {
 
     private func rainLine(_ m: DrainageMap) -> String {
         if storm == .last6, drainage.rain?.observedIn == nil { return "No recent rain reading from nearby stations." }
-        let rain = storm == .stress ? "Stress test: 2 in in one hour" : String(format: "%.2f in of rain", m.rainIn)
+        if storm == .year10 || storm == .year100, drainage.rain?.frequency == nil { return "NOAA Atlas 14 didn't answer for this spot." }
+        let rain: String
+        switch storm {
+        case .stress: rain = "Stress test: 2 in in one hour"
+        case .year10: rain = String(format: "10-year storm, heaviest hour: %.2f in", m.rainIn)
+        case .year100: rain = String(format: "100-year storm, heaviest hour: %.2f in", m.rainIn)
+        default: rain = String(format: "%.2f in of rain", m.rainIn)
+        }
         let site = storm == .last6 ? drainage.rain?.station.map { " at \($0)" } ?? "" : ""
         if m.patches.isEmpty { return "\(rain)\(site): no standing water estimated here." }
         let wet = m.result.depthM.filter { $0 > 0.03 }.sorted()

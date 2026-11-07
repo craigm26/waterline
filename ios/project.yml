@@ -9,7 +9,7 @@ settings:
     SWIFT_VERSION: "5.0"
     DEVELOPMENT_TEAM: WYGG3JXWMG
     MARKETING_VERSION: "1.1"
-    CURRENT_PROJECT_VERSION: "5"
+    CURRENT_PROJECT_VERSION: "6"
 targets:
   Waterline:
     type: application
@@ -38,7 +38,6 @@ targets:
         NSCameraUsageDescription: Waterline draws the forecast water line on the camera view and measures steps and curbs with LiDAR.
         NSLocationWhenInUseUsageDescription: Waterline reads the ground height, tides and rain forecast for where you're standing. Your location stays on the phone except for the coordinates sent to public services, including NOAA, NWS, USGS, FEMA, USACE and your city's open data.
         NSMotionUsageDescription: Waterline uses the barometer to measure how far your floor is above the street.
-        UIRequiredDeviceCapabilities: [arkit]
         # Downloaded packs live in Documents/Waterline and show in the Files app (On My iPhone › Waterline)
         UIFileSharingEnabled: true
         LSSupportsOpeningDocumentsInPlace: true

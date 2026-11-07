@@ -303,7 +303,7 @@ struct DataPacksView: View {
         case "bundled": tag("In the app", .green)
         case "live": tag("Live", .blue)
         case "program": if let u = d.url { Link("Sign up", destination: u).font(.caption.bold()).buttonStyle(.borderless) }
-        case "link": if let u = d.url { Link("Not in app yet", destination: u).font(.caption).buttonStyle(.borderless) }
+        case "link": if let u = d.url { Link(destination: u) { Label("At the source", systemImage: "arrow.up.right.square") }.font(.caption).buttonStyle(.borderless) }
         default:
             if let u = d.url { Link("None found", destination: u).font(.caption).buttonStyle(.borderless) } else { tag("None found", .secondary) }
         }

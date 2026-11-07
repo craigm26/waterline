@@ -40,7 +40,7 @@ enum LiveLayers {
 
     /// Before a report: this area's layers unless a pack or the bundle has them, then the city's feeds.
     static func prepare(near c: CLLocationCoordinate2D) async {
-        if Places.inSF(c) { return }
+        if Places.inSF(c) { await load(near: c); return }
         if Places.covering(c)?.region ?? "live" == "live" { await load(near: c) }
         await loadCity(near: c)
     }

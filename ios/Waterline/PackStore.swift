@@ -17,6 +17,7 @@ final class PackStore: ObservableObject {
         let why: String?, caveat: String?
         let usgs_1m: Source?
         let live: LiveLayers.Feeds?
+        let sensors: SensorFeeds?
         let datasets: [Dataset]?
         let adopt: Adopt?
         func contains(_ c: CLLocationCoordinate2D) -> Bool {

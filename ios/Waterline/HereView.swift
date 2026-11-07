@@ -192,7 +192,11 @@ struct HereView: View {
         }
     }
 
-    private func seeIt(_ r: SpotReport) -> some View {
+    @ViewBuilder private func seeIt(_ r: SpotReport) -> some View {
+        if WaterlineApp.hasAR { seeItButton(r) }
+    }
+
+    private func seeItButton(_ r: SpotReport) -> some View {
         Button {
             model.tab = .ar
         } label: {
@@ -277,11 +281,20 @@ struct InfoView: View {
                     Link("NWS forecast (api.weather.gov)", destination: URL(string: "https://www.weather.gov/documentation/services-web-api")!)
                     Link("USGS 3DEP elevation", destination: URL(string: "https://www.usgs.gov/3d-elevation-program")!)
                     Link("SF drains, 311 and SFPUC flood map (DataSF)", destination: URL(string: "https://datasf.org/opendata/")!)
+                    Link("NOAA river gauges (National Water Prediction Service)", destination: URL(string: "https://water.noaa.gov/")!)
+                    Link("USGS stream gauges (Water Data)", destination: URL(string: "https://waterdata.usgs.gov/")!)
+                    Link("NOAA Atlas 14 rainfall frequency", destination: RainFrequency.page)
+                    Link("NOAA sea level rise scenarios (2022 report)", destination: SeaLevelRise.page)
+                    Link("NOAA NHC storm surge hazard maps", destination: SurgeHazard.page)
+                    Link("FEMA National Flood Hazard Layer", destination: URL(string: "https://www.fema.gov/flood-maps/national-flood-hazard-layer")!)
+                    Link("USACE National Levee Database", destination: URL(string: "https://levees.sec.usace.army.mil/")!)
+                    Link("California DWR Best Available Maps and CDEC", destination: CAFloodplains.page)
+                    Link("FloodNet NYC (NYC Open Data)", destination: URL(string: "https://www.floodnet.nyc/")!)
                     Link("City-manager view", destination: URL(string: "https://craigmerry.com/waterline/")!)
                     Link("Code, data and method", destination: URL(string: "https://github.com/craigm26/waterline")!)
                 }
                 Section {
-                    Text("Built with Claude Code by Craig Merry. Your location stays on the phone; the app sends coordinates only to NOAA, NWS and USGS to get the numbers for that spot.")
+                    Text("Built with Claude Code by Craig Merry. Your location stays on the phone; the app sends the coordinates of the spot you check only to the public data services listed above (NOAA, NWS, USGS, FEMA, USACE, California DWR and city open data) to get the numbers for that spot.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }

@@ -64,7 +64,13 @@ struct Places: Codable {
 
     /// The best layers for this spot: SF's bundled ones, a downloaded pack, or the cached live fetch.
     static func covering(_ c: CLLocationCoordinate2D) -> Places? {
-        if inSF(c) { return shared }
+        if inSF(c) {
+            // SF's bundled layers predate the national levee read: add USACE's records for the area.
+            guard let live = LiveLayers.cached(near: c), !(live.levees ?? []).isEmpty || !(live.pumps ?? []).isEmpty else { return shared }
+            guard var p = shared else { return nil }
+            p.levees = live.levees; p.pumps = live.pumps
+            return p
+        }
         let base = installed.first(where: { ($0.bbox ?? []).count == 4 && ($0.bbox![0]...$0.bbox![2]).contains(c.longitude) && ($0.bbox![1]...$0.bbox![3]).contains(c.latitude) })
             ?? LiveLayers.cached(near: c)
         return base.map { LiveLayers.withCity($0, near: c) }

@@ -5,7 +5,7 @@ import CoreLocation
 /// spots, higher ground, downloaded lidar scenes. It carries what the place is, why it's shown,
 /// and its numbers with their provenance, so a tap can answer all three.
 struct POI: Identifiable, Hashable {
-    enum Kind { case gauge, tide, drain, lowSpot, higherGround, scene, levee, floodwall, pump, ponding }
+    enum Kind { case gauge, tide, drain, lowSpot, higherGround, scene, levee, floodwall, pump, ponding, sensor }
     struct Fact: Identifiable {
         let label: String, value: String, provenance: Provenance
         var id: String { label }
@@ -25,6 +25,7 @@ struct POI: Identifiable, Hashable {
     var notes: [String] = []
     var source: Source? = nil
     var scene: LidarScene? = nil
+    var sensor: Sensor? = nil
 
     static func == (a: POI, b: POI) -> Bool { a.id == b.id }
     func hash(into h: inout Hasher) { h.combine(id) }
@@ -41,6 +42,7 @@ struct POI: Identifiable, Hashable {
         case .floodwall: return "rectangle.split.3x1"
         case .pump: return "drop.degreesign"
         case .ponding: return "drop.fill"
+        case .sensor: return sensor?.street == true ? "sensor.fill" : "chart.line.uptrend.xyaxis"
         }
     }
     var tint: Color {
@@ -63,6 +65,7 @@ struct POI: Identifiable, Hashable {
         case .levee, .floodwall: return .levees
         case .pump: return .pumps
         case .ponding: return .rainWater
+        case .sensor: return sensor?.street == true ? .streetSensors : .rivers
         }
     }
 }
@@ -70,7 +73,7 @@ struct POI: Identifiable, Hashable {
 /// The AR view's type filter.
 enum POIGroup: String, CaseIterable, Identifiable {
     case rivers = "Rivers", tide = "Tide", rainWater = "Rain water", drains = "Drains", lowSpots = "Low spots"
-    case levees = "Levees", pumps = "Pumps", higherGround = "Higher ground", lidar = "Lidar"
+    case streetSensors = "Street sensors", levees = "Levees", pumps = "Pumps", higherGround = "Higher ground", lidar = "Lidar"
     var id: String { rawValue }
 }
 
@@ -163,6 +166,23 @@ extension POI {
         return p
     }
 
+    static func sensor(_ s: Sensor) -> POI {
+        var p = POI(id: "x-\(s.id)", kind: .sensor, title: s.name, value: s.headline, coordinate: s.coordinate, severity: s.severity, gauge: nil)
+        p.sensor = s
+        switch s.network {
+        case .usgs: p.what = "A USGS stream gauge."
+        case .cdec: p.what = s.readings.contains { $0.label == "Storage" } ? "A California reservoir reporting to the state's water data center (CDEC)." : "A California river station reporting to the state's water data center (CDEC)."
+        default: p.what = "A street flood sensor run by \(s.network.rawValue)."
+        }
+        p.why = s.street ? "It measures water on the street itself, so it shows flooding as it happens, which no model here can."
+                         : "It's a live reading on the water near you. Waterline shows it for context; only NOAA forecast points with flood stages move your risk level."
+        p.facts = s.readings.map { .init(label: $0.label, value: $0.value + ($0.time.map { ", " + Sensor.ago($0) } ?? ""), provenance: .official) }
+        if let n = s.note { p.notes = [n] }
+        if s.network == .usgs || s.network == .cdec { p.notes.append("Provisional data, read live from the source.") }
+        p.source = .init(name: s.network == .usgs ? "USGS Water Data" : s.network == .cdec ? "California DWR, CDEC" : s.network.rawValue, url: s.page)
+        return p
+    }
+
     static func tide(_ t: TideOutlook) -> POI {
         let v = t.nextHigh.map { String(format: "next high %.1f ft", $0.ft) } ?? ""
         let a = t.anomalyFt.map { String(format: " · %+.1f vs forecast", $0) } ?? ""
@@ -241,6 +261,7 @@ extension SpotReport {
     /// list on every frame.
     func makePOIs() -> [POI] {
         var out = gauges.map(POI.gauge)
+        out += sensors.map(POI.sensor)
         if let t = tide { out.append(.tide(t)) }
         out += layerPOIs
         if let e = rainEstimate {
