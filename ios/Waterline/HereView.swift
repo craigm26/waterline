@@ -130,16 +130,23 @@ struct HereView: View {
 
     /// Offer the region pack when this spot is inside one that isn't downloaded.
     @ViewBuilder private func regionOffer(_ r: SpotReport) -> some View {
-        if r.grid == nil, let p = packs.manifest?.packs.first(where: { pk in
-            guard pk.kind == "region", let b = pk.bbox, b.count == 4 else { return false }
-            return (b[0]...b[2]).contains(r.coordinate.longitude) && (b[1]...b[3]).contains(r.coordinate.latitude)
-        }) {
-            NavigationLink { DataPacksView() } label: {
-                Label("Download \(p.title) (\(ByteCountFormatter.string(fromByteCount: p.total_bytes, countStyle: .file))) for bowl and levee detail here",
-                      systemImage: "arrow.down.circle").font(.subheadline)
+        if let g = packs.manifest?.groups?.first(where: { $0.contains(r.coordinate) }), !g.id.hasPrefix("san-francisco") {
+            let missing = packs.packs(in: g.id).filter { packs.states[$0.id] != .installed }
+            if !missing.isEmpty {
+                NavigationLink { DataPacksView() } label: {
+                    Label("Get \(g.name)'s data for offline use", systemImage: "arrow.down.circle").font(.subheadline)
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.bordered)
         }
+    }
+
+    /// Water levels from this report, in ft NAVD88, for the 3D view's buttons.
+    private func terrainPresets(_ r: SpotReport) -> [(String, Double)] {
+        var out: [(String, Double)] = []
+        if let bfe = r.fema?.bfe, bfe > -9000, (r.fema?.bfeDatum ?? "").uppercased().contains("88") { out.append((String(format: "FEMA 1%% flood %.1f", bfe), bfe)) }
+        if let rv = r.river { out.append((String(format: "River major flood %.1f", rv.majorNAVD88), rv.majorNAVD88)) }
+        return out
     }
 
     private func rain(_ r: SpotReport) -> some View {
@@ -149,17 +156,26 @@ struct HereView: View {
                 Row(label: "Next 24 h", value: String(format: "%.2f in", rr.next24In), prov: .official, note: "\(rr.chance24Pct)% chance · NWS")
                 Row(label: "Next 3 days", value: String(format: "%.2f in", rr.next72In), prov: .official, note: "NWS gridpoint forecast")
             }
-            if r.inSF {
+            if r.grid != nil {
                 Row(label: "Bowl depth here", value: String(format: "%.1f ft", r.bowlFt), prov: .derived, note: "Ponding before it spills (lidar)")
-                Row(label: "311 flooding reports", value: "\(r.flood311Near)", prov: .official, note: "Within 500 ft, all years on DataSF")
-                Row(label: "SFPUC 100-yr flood zone", value: r.inZone ? "Inside" : "Outside", prov: .official, note: "SFPUC storm flood risk map")
+            }
+            if let l = r.layers {
+                if l.flood311_total > 0 {
+                    Row(label: l.reportsLabel, value: "\(r.flood311Near)", prov: .official, note: l.isSF ? "Within 500 ft, all years on DataSF" : "Within 500 ft, city open data")
+                }
+                if !l.zone_rings.isEmpty {
+                    Row(label: l.zoneLabel, value: r.inZone ? "Inside" : "Outside", prov: .official, note: l.isSF ? "SFPUC storm flood risk map" : "FEMA National Flood Hazard Layer")
+                }
                 ForEach(r.drains.map { NearDrain(drain: $0.0, metres: $0.1) }) { n in
-                    Row(label: "Drain #\(n.drain.rank)", value: Geo.walk(n.metres) + " " + Geo.compass(from: r.coordinate, to: n.drain.coordinate),
-                        prov: .derived,
-                        note: n.drain.deep_pit ? "Deep pit: report, don't clear" : "\(n.drain.hood) · \(n.drain.flood311) reports within 250 ft")
+                    Row(label: n.drain.label, value: Geo.walk(n.metres) + " " + Geo.compass(from: r.coordinate, to: n.drain.coordinate),
+                        prov: n.drain.ranked ? .derived : .official,
+                        note: n.drain.deep_pit ? "Deep pit: report, don't clear" : n.drain.ranked ? "\(n.drain.hood) · \(n.drain.flood311) reports within 250 ft" : "City storm drain map")
+                }
+                if r.drains.isEmpty, l.drains.isEmpty {
+                    Text("Storm drains: none found near here in this city's public data.").font(.caption).foregroundStyle(.secondary)
                 }
             } else {
-                Text("Street-level rain detail (bowls, drains, 311 history) is San Francisco only for now.").font(.caption).foregroundStyle(.secondary)
+                Text("Local layers load when you're online.").font(.caption).foregroundStyle(.secondary)
             }
         }
     }
@@ -190,7 +206,14 @@ struct HereView: View {
                 Label("See the lidar of this block", systemImage: "cube.transparent").frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
-        } else if r.inSF, PackStore.installedVersion("sf-ground-1m") == nil {
+        }
+        NavigationLink {
+            TerrainSceneView(title: r.placeLabel ?? "This block", coordinate: r.coordinate, presets: terrainPresets(r))
+        } label: {
+            Label("See this block's ground in 3D", systemImage: "mountain.2").frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        if r.inSF, PackStore.installedVersion("sf-ground-1m") == nil {
             NavigationLink { DataPacksView() } label: {
                 Label("Download 1 m lidar for offline use (45 MB)", systemImage: "arrow.down.circle").frame(maxWidth: .infinity)
             }

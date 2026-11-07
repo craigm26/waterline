@@ -1,0 +1,43 @@
+{
+ "_note": "Read live by the app, a small area at a time, straight from each city. Never copied into packs: most of these carry no license that allows redistribution. {n}{s}{e}{w} are the query box.",
+ "sacramento": {
+  "reports_label": "Drain service requests",
+  "drains": {"type": "arcgis", "url": "https://services1.arcgis.com/5NARefyPVtAeuJPU/arcgis/rest/services/DepartmentofWaterResourcesAssets/FeatureServer/2/query", "where": "1=1", "note": "County only: no inlets inside the City of Sacramento"},
+  "reports": {"type": "arcgis", "url": "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/SalesForce311_View/FeatureServer/0/query", "where": "CategoryName IN ('Drains Plugged Drain Inlet','Drains Drain Inlet Foreign Material','Drains General')"}
+ },
+ "new-orleans": {
+  "reports_label": "Drainage and flooding requests",
+  "drains": {"type": "socrata", "url": "https://data.nola.gov/resource/se4p-ierc.json", "where": "within_box(the_geom,{n},{w},{s},{e})"},
+  "reports": {"type": "socrata", "url": "https://data.nola.gov/resource/2jgv-pqrq.json", "where": "request_reason in('Catch Basin Not Draining','Catch Basin - Clogged','Street Flooding','Catch Basin Clogged','Street Flooding / Drainage') AND latitude between {s} and {n} AND longitude between {w} and {e}"}
+ },
+ "miami": {
+  "reports_label": "Flooding and drainage requests",
+  "drains": {"type": "arcgis", "url": "https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/StormWaterPoint_gdb/FeatureServer/0/query", "where": "TYPE='CATCH BASIN'"},
+  "reports": {"type": "arcgis_table", "url": "https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/data_311_2026/FeatureServer/0/query", "where": "Subject IN ('Flooding or Drainage Issue','Storm Flood or Drainage - City of Miami') AND Latitude BETWEEN {s} AND {n} AND Longitude BETWEEN {w} AND {e}", "lat": "Latitude", "lon": "Longitude"}
+ },
+ "norfolk": {
+  "reports_label": "Flood reports, 2010 to 2020",
+  "drains": {"type": "arcgis", "url": "https://services3.arcgis.com/Pn95KPPz613AKHXi/arcgis/rest/services/City_of_Norfolk_Stormwater/FeatureServer/6/query", "where": "GENERAL_TY IN ('Catch Basin','Drop Inlet','Yard Basin','Gutter Basin')"},
+  "reports": {"type": "socrata", "url": "https://data.norfolk.gov/resource/mrv3-rcpc.json", "where": "upper(event_type) like '%FLOOD%' AND latitude between {s} and {n} AND longitude between {w} and {e}"}
+ },
+ "charleston": {
+  "reports_label": "Citizen flood photos",
+  "drains": {"type": "arcgis", "url": "https://services2.arcgis.com/tQaXW7Zb1Vphzvgd/arcgis/rest/services/SW_Inlets/FeatureServer/0/query", "where": "INLETTYPE IS NOT NULL AND INLETTYPE <> 'Pipe'"},
+  "reports": {"type": "arcgis", "url": "https://services2.arcgis.com/tQaXW7Zb1Vphzvgd/arcgis/rest/services/Flooding_Report_Public_View/FeatureServer/0/query", "where": "1=1"}
+ },
+ "houston": {
+  "reports_label": "Flooding and drainage requests",
+  "drains": {"type": "arcgis", "url": "https://geogimsms.houstontx.gov/arcgis/rest/services/TDO/StormWater_Maintenance_gx/MapServer/9/query", "where": "1=1"},
+  "reports": {"type": "arcgis", "url": "https://mycity2.houstontx.gov/gisweb01/rest/services/311/Houston311_Archives/MapServer/0/query", "where": "CASE_TYPE IN ('Flooding','Poor Drainage','Inlet Clogged Needs Cleaning ROW')"}
+ },
+ "nyc": {
+  "reports_label": "Street flooding requests",
+  "drains": {"type": "socrata", "url": "https://data.cityofnewyork.us/resource/2w2g-fk3i.json", "where": "within_box(the_geom,{n},{w},{s},{e})"},
+  "reports": {"type": "socrata", "url": "https://data.cityofnewyork.us/resource/erm2-nwe9.json", "where": "descriptor in('Catch Basin Clogged/Flooding (Use Comments) (SC)','Street Flooding (SJ)','Highway Flooding (SH)','Catch Basin Clogged','Flooding on Street','Flooding on Highway') AND within_box(location,{n},{w},{s},{e})"}
+ },
+ "boston": {
+  "reports_label": "Flooding work orders",
+  "drains": {"type": "arcgis", "url": "https://services.arcgis.com/sFnw0xNflSi8J0uh/ArcGIS/rest/services/Catch_Basin/FeatureServer/0/query", "where": "1=1"},
+  "reports": {"type": "arcgis", "url": "https://services.arcgis.com/sFnw0xNflSi8J0uh/ArcGIS/rest/services/BWSC_cityworks_Nodupes_04092025_ExcelToTable_Geocoded/FeatureServer/0/query", "where": "1=1"}
+ }
+}

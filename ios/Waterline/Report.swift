@@ -42,6 +42,9 @@ struct SpotReport {
     var higherGround: ElevationGrid.GridSpot?
     var inZone = false
     var inSF = false
+    /// This place's layers (bundled, pack or live), and the tags built from them.
+    var layers: Places?
+    var layerPOIs: [POI] = []
     /// River gauges within 60 km (NWS), nearest first; the AR view tags them.
     var gauges: [RiverGauge] = []
     /// The nearest gauge within 15 km whose flood stages convert to elevations.
@@ -51,6 +54,10 @@ struct SpotReport {
     var problems: [String] = []
 
     // MARK: derived numbers
+
+    /// Only SF's 311 feed is flooding reports. Other cities' feeds mostly log drain service
+    /// requests, so they're shown but don't move the risk level.
+    var floodReports: Int { inSF ? flood311Near : 0 }
 
     /// ft MLLW = ft NAVD88 + k. From the station's own datums; the SF value offline.
     var navdToMLLW: Double? { tide?.navd88ToMLLW ?? (inSF ? -0.06 : nil) }
@@ -76,8 +83,8 @@ struct SpotReport {
     var level: Level {
         let m = coastalMarginFt ?? .infinity
         let riverNow = gauges.first.map { $0.severity >= 2 && Geo.distance(coordinate, $0.coordinate) < 15_000 } ?? false
-        if m < 1 || (bowlFt >= 1 && (inZone || flood311Near >= 10)) || riverNow || ["V", "VE"].contains(fema?.zone ?? "") { return .high }
-        if m < 3 || bowlFt >= 0.5 || inZone || flood311Near >= 5 || (nearbyBowl?.valueFt ?? 0) >= 1.5
+        if m < 1 || (bowlFt >= 1 && (inZone || floodReports >= 10)) || riverNow || ["V", "VE"].contains(fema?.zone ?? "") { return .high }
+        if m < 3 || bowlFt >= 0.5 || inZone || floodReports >= 5 || (nearbyBowl?.valueFt ?? 0) >= 1.5
             || (fema?.inSFHA ?? false) || (riverMajorAboveGroundFt ?? -1) > 0 || (fema?.subtype ?? "").uppercased().contains("LEVEE") { return .watch }
         return .low
     }
@@ -132,11 +139,13 @@ struct SpotReport {
                               Geo.compass(from: coordinate, to: b.coordinate)))
         }
         if let ls = lowSpot, ls.1 < 250 {
-            out.append("You're at one of the city's 50 worst street low spots: \(ls.0.name) (#\(ls.0.rank)).")
+            out.append(inSF ? "You're at one of the city's 50 worst street low spots: \(ls.0.name) (#\(ls.0.rank))."
+                             : "You're near a mapped low spot in the ground: \(ls.0.name). This comes from elevation, not flood records.")
         }
         if inZone { out.append("Inside SFPUC's 100-year storm flood zone.") }
         if flood311Near > 0 {
-            out.append("\(flood311Near) flooding report\(flood311Near == 1 ? "" : "s") to 311 within 500 ft.")
+            out.append(inSF ? "\(flood311Near) flooding report\(flood311Near == 1 ? "" : "s") to 311 within 500 ft."
+                            : "\(layers?.reportsLabel ?? "City requests") within 500 ft: \(flood311Near).")
         }
         if let r = rain {
             out.append(r.next72In >= 0.05
@@ -152,7 +161,7 @@ struct SpotReport {
         if let near = drains.first(where: { !$0.0.deep_pit }), near.1 < 200 {
             let (d, m) = near
             let lead = rain72 >= 0.25 ? "Before the rain, check" : "Know"
-            out.append("\(lead) the storm drain \(Geo.walk(m)) \(Geo.compass(from: coordinate, to: d.coordinate)) (#\(d.rank) of 23,835 in the city). If leaves cover the grate and it's safe, clear them; report blockages to 311.")
+            out.append("\(lead) the storm drain \(Geo.walk(m)) \(Geo.compass(from: coordinate, to: d.coordinate)) \(d.ranked ? "(#\(d.rank) of 23,835 in the city)" : ""). If leaves cover the grate and it's safe, clear them; report blockages to 311.")
         }
         if let pit = drains.first(where: { $0.0.deep_pit }), pit.1 < 200 {
             let (d, m) = pit
@@ -217,15 +226,15 @@ struct SpotReport {
         async let label = placeName(c)
         async let gauges = (try? RiverGauge.near(c)) ?? []
         async let fema = FEMAZone.load(c)
-        let inSF = r.inSF
+        await LiveLayers.prepare(near: c)
         // the grids and city layers are local but heavy on first load: keep them off the main actor
-        let local = await Task.detached(priority: .userInitiated) { () -> (ElevationGrid.Sample?, ElevationGrid.GridSpot?, String?, [(Places.Drain, Double)], Int, (Places.LowSpot, Double)?, Bool) in
+        let local = await Task.detached(priority: .userInitiated) { () -> (ElevationGrid.Sample?, ElevationGrid.GridSpot?, String?, [(Places.Drain, Double)], Int, (Places.LowSpot, Double)?, Bool, Places?, [POI]) in
             let g = ElevationGrid.covering(c)
-            guard inSF, let p = Places.shared else { return (g?.sample(c), g?.deepestBowl(near: c), g?.name, [], 0, nil, false) }
+            guard let p = Places.covering(c) else { return (g?.sample(c), g?.deepestBowl(near: c), g?.name, [], 0, nil, false, nil, []) }
             return (g?.sample(c), g?.deepestBowl(near: c), g?.name, p.drains(near: c, within: 400, limit: 3),
-                    p.flood311Count(near: c, within: 150), p.nearestLowSpot(to: c, within: 600), p.inFloodZone(c))
+                    p.flood311Count(near: c, within: 150), p.nearestLowSpot(to: c, within: 600), p.inFloodZone(c), p, SpotReport.layerPOIs(p, at: c))
         }.value
-        (r.grid, r.nearbyBowl, r.gridName, r.drains, r.flood311Near, r.lowSpot, r.inZone) = local
+        (r.grid, r.nearbyBowl, r.gridName, r.drains, r.flood311Near, r.lowSpot, r.inZone, r.layers, r.layerPOIs) = local
         r.ground = await ground
         r.tide = await tide
         r.rain = await rain

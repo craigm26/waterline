@@ -1,8 +1,9 @@
 import SwiftUI
 import MapKit
 
-/// Tap anywhere to check that spot. Shows the drains that matter, past 311 flooding reports,
-/// the 50 worst street low spots and the SFPUC 100-year flood zone (outline).
+/// Tap anywhere to check that spot. Shows whatever this place has: drains, past 311 flooding
+/// reports, low spots, the flood zone outline, levees, floodwalls and pump stations. SF's layers
+/// are bundled; elsewhere they come from a downloaded pack or live from FEMA and USACE.
 struct CityMapView: View {
     @EnvironmentObject var model: AppModel
     @State private var camera: MapCameraPosition = .userLocation(fallback: .region(MKCoordinateRegion(
@@ -11,7 +12,21 @@ struct CityMapView: View {
     @State private var center = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
     @State private var spanDeg = 0.12
 
-    private var places: Places? { Places.shared }
+    @State private var places: Places? = Places.shared
+    /// Rings and levees in view, capped so a coastal city's thousands of polygons don't stall the map.
+    private var visibleRings: [[[Double]]] {
+        guard let p = places else { return [] }
+        if p.isSF { return p.zone_rings }
+        guard spanDeg < 0.5 else { return [] }
+        return Array(p.zone_rings.filter { $0.contains(where: inView) }.prefix(250))
+    }
+    private var visibleLevees: [Places.Line] {
+        guard spanDeg < 0.8 else { return [] }
+        return Array((places?.levees ?? []).filter { $0.path.contains(where: inView) }.prefix(250))
+    }
+    private func inView(_ p: [Double]) -> Bool {
+        abs(p[1] - center.latitude) < spanDeg && abs(p[0] - center.longitude) < spanDeg * 1.5
+    }
     /// Detail layers only when zoomed in enough to read them.
     private var detail: Bool { spanDeg < 0.03 }
     private var nearDrains: [NearDrain] {
@@ -28,11 +43,18 @@ struct CityMapView: View {
             MapReader { proxy in
                 Map(position: $camera) {
                     UserAnnotation()
-                    if let rings = places?.zone_rings {
-                        ForEach(rings.indices, id: \.self) { i in
-                            MapPolyline(coordinates: rings[i].map { CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) })
-                                .stroke(.blue.opacity(0.7), lineWidth: 1.5)
-                        }
+                    let rings = visibleRings
+                    ForEach(rings.indices, id: \.self) { i in
+                        MapPolyline(coordinates: rings[i].map { CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) })
+                            .stroke(.blue.opacity(0.7), lineWidth: 1.5)
+                    }
+                    let lines = visibleLevees
+                    ForEach(lines.indices, id: \.self) { i in
+                        MapPolyline(coordinates: lines[i].path.map { CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) })
+                            .stroke(lines[i].kind == "floodwall" ? .red : .brown, lineWidth: lines[i].kind == "floodwall" ? 3 : 2.5)
+                    }
+                    ForEach((places?.pumps ?? []).indices, id: \.self) { i in
+                        Marker(places!.pumps![i].name, systemImage: "drop.degreesign", coordinate: places!.pumps![i].coordinate).tint(.teal)
                     }
                     ForEach(near311.indices, id: \.self) { i in
                         MapCircle(center: near311[i], radius: 5).foregroundStyle(.purple.opacity(0.45))
@@ -58,12 +80,14 @@ struct CityMapView: View {
                 .onMapCameraChange(frequency: .onEnd) { ctx in
                     center = ctx.region.center
                     spanDeg = ctx.region.span.latitudeDelta
+                    Task { await refreshLayers() }
                 }
                 .onTapGesture(coordinateSpace: .local) { pt in
                     if let c = proxy.convert(pt, from: .local) { model.pin(c) }
                 }
             }
             .safeAreaInset(edge: .bottom) { bottomCard }
+            .task { await refreshLayers() }
             .navigationTitle("Map")
             .navigationBarTitleDisplayMode(.inline)
         }
@@ -83,8 +107,7 @@ struct CityMapView: View {
                 ProgressView("Checking that spot…")
             } else {
                 Text("Tap anywhere to check that spot.").font(.subheadline)
-                Text(detail ? "● drain (red = top 100 citywide) · purple = past 311 flooding report · blue line = SFPUC 100-yr flood zone"
-                            : "Zoom in to see drains and past 311 flooding reports.")
+                Text(legend)
                     .font(.caption2).foregroundStyle(.secondary)
             }
         }
@@ -94,7 +117,32 @@ struct CityMapView: View {
         .padding(.horizontal).padding(.bottom, 6)
     }
 
+    /// Only names what this place actually has.
+    private var legend: String {
+        guard let p = places else { return "Move the map to load this area's flood layers." }
+        if p.isSF, !detail { return "Zoom in to see drains and past 311 flooding reports." }
+        var parts: [String] = []
+        if detail, !p.drains.isEmpty { parts.append(p.isSF ? "● drain (red = top 100 citywide)" : "● storm drain") }
+        if detail, p.flood311_total > 0 { parts.append("purple = \(p.reportsLabel.lowercased())") }
+        if !p.zone_rings.isEmpty { parts.append("blue line = \(p.zoneLabel)") }
+        if !(p.levees ?? []).isEmpty { parts.append("brown = levee, red = floodwall") }
+        return parts.joined(separator: " · ")
+    }
+
+    /// Layers for the map's centre: a pack if there is one, otherwise a live fetch at city zoom.
+    private func refreshLayers() async {
+        let c = center
+        var p = await Task.detached(priority: .utility) { Places.covering(c) }.value
+        if p == nil || p?.region == "live", spanDeg < 0.5 { p = await LiveLayers.load(near: c) ?? p }
+        if detail, !Places.inSF(c), let base = p {     // city feeds are street-level, so only when zoomed in
+            await LiveLayers.loadCity(near: c)
+            p = LiveLayers.withCity(base, near: c)
+        }
+        places = p
+    }
+
     private func drainColor(_ d: Places.Drain) -> Color {
+        if !d.ranked { return .cyan }
         if d.deep_pit { return .gray }
         return d.rank <= 100 ? .red : d.rank <= 300 ? .orange : .yellow
     }

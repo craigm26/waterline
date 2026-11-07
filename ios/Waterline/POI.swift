@@ -4,7 +4,7 @@ import CoreLocation
 /// A tagged place in the AR sky view: river gauges upstream, the tide station, drains, low spots,
 /// higher ground, downloaded lidar scenes. Placed by true bearing from where you stand.
 struct POI: Identifiable, Hashable {
-    enum Kind { case gauge, tide, drain, lowSpot, higherGround, scene }
+    enum Kind { case gauge, tide, drain, lowSpot, higherGround, scene, levee, floodwall, pump }
     let id: String
     let kind: Kind
     let title: String
@@ -24,6 +24,9 @@ struct POI: Identifiable, Hashable {
         case .lowSpot: return "drop.triangle.fill"
         case .higherGround: return "figure.walk.motion"
         case .scene: return "cube.transparent"
+        case .levee: return "line.diagonal"
+        case .floodwall: return "rectangle.split.3x1"
+        case .pump: return "drop.degreesign"
         }
     }
     var tint: Color {
@@ -44,6 +47,32 @@ enum ARZoom: String, CaseIterable, Identifiable {
 }
 
 extension SpotReport {
+    /// The tags that come from a place's layers. Worked out once per report, since the AR view
+    /// reads `pois` on every frame.
+    static func layerPOIs(_ p: Places, at c: CLLocationCoordinate2D) -> [POI] {
+        var out: [POI] = []
+        for (d, _) in p.drains(near: c, within: 1_500, limit: 25) {
+            out.append(POI(id: "d-\(d.id)", kind: .drain, title: d.label,
+                           value: d.deep_pit ? "deep pit: report it" : d.ranked ? "\(d.flood311) past reports nearby" : "city storm drain map",
+                           coordinate: d.coordinate, severity: d.ranked && d.rank <= 100 ? 1 : 0, gauge: nil))
+        }
+        for s in p.hotspots where Geo.distance(c, s.coordinate) < 6_000 {
+            let reports = p.flood311_total > 0 ? String(format: " · %d reports", s.flood311) : ""
+            out.append(POI(id: "l-\(s.rank)", kind: .lowSpot, title: "Low spot #\(s.rank): \(s.name)",
+                           value: String(format: "up to %.1f ft deep", s.max_depth_m * Geo.ftPerM) + reports,
+                           coordinate: s.coordinate, severity: 1, gauge: nil))
+        }
+        for (i, l) in p.leveesNear(c, within: 20_000, limit: 8).enumerated() {
+            let wall = l.kind == "floodwall"
+            out.append(POI(id: "v-\(i)", kind: wall ? .floodwall : .levee, title: wall ? "Floodwall" : "Levee",
+                           value: "USACE National Levee Database", coordinate: l.at, severity: 0, gauge: nil))
+        }
+        for (i, u) in (p.pumps ?? []).enumerated() where Geo.distance(c, u.coordinate) < 20_000 {
+            out.append(POI(id: "u-\(i)", kind: .pump, title: u.name, value: "USACE National Levee Database", coordinate: u.coordinate, severity: 0, gauge: nil))
+        }
+        return out
+    }
+
     /// Everything worth tagging around this spot.
     var pois: [POI] {
         var out: [POI] = []
@@ -59,17 +88,7 @@ extension SpotReport {
             out.append(POI(id: "t-\(t.stationID)", kind: .tide, title: "Tide: \(t.stationName)", value: v + a,
                            coordinate: t.stationCoordinate, severity: (t.anomalyFt ?? 0) > 0.75 ? 1 : 0, gauge: nil))
         }
-        if let p = Places.shared, inSF {
-            for (d, _) in p.drains(near: coordinate, within: 1_500, limit: 25) {
-                out.append(POI(id: "d-\(d.id)", kind: .drain, title: "Drain #\(d.rank)", value: d.deep_pit ? "deep pit: report it" : "\(d.flood311) past reports nearby",
-                               coordinate: d.coordinate, severity: d.rank <= 100 ? 1 : 0, gauge: nil))
-            }
-            for s in p.hotspots where Geo.distance(coordinate, s.coordinate) < 6_000 {
-                out.append(POI(id: "l-\(s.rank)", kind: .lowSpot, title: "Low spot #\(s.rank): \(s.name)",
-                               value: String(format: "up to %.1f ft deep · %d reports", s.max_depth_m * Geo.ftPerM, s.flood311),
-                               coordinate: s.coordinate, severity: 1, gauge: nil))
-            }
-        }
+        out += layerPOIs
         if let b = nearbyBowl, b.valueFt >= 1 {
             out.append(POI(id: "bowl", kind: .lowSpot, title: "Bowl", value: String(format: "%.1f ft deep", b.valueFt),
                            coordinate: b.coordinate, severity: 1, gauge: nil))

@@ -114,6 +114,41 @@ final class ElevationGrid {
         return nil
     }
 
+    /// Block-scale low spots around a point from the bowl grid, deepest first: the phone-only
+    /// version of the list in a layers pack. Levee basins are skipped (the bowl row covers them).
+    func lowSpots(near c: CLLocationCoordinate2D, radiusM: Double, limit: Int) -> [Places.LowSpot] {
+        guard let rc = cell(c) else { return [] }
+        let k = Int(radiusM / h.res_m)
+        let r0 = max(0, rc.r - k), r1 = min(h.rows - 1, rc.r + k), c0 = max(0, rc.c - k), c1 = min(h.cols - 1, rc.c + k)
+        let w = c1 - c0 + 1, ht = r1 - r0 + 1
+        var seen = [Bool](repeating: false, count: w * ht)
+        var out: [(depth: UInt16, cells: Int, r: Int, c: Int)] = []
+        let maxCells = Int(200_000 / (h.res_m * h.res_m)), minCells = Int(1_500 / (h.res_m * h.res_m))
+        for r in r0...r1 {
+            for cc in c0...c1 where !seen[(r - r0) * w + cc - c0] && bowl[r * h.cols + cc] >= 46 {
+                var stack = [(r, cc)], n = 0, top: (d: UInt16, r: Int, c: Int) = (0, r, cc)
+                seen[(r - r0) * w + cc - c0] = true
+                while let (a, b) = stack.popLast() {
+                    n += 1
+                    let v = bowl[a * h.cols + b]
+                    if v > top.d { top = (v, a, b) }
+                    for (x, y) in [(a - 1, b), (a + 1, b), (a, b - 1), (a, b + 1)] where x >= r0 && x <= r1 && y >= c0 && y <= c1 {
+                        let i = (x - r0) * w + y - c0
+                        if !seen[i], bowl[x * h.cols + y] >= 46 { seen[i] = true; stack.append((x, y)) }
+                    }
+                }
+                if n >= minCells, n <= maxCells { out.append((top.d, n, top.r, top.c)) }
+            }
+        }
+        out.sort { $0.depth > $1.depth }
+        return out.prefix(limit).enumerated().map { i, s in
+            let dy = Double(rc.r - s.r) * h.res_m, dx = Double(s.c - rc.c) * h.res_m
+            return Places.LowSpot(rank: i + 1, name: "Low spot", lon: c.longitude + dx / (111_320 * cos(c.latitude * .pi / 180)),
+                                  lat: c.latitude + dy / 111_132, max_depth_m: Double(s.depth) / 100,
+                                  area_m2: Int(Double(s.cells) * h.res_m * h.res_m), flood311: 0, in_zone: false)
+        }
+    }
+
     /// Deepest bowl within `radius` metres (at least 0.5 ft deep), so "you're 60 ft from a 3 ft bowl"
     /// is visible even when GPS puts you on its rim.
     func deepestBowl(near c: CLLocationCoordinate2D, radius: Double = 60) -> GridSpot? {

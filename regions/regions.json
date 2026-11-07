@@ -19,7 +19,12 @@
     "levee",
     "rain"
    ],
-   "why": "Two rivers held back by levees. Natomas and the Pocket sit 15-25 ft below the Sacramento River at flood stage; FEMA maps Natomas A99 (levee still being built to the 1% standard)."
+   "why": "Two rivers held back by levees. Natomas and the Pocket sit 15-25 ft below the Sacramento River at flood stage; FEMA maps Natomas A99 (levee still being built to the 1% standard).",
+   "landmark": {
+    "name": "Old Sacramento waterfront",
+    "lon": -121.5065,
+    "lat": 38.5816
+   }
   },
   {
    "id": "new-orleans",
@@ -39,7 +44,12 @@
     "rain"
    ],
    "why": "Much of the city is below sea level inside levees and depends on pumps; heavy rain ponds where the pumps can't keep up.",
-   "caveat": "Caveat: the drainage-canal floodwalls are thinner than the 10 m grid, so the city's rim reads near lake level and the bowl understates how deep a protection failure could get. Compare the ground with lake and river levels instead."
+   "caveat": "Caveat: the drainage-canal floodwalls are thinner than the 10 m grid, so the city's rim reads near lake level and the bowl understates how deep a protection failure could get. Compare the ground with lake and river levels instead.",
+   "landmark": {
+    "name": "Industrial Canal floodwall, Lower Ninth",
+    "lon": -90.0195,
+    "lat": 29.969
+   }
   },
   {
    "id": "miami",
@@ -58,7 +68,12 @@
     "rain"
    ],
    "why": "High-tide flooding on sunny days, porous limestone under the seawalls, and hurricane surge.",
-   "caveat": "Caveat: seawalls are thinner than the 10 m grid, and sunny-day flooding comes up through storm drains and porous rock, so compare the ground with the tide rather than relying on the bowl."
+   "caveat": "Caveat: seawalls are thinner than the 10 m grid, and sunny-day flooding comes up through storm drains and porous rock, so compare the ground with the tide rather than relying on the bowl.",
+   "landmark": {
+    "name": "Miami Beach, West Ave",
+    "lon": -80.143,
+    "lat": 25.785
+   }
   },
   {
    "id": "norfolk",
@@ -76,7 +91,12 @@
     "surge",
     "rain"
    ],
-   "why": "The fastest relative sea-level rise on the US East Coast; tidal flooding closes streets many times a year."
+   "why": "The fastest relative sea-level rise on the US East Coast; tidal flooding closes streets many times a year.",
+   "landmark": {
+    "name": "The Hague, Ghent",
+    "lon": -76.296,
+    "lat": 36.862
+   }
   },
   {
    "id": "charleston",
@@ -95,7 +115,12 @@
     "rain"
    ],
    "why": "The peninsula's low streets flood at king tides and in ordinary heavy rain when the outfalls are under water.",
-   "caveat": "Caveat: the Battery seawall and outfall flap gates are thinner than the 10 m grid; compare the ground with the tide."
+   "caveat": "Caveat: the Battery seawall and outfall flap gates are thinner than the 10 m grid; compare the ground with the tide.",
+   "landmark": {
+    "name": "The Battery",
+    "lon": -79.9295,
+    "lat": 32.7708
+   }
   },
   {
    "id": "houston",
@@ -112,7 +137,12 @@
     "rain",
     "bayou"
    ],
-   "why": "Flat land, clay soil and bayous that overtop in heavy rain; Harvey put 50 in of rain on the region."
+   "why": "Flat land, clay soil and bayous that overtop in heavy rain; Harvey put 50 in of rain on the region.",
+   "landmark": {
+    "name": "Meyerland, Brays Bayou",
+    "lon": -95.462,
+    "lat": 29.687
+   }
   },
   {
    "id": "nyc",
@@ -130,7 +160,12 @@
     "tide",
     "rain"
    ],
-   "why": "Lower Manhattan, Red Hook and the south Brooklyn and Queens shore flooded in Sandy; basement apartments flood in cloudbursts."
+   "why": "Lower Manhattan, Red Hook and the south Brooklyn and Queens shore flooded in Sandy; basement apartments flood in cloudbursts.",
+   "landmark": {
+    "name": "Battery Park",
+    "lon": -74.016,
+    "lat": 40.703
+   }
   },
   {
    "id": "boston",
@@ -147,7 +182,12 @@
     "surge",
     "tide"
    ],
-   "why": "Much of downtown, the Seaport and East Boston is filled marsh a few feet above today's high tides."
+   "why": "Much of downtown, the Seaport and East Boston is filled marsh a few feet above today's high tides.",
+   "landmark": {
+    "name": "Long Wharf",
+    "lon": -71.05,
+    "lat": 42.36
+   }
   }
  ]
 }

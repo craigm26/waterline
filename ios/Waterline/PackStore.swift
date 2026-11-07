@@ -8,7 +8,20 @@ import CoreLocation
 /// backup because everything in it can be downloaded again.
 @MainActor
 final class PackStore: ObservableObject {
-    struct Manifest: Decodable { let schema: String; let release: String; let packs: [Pack] }
+    struct Manifest: Decodable { let schema: String; let release: String; let packs: [Pack]; let groups: [Group]? }
+    /// A place. Every pack belongs to one; the Offline data screen shows them collapsed.
+    struct Group: Decodable, Identifiable {
+        struct Source: Decodable { let url: URL; let tiles: Int; let bytes: Int64 }
+        let id: String, name: String, state: String
+        let bbox: [Double]
+        let why: String?, caveat: String?
+        let usgs_1m: Source?
+        let live: LiveLayers.Feeds?
+        func contains(_ c: CLLocationCoordinate2D) -> Bool {
+            bbox.count == 4 && (bbox[0]...bbox[2]).contains(c.longitude) && (bbox[1]...bbox[3]).contains(c.latitude)
+        }
+        var center: CLLocationCoordinate2D { .init(latitude: (bbox[1] + bbox[3]) / 2, longitude: (bbox[0] + bbox[2]) / 2) }
+    }
     struct Pack: Decodable, Identifiable {
         struct File: Decodable { let name: String; let url: URL; let bytes: Int64; let sha256: String }
         let id: String, kind: String, version: Int, title: String, summary: String
@@ -16,6 +29,8 @@ final class PackStore: ObservableObject {
         let total_bytes: Int64
         let license: String?
         let bbox: [Double]?
+        let group: String?, label: String?
+        var shortTitle: String { label ?? title }
     }
     enum State: Equatable { case notInstalled, downloading(Double), verifying, installed, failed(String) }
 
@@ -113,8 +128,7 @@ final class PackStore: ObservableObject {
                 let mark = try JSONSerialization.data(withJSONObject: ["version": p.version, "id": p.id])
                 try mark.write(to: Self.marker(p.id))
                 states[p.id] = .installed
-                Ground1m.reload()
-                ElevationGrid.reloadRegions()
+                Self.reloadReaders()
             } catch is CancellationError {
                 states[p.id] = .notInstalled
             } catch {
@@ -128,8 +142,20 @@ final class PackStore: ObservableObject {
     func remove(_ id: String) {
         try? FileManager.default.removeItem(at: Self.folder(id))
         states[id] = .notInstalled
-        Ground1m.reload()
-        ElevationGrid.reloadRegions()
+        Self.reloadReaders()
+    }
+
+    func packs(in group: String) -> [Pack] { manifest?.packs.filter { $0.group == group } ?? [] }
+
+    /// Everything in a group that isn't on the phone yet, smallest first so the useful layers land early.
+    func downloadAll(in group: String) {
+        for p in packs(in: group).sorted(by: { $0.total_bytes < $1.total_bytes }) where states[p.id] == .notInstalled || states[p.id] == nil {
+            download(p)
+        }
+    }
+
+    nonisolated private static func reloadReaders() {
+        Ground1m.reload(); ElevationGrid.reloadRegions(); Places.reload(); LidarScene.reload()
     }
 
     /// SHA-256 of a file, streamed in 1 MB chunks off the main actor.
@@ -150,27 +176,38 @@ final class TaskWatcher: NSObject, URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) { self.task = task }
 }
 
-/// The 1 m ground pack (scripts/build_packs.py): 500 m tiles of int16 cm NAVD88, raw deflate,
-/// read one tile at a time from disk. Covers SF land at or below 30 ft MLLW.
+/// A 1 m ground pack (build_packs.py for SF, build_region_packs.py elsewhere): 500 m tiles of int16
+/// cm NAVD88, raw deflate, read one tile at a time from disk. Covers land at or below about 30 ft.
 final class Ground1m {
     private struct Header: Decodable {
         struct Tile: Decodable { let tx: Int; let ty: Int; let offset: Int; let bytes: Int }
         let x0: Double, y0: Double, tile_m: Int, res_m: Double, nodata: Int
+        let zone: Int?
         let tiles: [Tile]
     }
 
-    private static var cached: Ground1m??
+    private static var cached: [Ground1m]?
     private static let lock = NSLock()
 
-    /// nil when the pack isn't installed.
-    static var shared: Ground1m? {
+    /// Every installed 1 m pack.
+    private static var all: [Ground1m] {
         lock.lock(); defer { lock.unlock() }
         if let c = cached { return c }
-        let g = Ground1m()
-        cached = .some(g)
-        return g
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: PackStore.root.path)) ?? []
+        let out: [Ground1m] = names.filter { $0.hasSuffix("-ground-1m") }.compactMap { id in
+            let stem = String(id.dropLast("-ground-1m".count))
+            return PackStore.file(id, "\(stem)_ground_1m.bin").flatMap { Ground1m(url: $0) }
+        }
+        cached = out
+        return out
     }
     static func reload() { lock.lock(); cached = nil; lock.unlock() }
+
+    /// Ground here from whichever pack covers it, or nil when none does.
+    static func ground(_ c: CLLocationCoordinate2D) -> Double? {
+        for g in all { if let v = g.groundNAVD88Ft(c) { return v } }
+        return nil
+    }
 
     private let url: URL
     private let h: Header
@@ -180,12 +217,11 @@ final class Ground1m {
     private var order: [Int] = []
     private let tileLock = NSLock()
 
-    private init?() {
-        guard let u = PackStore.file("sf-ground-1m", "sf_ground_1m.bin"),
-              let fh = try? FileHandle(forReadingFrom: u) else { return nil }
+    private init?(url u: URL) {
+        guard let fh = try? FileHandle(forReadingFrom: u) else { return nil }
         defer { try? fh.close() }
-        // the header is one JSON line; it's under 64 KB
-        guard let head = try? fh.read(upToCount: 1 << 16), let nl = head.firstIndex(of: 0x0A),
+        // the header is one JSON line, up to a few hundred KB with thousands of tiles
+        guard let head = try? fh.read(upToCount: 1 << 20), let nl = head.firstIndex(of: 0x0A),
               let hdr = try? JSONDecoder().decode(Header.self, from: head[head.startIndex..<nl]) else { return nil }
         url = u; h = hdr; base = nl - head.startIndex + 1
         var idx: [Int: Header.Tile] = [:]
@@ -195,7 +231,7 @@ final class Ground1m {
 
     /// Ground at this spot in ft NAVD88, or nil outside the pack's tiles / off land.
     func groundNAVD88Ft(_ c: CLLocationCoordinate2D) -> Double? {
-        let p = Geo.utm(lon: c.longitude, lat: c.latitude)
+        let p = Geo.utm(lon: c.longitude, lat: c.latitude, zone: h.zone ?? 10)
         let tm = Double(h.tile_m)
         let tx = Int(((p.x - h.x0) / tm).rounded(.down)), ty = Int(((h.y0 - p.y) / tm).rounded(.down))
         guard let t = index[ty * 10_000 + tx], let cells = tile(t) else { return nil }
