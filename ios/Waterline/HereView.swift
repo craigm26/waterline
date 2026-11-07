@@ -21,6 +21,7 @@ struct HereView: View {
                         }
                     } else if let r = model.report {
                         summary(r)
+                        nextDays(r)
                         regionOffer(r)
                         coast(r)
                         river(r)
@@ -72,6 +73,20 @@ struct HereView: View {
                 Label { Text(f) } icon: { Image(systemName: "circle.fill").font(.system(size: 6)).foregroundStyle(tint) }
                     .font(.subheadline)
             }
+        }
+    }
+
+    /// What the next three days bring to this spot: rain, the water it leaves here, the river and the tide.
+    private func nextDays(_ r: SpotReport) -> some View {
+        let f = r.next72
+        return Card(tint: f.reaches ? .orange : .secondary) {
+            Text("Next 3 days here").font(.headline)
+            Text(f.headline).font(.subheadline.bold())
+            ForEach(f.rows, id: \.label) { row in
+                Row(label: row.label, value: row.value, prov: row.prov, note: row.note)
+            }
+            Text("Forecasts from NWS and NOAA, run over the ground at this spot. A screening estimate, not an official warning.")
+                .font(.caption2).foregroundStyle(.secondary)
         }
     }
 
@@ -209,13 +224,13 @@ struct HereView: View {
     /// The point cloud of this block when it's downloaded; otherwise a pointer to the packs.
     @ViewBuilder private func lidarLink(_ r: SpotReport) -> some View {
         if let scene = LidarScene.nearest(to: r.coordinate) {
-            NavigationLink { LidarSceneView(scene: scene) } label: {
+            NavigationLink { LidarSceneView(scene: scene, report: r) } label: {
                 Label("See the lidar of this block", systemImage: "cube.transparent").frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
         }
         NavigationLink {
-            TerrainSceneView(title: r.placeLabel ?? "This block", coordinate: r.coordinate, presets: terrainPresets(r))
+            TerrainSceneView(title: r.placeLabel ?? "This block", coordinate: r.coordinate, presets: terrainPresets(r), report: r)
         } label: {
             Label("See this block's ground in 3D", systemImage: "mountain.2").frame(maxWidth: .infinity)
         }

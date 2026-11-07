@@ -10,6 +10,8 @@ struct RainOutlook {
     let source: URL
     /// Forecast by the hour for the next 24 hours, in.
     var hourlyNext24In: [Double] = []
+    /// The same for the next 72 hours.
+    var hourlyNext72In: [Double] = []
     var observationStations: String?
 
     private struct Points: Decodable { struct P: Decodable { let forecastGridData: String; let observationStations: String? }; let properties: P }
@@ -47,7 +49,7 @@ struct RainOutlook {
             }
         }
         return RainOutlook(next24In: sum(24), next72In: sum(72), chance24Pct: Int(pop), updated: g.properties.updateTime ?? "", source: url,
-                           hourlyNext24In: (0..<24).map(hour), observationStations: pts.properties.observationStations)
+                           hourlyNext24In: (0..<24).map(hour), hourlyNext72In: (0..<72).map(hour), observationStations: pts.properties.observationStations)
     }
 
     /// "2026-11-06T18:00:00+00:00/P1DT6H" -> (start, hours)

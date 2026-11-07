@@ -83,6 +83,13 @@ struct TerrainSceneView: View {
     let title: String
     let coordinate: CLLocationCoordinate2D
     var presets: [(String, Double)] = []     // label, ft NAVD88
+    var report: SpotReport? = nil
+    @AppStorage(Layer.storageKey) private var layersOff = Layer.defaultOff
+    @AppStorage("storm") private var storm: StormCase = .next24
+    @AppStorage("drainsWorking") private var drainsWorking = true
+    @State private var rainMap: DrainageMap?
+    @State private var noGrid = false
+    @State private var picked: POI?
     @State private var patch: TerrainPatch?
     @State private var scene: SCNScene?
     @State private var water: SCNNode?
@@ -95,7 +102,7 @@ struct TerrainSceneView: View {
         VStack(spacing: 0) {
             ZStack {
                 if let s = scene {
-                    SceneView(scene: s, options: [.allowsCameraControl, .autoenablesDefaultLighting])
+                    SceneHost(scene: s) { id in picked = report?.pois.first { $0.id == id } }
                 } else if failed {
                     Text("Couldn't reach the USGS elevation service. Check your connection.").foregroundStyle(.secondary).padding()
                 } else {
@@ -120,15 +127,51 @@ struct TerrainSceneView: View {
                         }
                     }
                 }
-                Text("USGS 3DEP bare ground, about 1 m, streamed live. Buildings and trees are removed. A bathtub view of this block: it ignores levees, drains and where water can actually get in.")
+                if scene != nil, !Layer.off(layersOff).contains(.rainWater) {
+                    StormControls(note: noGrid ? "Rain water needs this place's ground grid: download Ground and bowls, 10 m, in Offline data." : rainMap.map { String(format: "%.2f in of rain · Waterline estimate, assumed runoff and drains", $0.rainIn) })
+                }
+                Text("USGS 3DEP bare ground, about 1 m, streamed live. Buildings and trees are removed. The slider is a bathtub level: it ignores levees, drains and where water can actually get in. Rain water (Layers) is Waterline's estimate of where rain stands. Tap a marker for its sheet.")
                     .font(.caption2).foregroundStyle(.secondary)
             }
             .padding()
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await load() }
+        .toolbar { LayerMenu(only: [.rainWater, .rivers, .tide, .streetSensors, .floodZones, .levees, .pumps, .drains, .reports, .lowSpots, .higherGround]) }
+        .sheet(item: $picked) { p in POIDetail(poi: p, report: report).presentationDetents([.medium, .large]) }
+        .task { await load(); await refreshWater(); drawLayers() }
+        .onChange(of: layersOff) { _, _ in Task { await refreshWater(); drawLayers() } }
+        .onChange(of: storm) { _, _ in Task { await refreshWater(); drawLayers() } }
+        .onChange(of: drainsWorking) { _, _ in Task { await refreshWater(); drawLayers() } }
         .onChange(of: levelFt) { _, v in water?.position.y = Float(v / Geo.ftPerM) }
+    }
+
+    private var frame: GeoFrame? { patch.map { GeoFrame(center: coordinate, halfM: Double($0.side) * $0.spacingM / 2) } }
+
+    /// Ground height under a local x, z (metres east, south of the centre).
+    private func ground(_ x: Float, _ z: Float) -> Float? {
+        guard let p = patch else { return nil }
+        let half = Float(Double(p.side) * p.spacingM / 2), sp = Float(p.spacingM)
+        let c = Int((x + half) / sp), r = Int((z + half) / sp)
+        guard r >= 0, c >= 0, r < p.side, c < p.side else { return nil }
+        let v = p.z[r * p.side + c]
+        return v.isNaN ? nil : v
+    }
+
+    private func refreshWater() async {
+        guard !Layer.off(layersOff).contains(.rainWater) else { rainMap = nil; return }
+        let c = coordinate, s = storm, w = drainsWorking
+        let rain = await RainSeries.load(c)
+        let hours = rain.hours(s)
+        rainMap = await Task.detached(priority: .userInitiated) { DrainageField.near(c).map { DrainageMap.build($0, hours: hours, drainsWorking: w) } }.value
+        noGrid = rainMap == nil
+    }
+
+    private func drawLayers() {
+        guard let s = scene, let f = frame else { return }
+        s.rootNode.childNodes.filter { $0.name == SceneLayers.rootName }.forEach { $0.removeFromParentNode() }
+        let places = Places.covering(coordinate)
+        s.rootNode.addChildNode(SceneLayers.build(frame: f, ground: ground, off: Layer.off(layersOff), pois: report?.pois ?? [], places: places, water: rainMap))
     }
 
     private var wetShare: String {

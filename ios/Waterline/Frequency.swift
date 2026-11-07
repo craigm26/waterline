@@ -15,6 +15,22 @@ struct RainFrequency {
     var hour100: Double? { inches("60-min", years: 100) }
     var day100: Double? { inches("24-hr", years: 100) }
 
+    /// A 24-hour storm of this return period, hour by hour: each hour adds what the next longer
+    /// duration adds (NOAA's 1, 2, 3, 6, 12 and 24 hour depths, interpolated between). The model
+    /// only counts volume per hour, so the order of the hours doesn't change the result.
+    func dayStorm(years: Int) -> [Double]? {
+        let known: [(Double, String)] = [(1, "60-min"), (2, "2-hr"), (3, "3-hr"), (6, "6-hr"), (12, "12-hr"), (24, "24-hr")]
+        let pts = known.compactMap { h, k in inches(k, years: years).map { (h, $0) } }
+        guard pts.count == known.count else { return nil }
+        func at(_ h: Double) -> Double {
+            guard let i = pts.firstIndex(where: { $0.0 >= h }) else { return pts.last!.1 }
+            if i == 0 { return pts[0].1 * h / pts[0].0 }
+            let (x0, y0) = pts[i - 1], (x1, y1) = pts[i]
+            return y0 + (y1 - y0) * (h - x0) / (x1 - x0)
+        }
+        return (1...24).map { at(Double($0)) - at(Double($0 - 1)) }
+    }
+
     static let page = URL(string: "https://hdsc.nws.noaa.gov/pfds/")!
 
     private static var memo: (key: String, value: RainFrequency)?

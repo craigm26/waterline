@@ -12,7 +12,7 @@ struct ARTab: View {
     @State private var groundFound = false
     @State private var showFloor = false
     @AppStorage("arRange") private var rangeT = ARRange.defaultT     // slider position, 0...1
-    @AppStorage("arHidden") private var hiddenRaw = ""               // filter chips turned off
+    @AppStorage(Layer.storageKey) private var hiddenRaw = Layer.defaultOff         // layers turned off, shared with the Map and 3D views
     @State private var screen: [String: CGPoint] = [:]
     @State private var picked: POI?
     @State private var showList = false
@@ -83,7 +83,7 @@ struct ARTab: View {
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
-                    ForEach(POIGroup.allCases) { g in
+                    ForEach(Layer.allCases) { g in
                         let n = near.filter { $0.0.group == g }.count
                         if n > 0 { chip(g, count: n, on: !off.contains(g.rawValue)) }
                     }
@@ -95,11 +95,11 @@ struct ARTab: View {
         .padding(.horizontal, 10).padding(.top, 4)
     }
 
-    private func chip(_ g: POIGroup, count: Int, on: Bool) -> some View {
+    private func chip(_ g: Layer, count: Int, on: Bool) -> some View {
         Button {
-            var h = hidden
-            if on { h.insert(g.rawValue) } else { h.remove(g.rawValue) }
-            hiddenRaw = h.sorted().joined(separator: ",")
+            var h = Layer.off(hiddenRaw)
+            if on { h.insert(g) } else { h.remove(g) }
+            hiddenRaw = Layer.raw(h)
         } label: {
             Text("\(g.rawValue) \(count)").font(.caption2.bold()).padding(.horizontal, 9).padding(.vertical, 5)
                 .foregroundStyle(on ? Color.black : Color.primary)

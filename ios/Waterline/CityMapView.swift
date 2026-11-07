@@ -15,19 +15,21 @@ struct CityMapView: View {
     @State private var places: Places? = Places.shared
     @StateObject private var drainage = DrainageStore.shared
     @StateObject private var packs = PackStore.shared
-    @State private var showDrainage = false
-    @State private var storm: StormCase = .next24
-    @State private var drainsWorking = true
+    @AppStorage(Layer.storageKey) private var layersOff = Layer.defaultOff
+    @AppStorage("storm") private var storm: StormCase = .next24
+    @AppStorage("drainsWorking") private var drainsWorking = true
+    private var showDrainage: Bool { on(.rainWater) }
+    private func on(_ l: Layer) -> Bool { !Layer.off(layersOff).contains(l) }
     @State private var picked: POI?
     /// Rings and levees in view, capped so a coastal city's thousands of polygons don't stall the map.
     private var visibleRings: [[[Double]]] {
-        guard !showDrainage, let p = places else { return [] }     // the water needs the map to itself
+        guard on(.floodZones), let p = places else { return [] }
         if p.isSF { return p.zone_rings }
         guard spanDeg < 0.5 else { return [] }
         return Array(p.zone_rings.filter { $0.contains(where: inView) }.prefix(250))
     }
     private var visibleLevees: [Places.Line] {
-        guard spanDeg < 0.8 else { return [] }
+        guard on(.levees), spanDeg < 0.8 else { return [] }
         return Array((places?.levees ?? []).filter { $0.path.contains(where: inView) }.prefix(250))
     }
     private func inView(_ p: [Double]) -> Bool {
@@ -36,11 +38,11 @@ struct CityMapView: View {
     /// Detail layers only when zoomed in enough to read them.
     private var detail: Bool { spanDeg < 0.03 }
     private var nearDrains: [NearDrain] {
-        guard detail, let p = places else { return [] }
+        guard detail, on(.drains), let p = places else { return [] }
         return p.drains(near: center, within: 1200, limit: 80).map { NearDrain(drain: $0.0, metres: $0.1) }
     }
     private var near311: [CLLocationCoordinate2D] {
-        guard detail, !showDrainage, let p = places else { return [] }
+        guard detail, on(.reports), let p = places else { return [] }
         return Array(p.flood311Points(near: center, within: 700).prefix(600))
     }
 
@@ -71,7 +73,7 @@ struct CityMapView: View {
                         MapPolyline(coordinates: lines[i].path.map { CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) })
                             .stroke(lines[i].kind == "floodwall" ? .red : .brown, lineWidth: lines[i].kind == "floodwall" ? 3 : 2.5)
                     }
-                    ForEach((places?.pumps ?? []).indices, id: \.self) { i in
+                    ForEach(on(.pumps) ? (places?.pumps ?? []).indices : (0..<0), id: \.self) { i in
                         let u = places!.pumps![i]
                         Annotation(u.name, coordinate: u.coordinate) { MapPOIButton(poi: .pump(u, index: i), color: .teal, picked: $picked) }
                     }
@@ -94,7 +96,7 @@ struct CityMapView: View {
                             .accessibilityLabel(n.drain.label)
                         }
                     }
-                    ForEach(places?.hotspots ?? []) { s in
+                    ForEach(on(.lowSpots) ? (places?.hotspots ?? []) : []) { s in
                         Annotation("#\(s.rank) \(s.name)", coordinate: s.coordinate) {
                             MapPOIButton(poi: .lowSpot(s, in: places!), color: .orange, picked: $picked)
                         }
@@ -123,9 +125,9 @@ struct CityMapView: View {
             .navigationTitle("Map")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                Toggle(isOn: $showDrainage) { Label("Drainage", systemImage: "drop.fill") }.toggleStyle(.button)
+                LayerMenu(only: [.rainWater, .rivers, .tide, .streetSensors, .floodZones, .levees, .pumps, .drains, .reports, .lowSpots])
             }
-            .onChange(of: showDrainage) { _, _ in Task { await refreshDrainage() } }
+            .onChange(of: layersOff) { _, _ in Task { await refreshDrainage() } }
             .onChange(of: storm) { _, _ in Task { await refreshDrainage() } }
             .onChange(of: drainsWorking) { _, _ in Task { await refreshDrainage() } }
             .sheet(item: $picked) { p in POIDetail(poi: p, report: model.report).presentationDetents([.medium, .large]) }
@@ -135,8 +137,9 @@ struct CityMapView: View {
     /// The marker under a tap, if any. A marker's own button may or may not beat the map's tap
     /// gesture, so the map checks too: a marker never gets pinned by mistake.
     private func marker(at pt: CGPoint, _ proxy: MapProxy) -> POI? {
-        var all = reportPOIs + (places?.hotspots ?? []).map { POI.lowSpot($0, in: places!) }
-        all += (places?.pumps ?? []).enumerated().map { POI.pump($0.element, index: $0.offset) }
+        var all = reportPOIs
+        if on(.lowSpots) { all += (places?.hotspots ?? []).map { POI.lowSpot($0, in: places!) } }
+        if on(.pumps) { all += (places?.pumps ?? []).enumerated().map { POI.pump($0.element, index: $0.offset) } }
         all += nearDrains.map { POI.drain($0.drain) }
         if showDrainage, let d = drainage.map { all += d.ponds.map { pondPOI($0, d) } }
         return all.compactMap { p -> (POI, CGFloat)? in
@@ -146,7 +149,7 @@ struct CityMapView: View {
     }
 
     /// River gauges, sensors and the tide station come with the report, not the place's layers.
-    private var reportPOIs: [POI] { (model.report?.pois ?? []).filter { [.gauge, .tide, .sensor].contains($0.kind) } }
+    private var reportPOIs: [POI] { (model.report?.pois ?? []).filter { [.gauge, .tide, .sensor].contains($0.kind) && on($0.group) } }
 
     private func pondPOI(_ w: DrainageMap.Pond, _ m: DrainageMap) -> POI {
         let rain = storm.rainSource
@@ -160,12 +163,12 @@ struct CityMapView: View {
 
     private func inWater(_ d: Places.Drain) -> Bool {
         guard showDrainage, let m = drainage.map else { return false }
-        return m.depthFt(d.coordinate) >= 0.1
+        return m.depthFt(d.coordinate, radiusM: 5) >= 0.1
     }
 
     /// The rain, the water it makes, and every assumption behind it.
     @ViewBuilder private var drainageCard: some View {
-        Picker("Rain", selection: $storm) { ForEach(StormCase.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented)
+        Picker("Rain", selection: $storm) { ForEach(StormCase.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.menu)
         Toggle("Drains working", isOn: $drainsWorking).font(.caption)
         if drainage.noGrid {
             Text("Water estimates need this place's ground. Download Ground and bowls, 10 m, in Offline data.").font(.caption)
@@ -173,7 +176,7 @@ struct CityMapView: View {
             Text(rainLine(m)).font(.caption.bold())
             Text("Light to dark blue: under 0.5, to 1.5, over 1.5 ft. Cyan: main flow paths. Blue ring: drain under the estimate.").font(.caption2).foregroundStyle(.secondary)
             Text(String(format: "Waterline estimate, not a forecast of flooding. Rain is %@. Assumed: %.0f%% runs off, working drains take %.1f in/h. Pipes, backups and tides aren't modeled.",
-                        storm == .stress ? "a stress test" : storm == .last6 ? "measured" : storm == .next24 ? "NWS forecast" : "NOAA Atlas 14 for this spot", DrainageAssumptions.runoff * 100, DrainageAssumptions.drainInPerHour))
+                        storm == .stress ? "a stress test" : storm == .last6 ? "measured" : storm == .next24 || storm == .next72 ? "NWS forecast" : "NOAA Atlas 14 for this spot", DrainageAssumptions.runoff * 100, DrainageAssumptions.drainInPerHour))
                 .font(.caption2).foregroundStyle(.secondary)
         } else if drainage.working {
             ProgressView("Working out the water…").font(.caption)
@@ -185,12 +188,15 @@ struct CityMapView: View {
 
     private func rainLine(_ m: DrainageMap) -> String {
         if storm == .last6, drainage.rain?.observedIn == nil { return "No recent rain reading from nearby stations." }
-        if storm == .year10 || storm == .year100, drainage.rain?.frequency == nil { return "NOAA Atlas 14 didn't answer for this spot." }
+        if [.year10, .year100, .day100, .day1000].contains(storm), drainage.rain?.frequency == nil { return "NOAA Atlas 14 didn't answer for this spot." }
         let rain: String
         switch storm {
         case .stress: rain = "Stress test: 2 in in one hour"
         case .year10: rain = String(format: "10-year storm, heaviest hour: %.2f in", m.rainIn)
         case .year100: rain = String(format: "100-year storm, heaviest hour: %.2f in", m.rainIn)
+        case .day100: rain = String(format: "100-year storm over 24 h: %.2f in", m.rainIn)
+        case .day1000: rain = String(format: "1000-year storm over 24 h: %.2f in", m.rainIn)
+        case .next72: rain = String(format: "%.2f in forecast over 3 days", m.rainIn)
         default: rain = String(format: "%.2f in of rain", m.rainIn)
         }
         let site = storm == .last6 ? drainage.rain?.station.map { " at \($0)" } ?? "" : ""
@@ -203,7 +209,6 @@ struct CityMapView: View {
 
     @ViewBuilder private var bottomCard: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if showDrainage { drainageCard } else
             if let r = model.report, model.usingPin {
                 Text(r.placeLabel ?? "Pinned spot").font(.subheadline.bold())
                 Text(r.title).font(.headline).foregroundStyle(r.level == .high ? .red : r.level == .watch ? .orange : .green)
@@ -214,6 +219,8 @@ struct CityMapView: View {
                 }
             } else if model.loading {
                 ProgressView("Checking that spot…")
+            } else if showDrainage {
+                drainageCard
             } else {
                 Text("Tap a marker to see what it is and why it's there. Tap anywhere else to check that spot.").font(.subheadline)
                 Text(legend)

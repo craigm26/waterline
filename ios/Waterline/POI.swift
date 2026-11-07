@@ -54,7 +54,7 @@ struct POI: Identifiable, Hashable {
         }
     }
     /// The filter chip this tag belongs to.
-    var group: POIGroup {
+    var group: Layer {
         switch kind {
         case .gauge: return .rivers
         case .tide: return .tide
@@ -70,12 +70,7 @@ struct POI: Identifiable, Hashable {
     }
 }
 
-/// The AR view's type filter.
-enum POIGroup: String, CaseIterable, Identifiable {
-    case rivers = "Rivers", tide = "Tide", rainWater = "Rain water", drains = "Drains", lowSpots = "Low spots"
-    case streetSensors = "Street sensors", levees = "Levees", pumps = "Pumps", higherGround = "Higher ground", lidar = "Lidar"
-    var id: String { rawValue }
-}
+
 
 /// The AR distance filter: a slider position from 0 to 1 on a log scale, 330 ft to 40 mi, so the
 /// street end and the watershed end get the same room on the slider.

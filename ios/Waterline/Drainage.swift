@@ -13,7 +13,8 @@ enum DrainageAssumptions {
 }
 
 enum StormCase: String, CaseIterable, Identifiable {
-    case last6 = "Last 6 h", next24 = "Next 24 h", year10 = "10-yr", year100 = "100-yr", stress = "Stress"
+    case last6 = "Last 6 h", next24 = "Next 24 h", next72 = "Next 3 days", year10 = "10-yr hour", year100 = "100-yr hour"
+    case day100 = "100-yr day", day1000 = "1000-yr day", stress = "Stress test"
     var id: String { rawValue }
     /// Where the rain comes from, for the labels under the map.
     var rainSource: (String, Provenance) {
@@ -21,6 +22,9 @@ enum StormCase: String, CaseIterable, Identifiable {
         case .stress: return ("stress test, not a forecast", .assumed)
         case .last6: return ("measured, last 6 h", .official)
         case .next24: return ("NWS forecast, next 24 h", .official)
+        case .next72: return ("NWS forecast, next 3 days", .official)
+        case .day100: return ("NOAA Atlas 14, the 100-year 24-hour storm", .official)
+        case .day1000: return ("NOAA Atlas 14, the 1000-year 24-hour storm", .official)
         case .year10: return ("NOAA Atlas 14, the 10-year storm's heaviest hour", .official)
         case .year100: return ("NOAA Atlas 14, the 100-year storm's heaviest hour", .official)
         }
@@ -32,6 +36,7 @@ struct RainSeries {
     var observedIn: [Double]?      // nil when the station didn't report rain
     var station: String?
     var forecastIn: [Double]
+    var forecast72In: [Double] = []
     var frequency: RainFrequency?
     static let stress = [2.0]
 
@@ -39,6 +44,9 @@ struct RainSeries {
         switch s {
         case .last6: return observedIn ?? []
         case .next24: return forecastIn
+        case .next72: return forecast72In
+        case .day100: return frequency?.dayStorm(years: 100) ?? []
+        case .day1000: return frequency?.dayStorm(years: 1000) ?? []
         case .year10: return frequency?.hour10.map { [$0] } ?? []
         case .year100: return frequency?.hour100.map { [$0] } ?? []
         case .stress: return Self.stress
@@ -55,7 +63,7 @@ struct RainSeries {
     static func load(_ c: CLLocationCoordinate2D) async -> RainSeries {
         async let freq = RainFrequency.load(c)
         let rain = try? await RainOutlook.load(c)
-        var out = RainSeries(observedIn: nil, station: nil, forecastIn: rain?.hourlyNext24In ?? [], frequency: await freq)
+        var out = RainSeries(observedIn: nil, station: nil, forecastIn: rain?.hourlyNext24In ?? [], forecast72In: rain?.hourlyNext72In ?? [], frequency: await freq)
         guard let u = rain?.observationStations.flatMap(URL.init(string:)),
               let list: Stations = try? await Net.json(u, accept: "application/geo+json") else { return out }
         for s in list.features.prefix(3) {
@@ -121,9 +129,27 @@ struct DrainageMap {
     var result: DrainageModel.Result
     var field: DrainageField
 
-    func depthFt(_ c: CLLocationCoordinate2D) -> Double {
-        guard let i = field.window.index(c) else { return 0 }
-        return Double(result.depthM[i]) * Geo.ftPerM
+    /// How deep the water stands at this spot: the highest computed water surface within `radiusM`,
+    /// above the ground here. One grid cell is finer than a GPS fix, so a pond beside you counts if
+    /// its surface is above your ground.
+    func depthFt(_ c: CLLocationCoordinate2D, radiusM: Double = 15) -> Double {
+        let w = field.window
+        guard let i0 = w.index(c) else { return 0 }
+        let here = w.groundM[i0]
+        var best = Double(result.depthM[i0])
+        if !here.isNaN {
+            let k = Int((radiusM / w.resM).rounded(.up)), r0 = i0 / w.cols, c0 = i0 % w.cols
+            for dr in -k...k {
+                for dc in -k...k where Double(dr * dr + dc * dc) * w.resM * w.resM <= radiusM * radiusM {
+                    let r = r0 + dr, cc = c0 + dc
+                    guard r >= 0, cc >= 0, r < w.rows, cc < w.cols else { continue }
+                    let j = r * w.cols + cc, d = result.depthM[j], g = w.groundM[j]
+                    guard d >= 0.01, !g.isNaN else { continue }
+                    best = max(best, Double(g + d - here))
+                }
+            }
+        }
+        return max(0, best) * Geo.ftPerM
     }
 
     static func build(_ f: DrainageField, hours: [Double], drainsWorking: Bool) -> DrainageMap {
@@ -173,9 +199,14 @@ struct RainEstimate {
     /// NOAA Atlas 14's heaviest hour of the 10- and 100-year storms, drains working.
     var year10: (inches: Double, ft: Double)?
     var year100: (inches: Double, ft: Double)?
+    /// NOAA Atlas 14's 24-hour 100- and 1000-year storms, drains working.
+    var day100: (inches: Double, ft: Double)?
+    var day1000: (inches: Double, ft: Double)?
+    /// The next 3 days of forecast rain, adding up: water standing here after each 12 hours, drains working.
+    var timeline: [(hours: Int, rainIn: Double, ft: Double)] = []
     let ponds: [DrainageMap.Pond]
 
-    static func make(_ c: CLLocationCoordinate2D, forecast: [Double], frequency: RainFrequency?) -> RainEstimate? {
+    static func make(_ c: CLLocationCoordinate2D, forecast: [Double], forecast72: [Double] = [], frequency: RainFrequency?) -> RainEstimate? {
         guard let f = DrainageField.near(c) else { return nil }
         let work = DrainageMap.build(f, hours: forecast, drainsWorking: true)
         let block = DrainageMap.build(f, hours: forecast, drainsWorking: false)
@@ -183,6 +214,15 @@ struct RainEstimate {
         var e = RainEstimate(forecastIn: forecast.reduce(0, +), workingFt: work.depthFt(c), blockedFt: block.depthFt(c), stressFt: stress.depthFt(c), ponds: block.ponds)
         if let i = frequency?.hour10 { e.year10 = (i, DrainageMap.build(f, hours: [i], drainsWorking: true).depthFt(c)) }
         if let i = frequency?.hour100 { e.year100 = (i, DrainageMap.build(f, hours: [i], drainsWorking: true).depthFt(c)) }
+        for (y, key) in [(100, \RainEstimate.day100), (1000, \RainEstimate.day1000)] {
+            if let h = frequency?.dayStorm(years: y) { e[keyPath: key] = (h.reduce(0, +), DrainageMap.build(f, hours: h, drainsWorking: true).depthFt(c)) }
+        }
+        if forecast72.reduce(0, +) >= 0.05 {
+            e.timeline = stride(from: 12, through: min(72, forecast72.count), by: 12).map { n in
+                let h = Array(forecast72.prefix(n))
+                return (n, h.reduce(0, +), DrainageMap.build(f, hours: h, drainsWorking: true).depthFt(c))
+            }
+        }
         return e
     }
 }

@@ -62,6 +62,12 @@ struct SpotReport {
     /// The nearest gauge within 15 km whose flood stages convert to elevations.
     var river: RiverFloodLevels?
     var fema: FEMAZone?
+    /// The highest crest NOAA lists for the river gauge in its current datum, as ft NAVD88.
+    var riverRecord: (navd88: Double, time: Date, olderHigher: [Date])?
+    /// NOAA's forecast peak in the next 3 days at the nearest forecast gauge (within 15 km).
+    var riverForecast: RiverForecast?
+    /// Its flood stages, for comparing the forecast.
+    var forecastStages: GaugeDetail?
     var gridName: String?
     var problems: [String] = []
 
@@ -220,6 +226,14 @@ struct SpotReport {
                 out.append(.init(id: "rain-10", label: "10-year storm, heaviest hour", detail: String(format: "%.2f in, NOAA Atlas 14 · Waterline estimate, drains working", y.inches),
                                  depthFt: d(y.ft), provenance: .derived, isStressTest: false))
             }
+            if let y = e.day100 {
+                out.append(.init(id: "rain-day100", label: "100-year storm, 24 hours", detail: String(format: "%.1f in, NOAA Atlas 14 · Waterline estimate, drains working", y.inches),
+                                 depthFt: d(y.ft), provenance: .derived, isStressTest: false))
+            }
+            if let y = e.day1000 {
+                out.append(.init(id: "rain-day1000", label: "Monster storm: 1000-year, 24 hours", detail: String(format: "%.1f in, NOAA Atlas 14 · Waterline estimate, drains working. A what-if, not a forecast.", y.inches),
+                                 depthFt: d(y.ft), provenance: .assumed, isStressTest: true))
+            }
             if let y = e.year100 {
                 out.append(.init(id: "rain-100", label: "100-year storm, heaviest hour", detail: String(format: "%.2f in, NOAA Atlas 14 · Waterline estimate, drains working", y.inches),
                                  depthFt: d(y.ft), provenance: .derived, isStressTest: false))
@@ -237,6 +251,14 @@ struct SpotReport {
             }
             out.append(.init(id: "river-major", label: "River at major flood stage", detail: "If a levee failed nearby · \(rv.gauge.name)",
                              depthFt: rv.majorNAVD88 > gNAVD ? rv.majorNAVD88 - gNAVD : nil, provenance: .assumed, isStressTest: false))
+            if let rec = riverRecord {
+                let y = Calendar.current.component(.year, from: rec.time)
+                let older = rec.olderHigher.map { String(Calendar.current.component(.year, from: $0)) }
+                let label = older.isEmpty ? "River at its record crest (\(y))" : "River at its \(y) crest"
+                let note = older.isEmpty ? "" : " Floods in \(older.joined(separator: ", ")) crested higher, but NOAA lists them in an older datum."
+                out.append(.init(id: "river-record", label: label, detail: String(format: "%.1f ft NAVD88 at %@, if a levee failed nearby. A what-if, not a forecast.", rec.navd88, rv.gauge.name) + note,
+                                 depthFt: rec.navd88 > gNAVD ? rec.navd88 - gNAVD : nil, provenance: .assumed, isStressTest: true))
+            }
         }
         if let s = surge {
             // NHC gives bands, so the water shown is the least depth the band promises.
@@ -277,6 +299,64 @@ struct SpotReport {
 
     static let day: DateFormatter = { let d = DateFormatter(); d.dateFormat = "EEE MMM d, h:mm a"; return d }()
 
+    /// The next 72 hours at this spot, one row per source.
+    struct Outlook {
+        struct Line { let label: String; let value: String; let prov: Provenance; let note: String }
+        var rows: [Line] = []
+        var reaches = false
+        var headline = ""
+    }
+
+    var next72: Outlook {
+        var o = Outlook()
+        var hits: [String] = []
+        if let r = rain {
+            o.rows.append(.init(label: "Rain", value: String(format: "%.2f in", r.next72In), prov: .official,
+                                note: "NWS forecast for the next 3 days, \(r.chance24Pct)% chance in the next 24 h"))
+        }
+        if let e = rainEstimate {
+            if let top = e.timeline.max(by: { $0.ft < $1.ft }), top.ft >= 0.05 {
+                o.rows.append(.init(label: "Rain water here", value: String(format: "%.1f ft", top.ft), prov: .derived,
+                                    note: String(format: "Waterline estimate after %d h (%.2f in), drains working. It assumes nothing drains away between showers.", top.hours, top.rainIn)))
+                if top.ft >= 0.25 { hits.append(String(format: "rain could stand %.1f ft deep here", top.ft)) }
+            } else {
+                o.rows.append(.init(label: "Rain water here", value: "None", prov: .derived, note: "Waterline estimate from the forecast, drains working"))
+            }
+        }
+        if let f = riverForecast {
+            var value = String(format: "%.1f ft", f.peak)
+            var note = "\(f.gauge.name) peaks \(Self.day.string(from: f.peakTime)) (NOAA forecast)"
+            if let s = forecastStages {
+                let stages: [(String, Double?)] = [("major", s.major), ("moderate", s.moderate), ("minor", s.minor), ("action", s.action)]
+                if let hit = stages.first(where: { $0.1.map { f.peak >= $0 } ?? false }) {
+                    value += " · \(hit.0)"
+                    hits.append("\(f.gauge.name) reaches \(hit.0) flood stage")
+                } else if let m = s.minor {
+                    note += String(format: ", %.1f ft below minor flood stage", m - f.peak)
+                }
+            }
+            if let rv = river, rv.gauge.id == f.gauge.id, let g = ground?.navd88Ft {
+                let d = f.peak + rv.datum - g
+                note += String(format: d > 0 ? ". That's %.1f ft above your ground, held back by levees and banks" : ". That's %.1f ft below your ground", abs(d))
+            }
+            o.rows.append(.init(label: "River", value: value, prov: .official, note: note))
+        }
+        if let t = tide, let reach = bayReachesMLLW {
+            let soon = t.highs.filter { $0.time < Date().addingTimeInterval(72 * 3600) }
+            if let h = soon.max(by: { $0.ft < $1.ft }) {
+                let level = h.ft + anomaly, m = reach - level
+                o.rows.append(.init(label: "Highest tide", value: String(format: "%.1f ft", level), prov: anomaly > 0.05 ? .derived : .official,
+                                    note: "\(Self.day.string(from: h.time)), \(t.stationName)" + (anomaly > 0.05 ? String(format: ", with today's +%.2f ft anomaly", anomaly) : "")
+                                        + (m < 0 ? String(format: ". It would reach this spot, %.1f ft deep", -m) : String(format: ". It stays %.1f ft below this spot", m))))
+                if m < 0 { hits.append("the tide reaches this spot") }
+            }
+        }
+        o.reaches = !hits.isEmpty
+        o.headline = hits.isEmpty ? "Nothing in the forecast reaches this spot." : hits.joined(separator: "; ").prefix(1).uppercased() + hits.joined(separator: "; ").dropFirst() + "."
+        if o.rows.isEmpty { o.headline = "No forecasts answered for this spot." }
+        return o
+    }
+
     // MARK: building
 
     static func build(at c: CLLocationCoordinate2D) async -> SpotReport {
@@ -306,7 +386,8 @@ struct SpotReport {
         r.frequency = await frequency
         if let hours = r.rain?.hourlyNext24In {
             let f = r.frequency
-            r.rainEstimate = await Task.detached(priority: .userInitiated) { RainEstimate.make(c, forecast: hours, frequency: f) }.value
+            let h72 = r.rain?.hourlyNext72In ?? []
+            r.rainEstimate = await Task.detached(priority: .userInitiated) { RainEstimate.make(c, forecast: hours, forecast72: h72, frequency: f) }.value
         }
         r.placeLabel = await label
         r.gauges = await gauges
@@ -317,6 +398,16 @@ struct SpotReport {
         async let sensors = Sensor.near(c, skipping: gaugeList)
         async let slr: SeaLevelRise? = stationID == nil ? nil : SeaLevelRise.load(station: stationID!)
         r.river = await RiverFloodLevels.load(r.gauges, near: c)
+        if let rv = r.river, let d = await GaugeDetail.load(rv.gauge.id), let top = d.topCrest {
+            r.riverRecord = (top.stage + rv.datum, top.time, d.olderHigher)
+        }
+        for g in r.gauges.prefix(4) where Geo.distance(c, g.coordinate) < 15_000 {
+            if let f = await RiverForecast.load(g) {
+                r.riverForecast = f
+                r.forecastStages = await GaugeDetail.load(g.id)
+                break
+            }
+        }
         r.sensors = await sensors
         r.slr = await slr
         // Higher ground: dry for this month's highest tide + anomaly + a 2 ft storm, and above the

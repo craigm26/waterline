@@ -66,17 +66,28 @@ struct LidarScene: Identifiable, Hashable {
 struct LidarSceneView: View {
     let scene: LidarScene
     var presets: [(String, Double)] = []
+    var report: SpotReport? = nil
+    @AppStorage(Layer.storageKey) private var layersOff = Layer.defaultOff
+    @AppStorage("storm") private var storm: StormCase = .next24
+    @AppStorage("drainsWorking") private var drainsWorking = true
+    @State private var rainMap: DrainageMap?
+    @State private var picked: POI?
     @State private var levelFt = 7.71            // NOS minor flood, ft MLLW at 9414290 (SF); set on load elsewhere
     @State private var loaded: Loaded?
     @State private var failed = false
 
-    struct Loaded { let scn: SCNScene; let water: SCNNode; let groundZ: [Float] }
+    struct Loaded {
+        let scn: SCNScene; let water: SCNNode; let groundZ: [Float]
+        /// Mean ground height on a 4 m grid, keyed by local cell, and the scene's centre in local metres.
+        let groundGrid: [Int: Float]; let centerX: Float; let centerZ: Float; let halfM: Double
+    }
+    private static func cell(_ x: Float, _ z: Float) -> Int { Int((x / 4).rounded(.down)) &* 100_003 &+ Int((z / 4).rounded(.down)) }
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
                 if let l = loaded {
-                    SceneView(scene: l.scn, options: [.allowsCameraControl, .autoenablesDefaultLighting])
+                    SceneHost(scene: l.scn) { id in picked = pois.first { $0.id == id } }
                 } else if failed {
                     Text("Couldn't read this scene.").foregroundStyle(.secondary)
                 } else {
@@ -100,6 +111,9 @@ struct LidarSceneView: View {
                         }
                     }
                 }
+                if loaded != nil, !Layer.off(layersOff).contains(.rainWater) {
+                    StormControls(note: rainMap == nil ? "Rain water needs this place's ground grid: download Ground and bowls, 10 m, in Offline data." : rainMap.map { String(format: "%.2f in of rain · Waterline estimate, assumed runoff and drains", $0.rainIn) })
+                }
                 if let n = scene.groundNote { Text("Tan points: \(n).").font(.caption2).foregroundStyle(.orange) }
                 Text("USGS 3DEP lidar\(scene.isSF ? ", 2023" : scene.survey.map { " (\($0))" } ?? ""). Points: tan = ground, blue = water, grey = buildings and everything else. A bathtub view of this block: it ignores where water can actually get in. The Here tab has the overland answer.")
                     .font(.caption2).foregroundStyle(.secondary)
@@ -108,10 +122,49 @@ struct LidarSceneView: View {
         }
         .navigationTitle(scene.title)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await load() }
+        .toolbar { LayerMenu(only: [.rainWater, .rivers, .tide, .streetSensors, .floodZones, .levees, .pumps, .drains, .reports, .lowSpots, .higherGround]) }
+        .sheet(item: $picked) { p in POIDetail(poi: p, report: report).presentationDetents([.medium, .large]) }
+        .task { await load(); await refreshWater(); drawLayers() }
+        .onChange(of: layersOff) { _, _ in Task { await refreshWater(); drawLayers() } }
+        .onChange(of: storm) { _, _ in Task { await refreshWater(); drawLayers() } }
+        .onChange(of: drainsWorking) { _, _ in Task { await refreshWater(); drawLayers() } }
         .onChange(of: levelFt) { _, v in
             if let w = loaded?.water { w.position.y = Float((v + datumFt) / Geo.ftPerM) }   // to m NAVD88
         }
+    }
+
+    /// Markers for this scene: the report's when it's for this place, plus the place's own drains and low spots.
+    private var pois: [POI] {
+        guard let c = scene.coordinate else { return [] }
+        var out = (report?.pois ?? []).filter { Geo.distance($0.coordinate, c) < 600 }
+        if let p = Places.covering(c) {
+            let have = Set(out.map(\.id))
+            out += SpotReport.layerPOIs(p, at: c).filter { !have.contains($0.id) && Geo.distance($0.coordinate, c) < 600 }
+        }
+        return out
+    }
+
+    private func frame(_ l: Loaded) -> GeoFrame? {
+        guard let c = scene.coordinate else { return nil }
+        return GeoFrame(center: c, halfM: l.halfM, rotation: GeoFrame.utmConvergence(c), offset: (l.centerX, l.centerZ))
+    }
+
+    private func refreshWater() async {
+        guard let c = scene.coordinate, !Layer.off(layersOff).contains(.rainWater) else { rainMap = nil; return }
+        let s = storm, w = drainsWorking
+        let hours = await RainSeries.load(c).hours(s)
+        rainMap = await Task.detached(priority: .userInitiated) { DrainageField.near(c).map { DrainageMap.build($0, hours: hours, drainsWorking: w) } }.value
+    }
+
+    private func drawLayers() {
+        guard let l = loaded, let f = frame(l), let c = scene.coordinate else { return }
+        l.scn.rootNode.childNodes.filter { $0.name == SceneLayers.rootName }.forEach { $0.removeFromParentNode() }
+        let grid = l.groundGrid
+        let ground: (Float, Float) -> Float? = { x, z in
+            for dx in [0, -1, 1] { for dz in [0, -1, 1] { if let g = grid[Self.cell(x + Float(dx) * 4, z + Float(dz) * 4)] { return g } } }
+            return nil
+        }
+        l.scn.rootNode.addChildNode(SceneLayers.build(frame: f, ground: ground, off: Layer.off(layersOff), pois: pois, places: Places.covering(c), water: rainMap))
     }
 
     static let thresholds: [(String, Double)] = [("NWS minor 7.0", 7.04), ("NOS minor 7.7", 7.71), ("NOS moderate 8.6", 8.64), ("NOS major 9.9", 9.91)]
@@ -133,6 +186,7 @@ struct LidarSceneView: View {
             guard let d = try? Data(contentsOf: url, options: .mappedIfSafe), d.count % 14 == 0 else { return nil }
             let n = d.count / 14
             var verts = [SCNVector3](), colors = [Float](), ground = [Float]()
+            var gsum: [Int: (Float, Int)] = [:]
             verts.reserveCapacity(n); colors.reserveCapacity(n * 3)
             var minX = Float.infinity, maxX = -Float.infinity, minY = Float.infinity, maxY = -Float.infinity, minZ = Float.infinity
             d.withUnsafeBytes { (b: UnsafeRawBufferPointer) in
@@ -146,7 +200,9 @@ struct LidarSceneView: View {
                     verts.append(SCNVector3(x, z, -y))           // SceneKit is y-up
                     let rgb: (Float, Float, Float)
                     switch cls {
-                    case 2: rgb = (0.78, 0.66, 0.48); ground.append(z)
+                    case 2:
+                        rgb = (0.78, 0.66, 0.48); ground.append(z)
+                        let k = Self.cell(x, -y); let e = gsum[k] ?? (0, 0); gsum[k] = (e.0 + z, e.1 + 1)
                     case 9: rgb = (0.20, 0.45, 0.85)
                     default:
                         let g = 0.35 + 0.5 * Float(b[o + 13]) / 255
@@ -186,7 +242,9 @@ struct LidarSceneView: View {
             cam.position = SCNVector3((minX + maxX) / 2, minZ + span * 0.6, -(minY + maxY) / 2 + span * 0.9)
             cam.look(at: SCNVector3((minX + maxX) / 2, minZ, -(minY + maxY) / 2))
             scn.rootNode.addChildNode(cam)
-            return Loaded(scn: scn, water: water, groundZ: ground)
+            let grid = gsum.mapValues { $0.0 / Float($0.1) }
+            return Loaded(scn: scn, water: water, groundZ: ground, groundGrid: grid, centerX: (minX + maxX) / 2, centerZ: -(minY + maxY) / 2,
+                          halfM: Double(max(maxX - minX, maxY - minY)) / 2)
         }.value
         if let r = result { loaded = r } else { failed = true }
     }
@@ -260,7 +318,7 @@ struct DataPacksView: View {
                     }
                 }
                 ForEach(scenes) { s in
-                    NavigationLink(s.title) { LidarSceneView(scene: s, presets: s.isSF ? presets : []) }
+                    NavigationLink(s.title) { LidarSceneView(scene: s, presets: s.isSF ? presets : [], report: model.report) }
                 }
             } label: {
                 VStack(alignment: .leading, spacing: 2) {

@@ -69,6 +69,8 @@ struct GaugeDetail {
     var forecastTime: Date?
     /// Highest crest NOAA lists in the gauge's current datum. Older crests can be in another datum.
     var topCrest: (stage: Double, time: Date)?
+    /// Higher crests NOAA lists only in an older datum, which can't be compared directly.
+    var olderHigher: [Date] = []
     var impacts: [Impact] = []
     var photo: URL?
     var photoCaption: String?
@@ -103,6 +105,12 @@ struct GaugeDetail {
             guard c.olddatum != true, let s = v(c.stage), let t = c.occurredTime.flatMap(iso.date) else { return nil }
             return (s, t)
         }.max { $0.stage < $1.stage }
+        if let top = d.topCrest {
+            d.olderHigher = crests.compactMap { c -> Date? in
+                guard c.olddatum == true, let s = v(c.stage), s > top.stage, let t = c.occurredTime.flatMap(iso.date) else { return nil }
+                return t
+            }.sorted()
+        }
         d.impacts = (r.flood?.impacts ?? []).compactMap { i in
             guard let s = v(i.stage), let t = i.statement, !t.isEmpty else { return nil }
             return Impact(stage: s, statement: t)
@@ -113,6 +121,28 @@ struct GaugeDetail {
     }
 }
 
+/// NOAA's river forecast at a gauge: the highest stage in the next `hours`.
+struct RiverForecast {
+    let gauge: RiverGauge
+    let peak: Double
+    let peakTime: Date
+    let issued: Date?
+
+    private struct Resp: Decodable { struct D: Decodable { let validTime: String; let primary: Double? }; let issuedTime: String?; let data: [D]?; let primaryUnits: String? }
+
+    static func load(_ g: RiverGauge, hours: Double = 72) async -> RiverForecast? {
+        guard let r: Resp = try? await Net.json(URL(string: "https://api.water.noaa.gov/nwps/v1/gauges/\(g.id.lowercased())/stageflow/forecast")!),
+              (r.primaryUnits ?? "ft") == "ft" else { return nil }
+        let iso = ISO8601DateFormatter(), now = Date(), end = now.addingTimeInterval(hours * 3600)
+        let pts = (r.data ?? []).compactMap { d -> (Double, Date)? in
+            guard let v = d.primary, v > -900, let t = iso.date(from: d.validTime), t >= now.addingTimeInterval(-3600), t <= end else { return nil }
+            return (v, t)
+        }
+        guard let top = pts.max(by: { $0.0 < $1.0 }) else { return nil }
+        return RiverForecast(gauge: g, peak: top.0, peakTime: top.1, issued: r.issuedTime.flatMap(iso.date))
+    }
+}
+
 /// One gauge's flood stages as elevations (ft NAVD88), when its datum checks out.
 struct RiverFloodLevels {
     let gauge: RiverGauge
@@ -120,6 +150,8 @@ struct RiverFloodLevels {
     let minorNAVD88: Double
     let majorNAVD88: Double
     let observedNAVD88: Double?
+    /// Stage + datum = ft NAVD88.
+    let datum: Double
 
     private struct Detail: Decodable {
         struct Flood: Decodable {
@@ -152,7 +184,7 @@ struct RiverFloodLevels {
             let minorElev = datum + minor
             if let groundAtGauge = await GroundElevation.load(g.coordinate)?.navd88Ft, abs(minorElev - groundAtGauge) > 40 { continue }
             return RiverFloodLevels(gauge: g, km: km, minorNAVD88: minorElev, majorNAVD88: datum + major,
-                                    observedNAVD88: g.observed.map { datum + $0 })
+                                    observedNAVD88: g.observed.map { datum + $0 }, datum: datum)
         }
         return nil
     }

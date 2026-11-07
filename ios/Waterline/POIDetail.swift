@@ -143,7 +143,7 @@ struct POIDetailBody: View {
     private var actions: some View {
         Section {
             if let s = poi.scene {
-                NavigationLink { LidarSceneView(scene: s) } label: { Label("Open the 3D lidar view", systemImage: "cube.transparent") }
+                NavigationLink { LidarSceneView(scene: s, report: report) } label: { Label("Open the 3D lidar view", systemImage: "cube.transparent") }
             }
             Button {
                 model.pin(poi.coordinate)
