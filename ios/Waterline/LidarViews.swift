@@ -13,11 +13,12 @@ struct LidarScene: Identifiable, Hashable {
     var isSF: Bool { pack == "sf-lidar-scenes" }
     var groundFt: ClosedRange<Double>? = nil
     var survey: String? = nil
+    var groundNote: String? = nil
 
     static func == (a: LidarScene, b: LidarScene) -> Bool { a.id == b.id }
     func hash(into h: inout Hasher) { h.combine(id) }
 
-    private struct Meta: Decodable { let title: String; let lon: Double; let lat: Double; let ground_p5_m: Double; let ground_p50_m: Double; let survey: String? }
+    private struct Meta: Decodable { let title: String; let lon: Double; let lat: Double; let ground_p5_m: Double; let ground_p50_m: Double; let survey: String?; let ground_note: String? }
     private static var cache: [LidarScene]?
     private static let lock = NSLock()
     static func reload() { lock.lock(); cache = nil; lock.unlock() }
@@ -47,7 +48,7 @@ struct LidarScene: Identifiable, Hashable {
                 } else if let d = try? Data(contentsOf: dir.appendingPathComponent(stem + ".json")), let m = try? JSONDecoder().decode(Meta.self, from: d) {
                     let lo = (m.ground_p5_m * Geo.ftPerM).rounded(.down) - 2, mid = (m.ground_p50_m * Geo.ftPerM).rounded(.up)
                     out.append(LidarScene(id: stem, pack: pack, title: m.title, coordinate: .init(latitude: m.lat, longitude: m.lon),
-                                          groundFt: lo...max(mid + 15, lo + 5), survey: m.survey))
+                                          groundFt: lo...max(mid + 15, lo + 5), survey: m.survey, groundNote: m.ground_note))
                 }
             }
         }
@@ -99,6 +100,7 @@ struct LidarSceneView: View {
                         }
                     }
                 }
+                if let n = scene.groundNote { Text("Tan points: \(n).").font(.caption2).foregroundStyle(.orange) }
                 Text("USGS 3DEP lidar\(scene.isSF ? ", 2023" : scene.survey.map { " (\($0))" } ?? ""). Points: tan = ground, blue = water, grey = buildings and everything else. A bathtub view of this block: it ignores where water can actually get in. The Here tab has the overland answer.")
                     .font(.caption2).foregroundStyle(.secondary)
             }

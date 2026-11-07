@@ -76,3 +76,15 @@ ssh $SSHOPTS $MAC 'cd waterline-ios && KEYCHAIN_PASSWORD=$(cat) ./archive_upload
 ```
 
 Bump `CURRENT_PROJECT_VERSION` in `project.yml` before every upload. Uploads are capped at about 20 per version per day, so batch changes into one upload per session.
+
+## Region packs and live data
+
+`packs/manifest.json` has `groups` (one per place) and every pack names its `group`. An older build ignores both and shows a flat list.
+
+A place's layers come from the bundle (SF), a downloaded layers pack, or `LiveLayers`, which reads FEMA and USACE and caches 0.1 degree cells. City drains and requests come from the feeds in the group's `live` block and are cached in 0.02 degree cells for a week. A rate limit isn't cached, so a city is never recorded as empty because it was busy.
+
+Rebuild on the Mac, not the Pi:
+
+```bash
+ssh $SSHOPTS $MAC 'cd ~/waterline-build && .venv/bin/python -u scripts/build_region_packs.py scenes dem ground manifest'
+```

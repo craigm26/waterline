@@ -3,7 +3,7 @@ everything streams from the public sources, and only the results are kept. Every
 what's already built, so an interrupted run just continues.
 
   ground   <id>_ground_1m.bin   1 m ground for land at or below 30 ft NAVD88, same layout as sf_ground_1m.bin
-  scenes   <scene>.bin/.json    point clouds of a landmark and the top 5 low spots, for the app's 3D view
+  scenes   <scene>.bin/.json    point clouds of a landmark and 5 low spots with lidar, for the app's 3D view
            <scene>.laz          the same points as LAZ
   dem      <id>_dem_10m.tif     citywide 10 m DEM; <scene>_dem_1m.tif for the landmark and top low spot
   manifest                      packs/manifest.json: one group per place, every pack tagged with its group
@@ -22,11 +22,12 @@ OUT = ROOT / "dist/regions"
 REL = "https://github.com/craigm26/waterline/releases/download/packs-v1"
 UA = {"User-Agent": "waterline-data-build (https://github.com/craigm26/waterline)"}
 TILE = 500
+DT = [("x", "<f4"), ("y", "<f4"), ("z", "<f4"), ("c", "u1"), ("i", "u1")]
 LOW_NAVD_M = 30 / 3.28084
 EPT_INDEX = "https://raw.githubusercontent.com/hobu/usgs-lidar/master/boundaries/resources.geojson"
 USGS_DOWNLOADER = "https://apps.nationalmap.gov/downloader/"
 GDAL = dict(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif",
-            GDAL_HTTP_MAX_RETRY="5", GDAL_HTTP_RETRY_DELAY="3", GDAL_CACHEMAX="256", VSI_CACHE="TRUE")
+            GDAL_HTTP_MAX_RETRY="5", GDAL_HTTP_RETRY_DELAY="3", VSI_CACHE="TRUE")
 
 
 def get(url, timeout=120, tries=5):
@@ -255,20 +256,44 @@ def scene_list(r):
     lay = json.loads((OUT / f"{r['id']}_layers.json").read_text())
     lm = r["landmark"]
     out = [{"stem": f"{r['id']}_landmark", "title": lm["name"], "lon": lm["lon"], "lat": lm["lat"]}]
-    for s in lay["hotspots"][:5]:
+    for s in lay["hotspots"]:
         out.append({"stem": f"{r['id']}_ls{s['rank']:02d}", "title": f"Low spot #{s['rank']}: {s['name']}", "lon": s["lon"], "lat": s["lat"]})
     return out
+
+
+def settle(e, n, z, c, grid, h):
+    """Check a scene's heights against the DEM, point by point. A survey on another vertical datum
+    gets a constant shift. A survey whose ground label can't be trusted (New York's labels roofs and
+    piers as ground) gets relabelled: ground = within 0.5 m of the DEM. Block-wide medians can't
+    do this job, because the crop and the grid cover different mixes of street, river and levee."""
+    cc = ((e - h["x0"]) / h["res_m"]).astype(int); rr = ((h["y0"] - n) / h["res_m"]).astype(int)
+    ok = (rr >= 0) & (rr < h["rows"]) & (cc >= 0) & (cc < h["cols"])
+    ref = np.full(len(z), np.nan, "float64"); ref[ok] = grid[rr[ok], cc[ok]]
+    d = (ref - z)[c == 2]; d = d[~np.isnan(d)]
+    if len(d) < 200:
+        return z, c, 0.0, None, False
+    med = float(np.median(d)); iqr = float(np.subtract(*np.percentile(d, [75, 25])))
+    if iqr <= 1.5:
+        return (z + med, c, round(med, 2), None, True) if abs(med) >= 0.5 else (z, c, 0.0, None, True)
+    c = c.copy()
+    c[c == 2] = 1
+    c[np.abs(ref - z) <= 0.5] = 2
+    return z, c, 0.0, f"ground relabelled against the USGS DEM (survey labels spread {iqr:.0f} m)", int((c == 2).sum()) >= 500
 
 
 def scenes(r, index):
     from pyproj import Transformer
     z, h = read_grid(r["id"])
-    for s in scene_list(r):
+    tr = Transformer.from_crs(3857, r["epsg"], always_xy=True)
+    built = 0
+    for s in scene_list(r):     # a low spot outside the lidar index gives way to the next one
+        if built >= 6:
+            break
         bin_p = OUT / f"{s['stem']}.bin"
         if bin_p.exists():
+            built += 1
             continue
-        ref = grid_ground(z, h, r["epsg"], s["lon"], s["lat"])
-        las, used, shift = None, None, 0.0
+        las, used, shift, note, arr_z, arr_c, e, nn, keep = None, None, 0.0, None, None, None, None, None, None
         for year, count, name, url in ept_candidates(s["lon"], s["lat"], index):
             try:
                 c = fetch_points(url, s["lon"], s["lat"], 180)
@@ -276,37 +301,59 @@ def scenes(r, index):
                 print(f"  {s['stem']}: {name} failed: {ex}", flush=True); continue
             if c is None or len(c.points) < 20_000:
                 continue
-            g = np.asarray(c.z)[np.asarray(c.classification) == 2]
-            if len(g) < 500:
-                continue
-            if ref is not None and abs(float(np.median(g)) - ref) > 60:
-                print(f"  {s['stem']}: {name} ground {np.median(g):.1f} m vs grid {ref:.1f}: skipped", flush=True); continue
-            las, used = c, name
-            shift = 0.0 if ref is None or abs(float(np.median(g)) - ref) < 1.0 else ref - float(np.median(g))
-            break
+            n = len(c.points)
+            keep = np.sort(np.random.default_rng(1).choice(n, 330_000, replace=False)) if n > 330_000 else np.arange(n)
+            e, nn = tr.transform(np.asarray(c.x)[keep], np.asarray(c.y)[keep])
+            arr_z, arr_c, shift, note, good = settle(e, nn, np.asarray(c.z, "float64")[keep], np.asarray(c.classification, "uint8")[keep], z, h)
+            if good:
+                las, used = c, name
+                break
         if las is None:
-            print(f"  {s['stem']}: NO LIDAR", flush=True); continue
-        n = len(las.points)
-        keep = np.sort(np.random.default_rng(1).choice(n, 330_000, replace=False)) if n > 330_000 else np.arange(n)
-        xs, ys = np.asarray(las.x)[keep], np.asarray(las.y)[keep]
-        e, nn = Transformer.from_crs(3857, r["epsg"], always_xy=True).transform(xs, ys)
-        zz = np.asarray(las.z, "float64")[keep] + shift
-        cl = np.asarray(las.classification, "uint8")[keep]
+            print(f"  {s['stem']}: no usable lidar", flush=True); continue
         it = np.asarray(las.intensity, "float64")[keep]
         o = (float(np.floor(e.mean())), float(np.floor(nn.mean())))
         hi = np.percentile(it, 99) or 1
-        arr = np.zeros(len(e), dtype=[("x", "<f4"), ("y", "<f4"), ("z", "<f4"), ("c", "u1"), ("i", "u1")])
-        arr["x"], arr["y"], arr["z"], arr["c"], arr["i"] = e - o[0], nn - o[1], zz, cl, np.clip(it / hi * 255, 0, 255).astype("u1")
-        gz = zz[cl == 2]
+        arr = np.zeros(len(e), dtype=DT)
+        arr["x"], arr["y"], arr["z"], arr["c"], arr["i"] = e - o[0], nn - o[1], arr_z, arr_c, np.clip(it / hi * 255, 0, 255).astype("u1")
+        gz = arr_z[arr_c == 2]
         meta = {"title": s["title"], "lon": s["lon"], "lat": s["lat"], "points": int(len(e)), "stride_bytes": 14,
                 "layout": "float32 x,y,z (m) | uint8 class | uint8 intensity (0-255, p99-scaled)", "origin_utm": o, "zone": r["epsg"] - 26900,
                 "z": "metres NAVD88 (USGS 3DEP)", "ground_p5_m": round(float(np.percentile(gz, 5)), 2), "ground_p50_m": round(float(np.median(gz)), 2),
-                "z_shift_m": round(shift, 2), "survey": used, "source": f"USGS 3DEP {used} via AWS EPT", "provenance": "official"}
+                "z_shift_m": shift, "ground_note": note, "survey": used, "source": f"USGS 3DEP {used} via AWS EPT", "provenance": "official"}
         las.points = las.points[keep]
         las.write(str(OUT / f"{s['stem']}.laz"))
         (OUT / f"{s['stem']}.json").write_text(json.dumps(meta, indent=1))
         bin_p.write_bytes(arr.tobytes())   # last, so a partly written scene is rebuilt
-        print(f"  {s['stem']}: {len(e):,} pts, {used}, z shift {shift:+.2f} m, ground {np.median(gz) * 3.28084:.1f} ft vs grid {(ref or 0) * 3.28084:.1f}", flush=True)
+        built += 1
+        print(f"  {s['stem']}: {len(e):,} pts, {used}, z shift {shift:+.2f} m, {note or 'survey ground labels kept'}", flush=True)
+    print(f"  {r['id']}: {built} scenes", flush=True)
+
+
+def fix_heights(r):
+    """Redo the height check on built scenes without downloading them again."""
+    z, h = read_grid(r["id"])
+    for s in scene_list(r):
+        bin_p = OUT / f"{s['stem']}.bin"
+        if not bin_p.exists():
+            continue
+        m = json.loads((OUT / f"{s['stem']}.json").read_text())
+        if "ground_note" in m:
+            continue
+        a = np.fromfile(bin_p, DT); o = m["origin_utm"]
+        raw = a["z"].astype("float64") - m["z_shift_m"]
+        zz, cc, shift, note, good = settle(a["x"].astype("float64") + o[0], a["y"].astype("float64") + o[1], raw, a["c"].copy(), z, h)
+        if not good:
+            print(f"  {s['stem']}: failed the height check, removing", flush=True)
+            for ext in (".bin", ".json", ".laz"):
+                if (OUT / f"{s['stem']}{ext}").exists():
+                    (OUT / f"{s['stem']}{ext}").unlink()
+            continue
+        a["z"], a["c"] = zz, cc
+        gz = zz[cc == 2]
+        m.update(z_shift_m=shift, ground_note=note, ground_p5_m=round(float(np.percentile(gz, 5)), 2), ground_p50_m=round(float(np.median(gz)), 2))
+        a.tofile(bin_p)
+        (OUT / f"{s['stem']}.json").write_text(json.dumps(m, indent=1))
+        print(f"  {s['stem']}: z shift {shift:+.2f}, {note or 'labels kept'}", flush=True)
 
 
 # ---- GeoTIFFs ---------------------------------------------------------------------------------
@@ -372,17 +419,17 @@ def manifest(regions):
         items = dem_items(r)
         groups.append({"id": rid, "name": r["name"], "state": r["state"], "bbox": r["bbox"], "hazards": r["hazards"], "why": r["why"], "caveat": r.get("caveat"), "live": city.get(rid),
                        "usgs_1m": {"url": USGS_DOWNLOADER, "tiles": len(items), "bytes": sum(i["bytes"] for i in items)}})
-        stems = [s["stem"] for s in scene_list(r)]
+        stems = [s["stem"] for s in scene_list(r) if (OUT / f"{s['stem']}.bin").exists()]
         lay = json.loads((OUT / f"{rid}_layers.json").read_text())
         have = "FEMA flood zones, levees and floodwalls, and mapped low spots"
         add(r, f"{rid}-layers", "layers", "Map and AR layers", f"{have}. Shows on the Map and as tags in the camera view. City drains and service requests load live when you're online.",
             [f"{rid}_layers.json"], "FEMA, USACE and city open data; names (c) OpenStreetMap contributors")
         add(r, f"{rid}-ground-1m", "ground1m", "Ground, 1 m lidar (low-lying areas)", "Ground height to the inch, offline, for land at or below 30 ft. The app uses it in place of the 10 m grid.", [f"{rid}_ground_1m.bin"])
-        add(r, f"{rid}-scenes", "scenes", f"Lidar point clouds: {r['landmark']['name']} + 5 low spots", "Open them in the app to orbit the block and raise the water.",
+        add(r, f"{rid}-scenes", "scenes", f"Lidar point clouds: {r['landmark']['name']} + {len(stems) - 1} low spots", "Open them in the app to orbit the block and raise the water.",
             [f"{s}.{e}" for s in stems for e in ("bin", "json")])
         add(r, f"{rid}-laz", "raw", "Raw lidar (LAZ)", "The same places as standard LAZ point clouds, for any lidar app. Saved to Files › On My iPhone › Waterline.", [f"{s}.laz" for s in stems])
         add(r, f"{rid}-dem", "raw", "Elevation models (GeoTIFF)", "10 m citywide DEM, plus 1 m DEMs of the landmark and top low spot. Heights are NAVD88.",
-            [f"{rid}_dem_10m.tif"] + [f"{s}_dem_1m.tif" for s in stems[:2]])
+            [f"{rid}_dem_10m.tif"] + [f"{s['stem']}_dem_1m.tif" for s in scene_list(r)[:2]])
     m["groups"] = groups
     mp.write_text(json.dumps(m, indent=1))
     print(f"manifest: {len(groups)} groups, {len(m['packs'])} packs, {sum(p['total_bytes'] for p in m['packs']) / 1e9:.2f} GB")
@@ -390,7 +437,7 @@ def manifest(regions):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("steps", nargs="+", choices=["ground", "scenes", "dem", "manifest"])
+    ap.add_argument("steps", nargs="+", choices=["ground", "scenes", "fix", "dem", "manifest"])
     ap.add_argument("--only", nargs="*")
     ap.add_argument("--workers", type=int, default=6)
     a = ap.parse_args()
@@ -403,7 +450,7 @@ def main():
         for r in todo:
             print(f"== {s} {r['id']}", flush=True)
             try:
-                {"ground": lambda: ground(r, a.workers), "scenes": lambda: scenes(r, index), "dem": lambda: dem(r)}[s]()
+                {"ground": lambda: ground(r, a.workers), "scenes": lambda: scenes(r, index), "fix": lambda: fix_heights(r), "dem": lambda: dem(r)}[s]()
             except Exception as ex:      # one region's failure shouldn't stop the rest; a rerun retries it
                 print(f"FAILED {s} {r['id']}: {ex!r}", flush=True)
 

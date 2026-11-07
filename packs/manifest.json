@@ -18,7 +18,9 @@
    ],
    "total_bytes": 44801243,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)",
+   "group": "san-francisco",
+   "label": "Ground, 1 m lidar (low-lying areas)"
   },
   {
    "id": "sf-lidar-scenes",
@@ -102,7 +104,9 @@
    ],
    "total_bytes": 26386376,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)",
+   "group": "san-francisco",
+   "label": "Lidar point clouds: Ferry Building + 5 low spots"
   },
   {
    "id": "raw-laz",
@@ -168,7 +172,9 @@
    ],
    "total_bytes": 22096136,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)",
+   "group": "san-francisco",
+   "label": "Raw lidar (LAZ)"
   },
   {
    "id": "raw-dem",
@@ -198,7 +204,9 @@
    ],
    "total_bytes": 19310180,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)",
+   "group": "san-francisco",
+   "label": "Elevation models (GeoTIFF)"
   },
   {
    "id": "raw-dem-1m",
@@ -234,7 +242,9 @@
    ],
    "total_bytes": 522934626,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_packs.py)",
+   "group": "san-francisco",
+   "label": "Citywide 1 m DEM tiles"
   },
   {
    "id": "region-sacramento",
@@ -263,7 +273,9 @@
    ],
    "total_bytes": 13697411,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)",
+   "group": "sacramento",
+   "label": "Ground and bowls, 10 m"
   },
   {
    "id": "region-new-orleans",
@@ -292,7 +304,9 @@
    ],
    "total_bytes": 7505381,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)",
+   "group": "new-orleans",
+   "label": "Ground and bowls, 10 m"
   },
   {
    "id": "region-miami",
@@ -321,7 +335,9 @@
    ],
    "total_bytes": 5533925,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)",
+   "group": "miami",
+   "label": "Ground and bowls, 10 m"
   },
   {
    "id": "region-norfolk",
@@ -350,7 +366,9 @@
    ],
    "total_bytes": 3101596,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)",
+   "group": "norfolk",
+   "label": "Ground and bowls, 10 m"
   },
   {
    "id": "region-charleston",
@@ -379,7 +397,9 @@
    ],
    "total_bytes": 3136918,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)",
+   "group": "charleston",
+   "label": "Ground and bowls, 10 m"
   },
   {
    "id": "region-houston",
@@ -407,7 +427,9 @@
    ],
    "total_bytes": 15910915,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)",
+   "group": "houston",
+   "label": "Ground and bowls, 10 m"
   },
   {
    "id": "region-nyc",
@@ -436,7 +458,9 @@
    ],
    "total_bytes": 4473051,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)",
+   "group": "nyc",
+   "label": "Ground and bowls, 10 m"
   },
   {
    "id": "region-boston",
@@ -464,7 +488,2216 @@
    ],
    "total_bytes": 1469987,
    "license": "Public domain (USGS 3DEP)",
-   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)"
+   "source": "https://github.com/craigm26/waterline (scripts/build_regions.py)",
+   "group": "boston",
+   "label": "Ground and bowls, 10 m"
+  },
+  {
+   "id": "sacramento-layers",
+   "kind": "layers",
+   "version": 1,
+   "group": "sacramento",
+   "label": "Map and AR layers",
+   "title": "Sacramento: Map and AR layers",
+   "summary": "FEMA flood zones, levees and floodwalls, and mapped low spots. Shows on the Map and as tags in the camera view. City drains and service requests load live when you're online.",
+   "bbox": [
+    -121.62,
+    38.43,
+    -121.36,
+    38.72
+   ],
+   "files": [
+    {
+     "name": "sacramento_layers.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_layers.json",
+     "bytes": 351807,
+     "sha256": "b3d9d760cf72e0991a46cf6fc011882f129c0b63452de3667798360f8f931927"
+    }
+   ],
+   "total_bytes": 351807,
+   "license": "FEMA, USACE and city open data; names (c) OpenStreetMap contributors",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "sacramento-ground-1m",
+   "kind": "ground1m",
+   "version": 1,
+   "group": "sacramento",
+   "label": "Ground, 1 m lidar (low-lying areas)",
+   "title": "Sacramento: Ground, 1 m lidar (low-lying areas)",
+   "summary": "Ground height to the inch, offline, for land at or below 30 ft. The app uses it in place of the 10 m grid.",
+   "bbox": [
+    -121.62,
+    38.43,
+    -121.36,
+    38.72
+   ],
+   "files": [
+    {
+     "name": "sacramento_ground_1m.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ground_1m.bin",
+     "bytes": 376138894,
+     "sha256": "36cbab85eda8fea0809cf9af2f6e7530714f87bcb854d559b103c806ad861fe3"
+    }
+   ],
+   "total_bytes": 376138894,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "sacramento-scenes",
+   "kind": "scenes",
+   "version": 1,
+   "group": "sacramento",
+   "label": "Lidar point clouds: Old Sacramento waterfront + 5 low spots",
+   "title": "Sacramento: Lidar point clouds: Old Sacramento waterfront + 5 low spots",
+   "summary": "Open them in the app to orbit the block and raise the water.",
+   "bbox": [
+    -121.62,
+    38.43,
+    -121.36,
+    38.72
+   ],
+   "files": [
+    {
+     "name": "sacramento_landmark.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_landmark.bin",
+     "bytes": 4620000,
+     "sha256": "9e2294d14bd2038d6aa00acba276a4d1d98f7dd030865e1197728b07e9ca2f8d"
+    },
+    {
+     "name": "sacramento_landmark.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_landmark.json",
+     "bytes": 530,
+     "sha256": "e11e26a37459edb06e48116fb114e3b8443f4c1c444085312d42c2dc32fca0bc"
+    },
+    {
+     "name": "sacramento_ls01.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls01.bin",
+     "bytes": 4620000,
+     "sha256": "cd6d7a599c301d135e37dad45cc67543dcea6480f208572522c1bcf2ef320dc6"
+    },
+    {
+     "name": "sacramento_ls01.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls01.json",
+     "bytes": 533,
+     "sha256": "a81f12ef7a922991ba4255b0c5c34d34ff08e22617cf3f39a02723f27e310a11"
+    },
+    {
+     "name": "sacramento_ls02.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls02.bin",
+     "bytes": 4620000,
+     "sha256": "621a4f54ad6af11b67a6592eab219fbc242efcf453db8e268e01cda1bc437809"
+    },
+    {
+     "name": "sacramento_ls02.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls02.json",
+     "bytes": 542,
+     "sha256": "13c6adddc0a65c5957bfc80164346799614650f54847eef6e92415d2997b92f3"
+    },
+    {
+     "name": "sacramento_ls03.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls03.bin",
+     "bytes": 4620000,
+     "sha256": "4398e24e0cde428428e7cfa09c30d00e48b03d0338b9d1800385d6a2610335b6"
+    },
+    {
+     "name": "sacramento_ls03.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls03.json",
+     "bytes": 549,
+     "sha256": "62a65463ab5aa3f9bddbae2302f9066f4aae3a6a5647df666820c94807257290"
+    },
+    {
+     "name": "sacramento_ls05.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls05.bin",
+     "bytes": 4620000,
+     "sha256": "02cf2d413cf45fcb1d650f6c0707a524d780631f8cd05db5c5ce6ae7506b28ca"
+    },
+    {
+     "name": "sacramento_ls05.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls05.json",
+     "bytes": 546,
+     "sha256": "b70e7d7deda3d805825c96dbb54ad4d3dc158e234a03f8bab11b8f3136ebfb68"
+    },
+    {
+     "name": "sacramento_ls06.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls06.bin",
+     "bytes": 4620000,
+     "sha256": "348dc69dff208c573cc6ee2c1d0591ad66654f5595fbd49237a4b87e4c8cffb5"
+    },
+    {
+     "name": "sacramento_ls06.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls06.json",
+     "bytes": 551,
+     "sha256": "30ded5af2fafe7db6fbbc0d9147837f4acb243dacb5de013ec888cff9edb05e4"
+    }
+   ],
+   "total_bytes": 27723251,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "sacramento-laz",
+   "kind": "raw",
+   "version": 1,
+   "group": "sacramento",
+   "label": "Raw lidar (LAZ)",
+   "title": "Sacramento: Raw lidar (LAZ)",
+   "summary": "The same places as standard LAZ point clouds, for any lidar app. Saved to Files \u203a On My iPhone \u203a Waterline.",
+   "bbox": [
+    -121.62,
+    38.43,
+    -121.36,
+    38.72
+   ],
+   "files": [
+    {
+     "name": "sacramento_landmark.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_landmark.laz",
+     "bytes": 1938239,
+     "sha256": "2dc250f3ce83a7556f4954afbb001e636d3a8da7f6f834ba0fd9f5bc521eb8b6"
+    },
+    {
+     "name": "sacramento_ls01.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls01.laz",
+     "bytes": 2148892,
+     "sha256": "f6c042432b4ac2ffee2be56fafaef27e50701c74e8f6ec62a7cba5a48b1d1985"
+    },
+    {
+     "name": "sacramento_ls02.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls02.laz",
+     "bytes": 1918316,
+     "sha256": "aac79dce4a25bd2002f89966076f1b3d8f5439c04ebf794a6d34042b89b8db71"
+    },
+    {
+     "name": "sacramento_ls03.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls03.laz",
+     "bytes": 1869948,
+     "sha256": "f763f2166af9d37499fc514403424e9457902713db47bb52a0ccfa6f0b4f2394"
+    },
+    {
+     "name": "sacramento_ls05.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls05.laz",
+     "bytes": 1971362,
+     "sha256": "45e84073a60d5c76419c0111461299023898be2861fbe8499ff8f1bc114c792c"
+    },
+    {
+     "name": "sacramento_ls06.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls06.laz",
+     "bytes": 3098088,
+     "sha256": "eabfa0b8fc647d26d10d0cfa16e1fc9760bd584b4157677cff4ed9eb4192a64a"
+    }
+   ],
+   "total_bytes": 12944845,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "sacramento-dem",
+   "kind": "raw",
+   "version": 1,
+   "group": "sacramento",
+   "label": "Elevation models (GeoTIFF)",
+   "title": "Sacramento: Elevation models (GeoTIFF)",
+   "summary": "10 m citywide DEM, plus 1 m DEMs of the landmark and top low spot. Heights are NAVD88.",
+   "bbox": [
+    -121.62,
+    38.43,
+    -121.36,
+    38.72
+   ],
+   "files": [
+    {
+     "name": "sacramento_dem_10m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_dem_10m.tif",
+     "bytes": 14541829,
+     "sha256": "d6a2442d8fe73d1301fdbbfaad1d9c0266f94190d746ff4bfbbf28120cc10a42"
+    },
+    {
+     "name": "sacramento_landmark_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_landmark_dem_1m.tif",
+     "bytes": 2025916,
+     "sha256": "befd4e39782907609e183e42a592baad1c5dd8e6bee1cfdeb4629503bb358601"
+    },
+    {
+     "name": "sacramento_ls01_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/sacramento_ls01_dem_1m.tif",
+     "bytes": 2023189,
+     "sha256": "4f6b46d9c45aa7b015d498c66984192b1ee4fcfb4b6dcb1e7e2fa808c1cd0c9a"
+    }
+   ],
+   "total_bytes": 18590934,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "new-orleans-layers",
+   "kind": "layers",
+   "version": 1,
+   "group": "new-orleans",
+   "label": "Map and AR layers",
+   "title": "New Orleans: Map and AR layers",
+   "summary": "FEMA flood zones, levees and floodwalls, and mapped low spots. Shows on the Map and as tags in the camera view. City drains and service requests load live when you're online.",
+   "bbox": [
+    -90.17,
+    29.88,
+    -89.92,
+    30.05
+   ],
+   "files": [
+    {
+     "name": "new-orleans_layers.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_layers.json",
+     "bytes": 2280350,
+     "sha256": "79dd0ad2368032473a151d58bf20eba1c558e0f274ce6c6a58e55ae32e39a4c0"
+    }
+   ],
+   "total_bytes": 2280350,
+   "license": "FEMA, USACE and city open data; names (c) OpenStreetMap contributors",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "new-orleans-ground-1m",
+   "kind": "ground1m",
+   "version": 1,
+   "group": "new-orleans",
+   "label": "Ground, 1 m lidar (low-lying areas)",
+   "title": "New Orleans: Ground, 1 m lidar (low-lying areas)",
+   "summary": "Ground height to the inch, offline, for land at or below 30 ft. The app uses it in place of the 10 m grid.",
+   "bbox": [
+    -90.17,
+    29.88,
+    -89.92,
+    30.05
+   ],
+   "files": [
+    {
+     "name": "new-orleans_ground_1m.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ground_1m.bin",
+     "bytes": 302148919,
+     "sha256": "21d29660454473a5a7d7c9851f313a69f610786475246cf42a1c3baa22572585"
+    }
+   ],
+   "total_bytes": 302148919,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "new-orleans-scenes",
+   "kind": "scenes",
+   "version": 1,
+   "group": "new-orleans",
+   "label": "Lidar point clouds: Industrial Canal floodwall, Lower Ninth + 5 low spots",
+   "title": "New Orleans: Lidar point clouds: Industrial Canal floodwall, Lower Ninth + 5 low spots",
+   "summary": "Open them in the app to orbit the block and raise the water.",
+   "bbox": [
+    -90.17,
+    29.88,
+    -89.92,
+    30.05
+   ],
+   "files": [
+    {
+     "name": "new-orleans_landmark.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_landmark.bin",
+     "bytes": 4620000,
+     "sha256": "37f29903be8222e0f6b2cfc3e760789e8ed0fdb6d8af94ea27b12f6843cc7bc4"
+    },
+    {
+     "name": "new-orleans_landmark.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_landmark.json",
+     "bytes": 504,
+     "sha256": "065c6ab7ebf895759c9f961404a80e5934681e1b7bd1b98cfb176a6ba323bcf1"
+    },
+    {
+     "name": "new-orleans_ls01.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls01.bin",
+     "bytes": 4620000,
+     "sha256": "58096eada7d7b1bf8ece23db6dc525349177ffe223639ab77a9d52c0ee6ad111"
+    },
+    {
+     "name": "new-orleans_ls01.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls01.json",
+     "bytes": 498,
+     "sha256": "47eddb2d6ce23b334c32fb9207d977dea41fcd28e13bcf3ed19f879c52281c43"
+    },
+    {
+     "name": "new-orleans_ls02.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls02.bin",
+     "bytes": 4620000,
+     "sha256": "4dc2195dd2f145f7f5e6a55a6abcd49b3dd11d92947e6b4db2749794563cea05"
+    },
+    {
+     "name": "new-orleans_ls02.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls02.json",
+     "bytes": 517,
+     "sha256": "f47dcdc17aeb5a67e8cb4360df1b39b83044856d011205bd0731c7237b73f4e8"
+    },
+    {
+     "name": "new-orleans_ls03.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls03.bin",
+     "bytes": 4620000,
+     "sha256": "875e903c6ec82332052295771b4af5c99924fb70187cc0751ae90759e0a826ec"
+    },
+    {
+     "name": "new-orleans_ls03.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls03.json",
+     "bytes": 517,
+     "sha256": "78ce1f05ef8896acd487829d8da53c8cfac7c952dd04bf37776da19baf8765cb"
+    },
+    {
+     "name": "new-orleans_ls04.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls04.bin",
+     "bytes": 4620000,
+     "sha256": "6a858bd8377645730dcec208e97d43b161cb07764be388dd532aab848be576bd"
+    },
+    {
+     "name": "new-orleans_ls04.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls04.json",
+     "bytes": 518,
+     "sha256": "9b37f2163b5ac873df80a02db4d068137b3ed800618c4e46d9a3e650377a1ccf"
+    },
+    {
+     "name": "new-orleans_ls05.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls05.bin",
+     "bytes": 4620000,
+     "sha256": "4f71d48f2b0e7a5df97c30be0dbc9f5d1ea0fc26e6581f16efd61fd9b700a29c"
+    },
+    {
+     "name": "new-orleans_ls05.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls05.json",
+     "bytes": 511,
+     "sha256": "861e0d5a1ba13d6affe4f56a570eb5695f8db6eaf0478303c297aec93af6e37b"
+    }
+   ],
+   "total_bytes": 27723065,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "new-orleans-laz",
+   "kind": "raw",
+   "version": 1,
+   "group": "new-orleans",
+   "label": "Raw lidar (LAZ)",
+   "title": "New Orleans: Raw lidar (LAZ)",
+   "summary": "The same places as standard LAZ point clouds, for any lidar app. Saved to Files \u203a On My iPhone \u203a Waterline.",
+   "bbox": [
+    -90.17,
+    29.88,
+    -89.92,
+    30.05
+   ],
+   "files": [
+    {
+     "name": "new-orleans_landmark.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_landmark.laz",
+     "bytes": 2350586,
+     "sha256": "de7f855fe9e75e2e67794c45a11c46d83a1cf7c3fffcae16113ae569eed8591b"
+    },
+    {
+     "name": "new-orleans_ls01.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls01.laz",
+     "bytes": 2211985,
+     "sha256": "630c2c21a7cc7daf0c690bf2fb43e58ee3dd0ba36e36804b1dfe1fc2b421533a"
+    },
+    {
+     "name": "new-orleans_ls02.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls02.laz",
+     "bytes": 2402450,
+     "sha256": "8465d807dec34ff5a8a051ae870da9a102ea40f48b6f93acc918f0e6bf4644a8"
+    },
+    {
+     "name": "new-orleans_ls03.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls03.laz",
+     "bytes": 2501013,
+     "sha256": "78e0209ab2d7e17d31e05d4acc2dc43545f942a9b15811672c566ee72a0f2af1"
+    },
+    {
+     "name": "new-orleans_ls04.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls04.laz",
+     "bytes": 2316611,
+     "sha256": "354e1c62025bdbddcc4eed852323173acea0238cb617b23a5c1b87cb31fdf50d"
+    },
+    {
+     "name": "new-orleans_ls05.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls05.laz",
+     "bytes": 2326611,
+     "sha256": "e16108ebfa89c2bd2b6a79a579f409c9e61653e6c88945b992e08eea5ab50bb5"
+    }
+   ],
+   "total_bytes": 14109256,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "new-orleans-dem",
+   "kind": "raw",
+   "version": 1,
+   "group": "new-orleans",
+   "label": "Elevation models (GeoTIFF)",
+   "title": "New Orleans: Elevation models (GeoTIFF)",
+   "summary": "10 m citywide DEM, plus 1 m DEMs of the landmark and top low spot. Heights are NAVD88.",
+   "bbox": [
+    -90.17,
+    29.88,
+    -89.92,
+    30.05
+   ],
+   "files": [
+    {
+     "name": "new-orleans_dem_10m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_dem_10m.tif",
+     "bytes": 10317029,
+     "sha256": "716c2d733c729a5c266d78885769e43c44bbd0294d42c359fd38053579bcec71"
+    },
+    {
+     "name": "new-orleans_landmark_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_landmark_dem_1m.tif",
+     "bytes": 2885445,
+     "sha256": "ec5fe59924061ad0aeec794ece8262222706a61c89f2113a1268cf114d110e0c"
+    },
+    {
+     "name": "new-orleans_ls01_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/new-orleans_ls01_dem_1m.tif",
+     "bytes": 1604389,
+     "sha256": "a88ad4cfc62d05f0110f28643987a6552afef7fc719147c9dae401a1f5a7b71d"
+    }
+   ],
+   "total_bytes": 14806863,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "miami-layers",
+   "kind": "layers",
+   "version": 1,
+   "group": "miami",
+   "label": "Map and AR layers",
+   "title": "Miami & Miami Beach: Map and AR layers",
+   "summary": "FEMA flood zones, levees and floodwalls, and mapped low spots. Shows on the Map and as tags in the camera view. City drains and service requests load live when you're online.",
+   "bbox": [
+    -80.35,
+    25.7,
+    -80.11,
+    25.88
+   ],
+   "files": [
+    {
+     "name": "miami_layers.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_layers.json",
+     "bytes": 571551,
+     "sha256": "02d70dc067cb09e460764da63b8cd4bc7efce6a2da1c37aa62cc8729e627fd12"
+    }
+   ],
+   "total_bytes": 571551,
+   "license": "FEMA, USACE and city open data; names (c) OpenStreetMap contributors",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "miami-ground-1m",
+   "kind": "ground1m",
+   "version": 1,
+   "group": "miami",
+   "label": "Ground, 1 m lidar (low-lying areas)",
+   "title": "Miami & Miami Beach: Ground, 1 m lidar (low-lying areas)",
+   "summary": "Ground height to the inch, offline, for land at or below 30 ft. The app uses it in place of the 10 m grid.",
+   "bbox": [
+    -80.35,
+    25.7,
+    -80.11,
+    25.88
+   ],
+   "files": [
+    {
+     "name": "miami_ground_1m.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ground_1m.bin",
+     "bytes": 250252087,
+     "sha256": "c16099bce7a9b5f3dcae7b063b09b52860e60b24118dce595f782b98e85fe2f0"
+    }
+   ],
+   "total_bytes": 250252087,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "miami-scenes",
+   "kind": "scenes",
+   "version": 1,
+   "group": "miami",
+   "label": "Lidar point clouds: Miami Beach, West Ave + 5 low spots",
+   "title": "Miami & Miami Beach: Lidar point clouds: Miami Beach, West Ave + 5 low spots",
+   "summary": "Open them in the app to orbit the block and raise the water.",
+   "bbox": [
+    -80.35,
+    25.7,
+    -80.11,
+    25.88
+   ],
+   "files": [
+    {
+     "name": "miami_landmark.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_landmark.bin",
+     "bytes": 4336346,
+     "sha256": "750c6f1444e857ea88227a23fb43a3fb08e87c3cd52ae9d8dfb4bc00afa20977"
+    },
+    {
+     "name": "miami_landmark.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_landmark.json",
+     "bytes": 535,
+     "sha256": "05504a276a85da4779ed248969d022553b5ac0dc631135e7f3c95fb824d254ef"
+    },
+    {
+     "name": "miami_ls05.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls05.bin",
+     "bytes": 4620000,
+     "sha256": "e4ae40e7e35a6cf48019b616fc0fa3243139004af18764fcc1392b8074033710"
+    },
+    {
+     "name": "miami_ls05.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls05.json",
+     "bytes": 572,
+     "sha256": "101473428e16b74b651e39add69a281bae312c8f1f9185ff93d41645b9fc7514"
+    },
+    {
+     "name": "miami_ls07.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls07.bin",
+     "bytes": 4620000,
+     "sha256": "2119f12c06c149252499fd7cb5c632dfff12fdb0b27a544f7a2c8929a079cb9f"
+    },
+    {
+     "name": "miami_ls07.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls07.json",
+     "bytes": 567,
+     "sha256": "fa65d5b5a8c633770648ce527f9463dddbfbeb88eccb103947bc22b7c07e1aad"
+    },
+    {
+     "name": "miami_ls08.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls08.bin",
+     "bytes": 4620000,
+     "sha256": "2a85e413b03f2939db6c0201e40f9a458d8b5c5df9c14645df55ac4caa90f258"
+    },
+    {
+     "name": "miami_ls08.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls08.json",
+     "bytes": 568,
+     "sha256": "4fdfd2add903769ac8cfb13b9cb8cd30c33b98f30dcc7d568e3f51efeee952f6"
+    },
+    {
+     "name": "miami_ls13.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls13.bin",
+     "bytes": 4620000,
+     "sha256": "2de379ccaaf46da76ffda8fa6da9454e10c4f763f4e7730e62859e20c68c2b74"
+    },
+    {
+     "name": "miami_ls13.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls13.json",
+     "bytes": 570,
+     "sha256": "3bfe5e72fa82e49afd169e6953b4b21203daff6c76d7f83a654b5b204b915c52"
+    },
+    {
+     "name": "miami_ls14.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls14.bin",
+     "bytes": 4167380,
+     "sha256": "af9abcc2861967de2fc53e984d1edbb34b85917abfe12f48b85cf77ef95b9f11"
+    },
+    {
+     "name": "miami_ls14.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls14.json",
+     "bytes": 562,
+     "sha256": "9f86316751b1e5130729141ede4787a366091c0f45d22a171530261a34a53b93"
+    }
+   ],
+   "total_bytes": 26987100,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "miami-laz",
+   "kind": "raw",
+   "version": 1,
+   "group": "miami",
+   "label": "Raw lidar (LAZ)",
+   "title": "Miami & Miami Beach: Raw lidar (LAZ)",
+   "summary": "The same places as standard LAZ point clouds, for any lidar app. Saved to Files \u203a On My iPhone \u203a Waterline.",
+   "bbox": [
+    -80.35,
+    25.7,
+    -80.11,
+    25.88
+   ],
+   "files": [
+    {
+     "name": "miami_landmark.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_landmark.laz",
+     "bytes": 2355851,
+     "sha256": "20e76f4c0a83ea87c7b5406b6089da0a104a99da097a7629727bed9df84efb20"
+    },
+    {
+     "name": "miami_ls05.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls05.laz",
+     "bytes": 2552922,
+     "sha256": "acbd840532285bf447dfe250bdd9ffbfe1c1990631ff00c03f3b8388471f34bd"
+    },
+    {
+     "name": "miami_ls07.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls07.laz",
+     "bytes": 2390029,
+     "sha256": "9964a8c53ff5fcf5c0f97a0083ad9971c6ff05e70895f519b940f4794441a0d0"
+    },
+    {
+     "name": "miami_ls08.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls08.laz",
+     "bytes": 2429336,
+     "sha256": "f4d535ab102abc42a9197bfc65894b623d9bf6f689ef46483bd943b00a1ebe16"
+    },
+    {
+     "name": "miami_ls13.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls13.laz",
+     "bytes": 2505479,
+     "sha256": "3a8015ffe53d6368f41be29f6018509c0cc9677129012fe98f4209b2679bcc88"
+    },
+    {
+     "name": "miami_ls14.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls14.laz",
+     "bytes": 2315051,
+     "sha256": "9e3c301bdffd1da6b4b48d09fa4fe85cb98efe5361744038fda61b6afd037d4c"
+    }
+   ],
+   "total_bytes": 14548668,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "miami-dem",
+   "kind": "raw",
+   "version": 1,
+   "group": "miami",
+   "label": "Elevation models (GeoTIFF)",
+   "title": "Miami & Miami Beach: Elevation models (GeoTIFF)",
+   "summary": "10 m citywide DEM, plus 1 m DEMs of the landmark and top low spot. Heights are NAVD88.",
+   "bbox": [
+    -80.35,
+    25.7,
+    -80.11,
+    25.88
+   ],
+   "files": [
+    {
+     "name": "miami_dem_10m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_dem_10m.tif",
+     "bytes": 8526765,
+     "sha256": "acdd9a7281731e2bbd25f9e91f3aa54610fdbf27b86fbe8391f1121a4250a4e9"
+    },
+    {
+     "name": "miami_landmark_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_landmark_dem_1m.tif",
+     "bytes": 1854350,
+     "sha256": "6ab53598afa7a3e63ed8c0ed4e5d095bb8a16b00e71eb651a8db618524233753"
+    },
+    {
+     "name": "miami_ls01_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/miami_ls01_dem_1m.tif",
+     "bytes": 2704289,
+     "sha256": "fd69528cb3dabdadc5e515abaeb1a6e13e86e8f42bfd0e90746d8e40e002a144"
+    }
+   ],
+   "total_bytes": 13085404,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "norfolk-layers",
+   "kind": "layers",
+   "version": 1,
+   "group": "norfolk",
+   "label": "Map and AR layers",
+   "title": "Norfolk: Map and AR layers",
+   "summary": "FEMA flood zones, levees and floodwalls, and mapped low spots. Shows on the Map and as tags in the camera view. City drains and service requests load live when you're online.",
+   "bbox": [
+    -76.36,
+    36.82,
+    -76.17,
+    36.97
+   ],
+   "files": [
+    {
+     "name": "norfolk_layers.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_layers.json",
+     "bytes": 492293,
+     "sha256": "de160e96db5667c53eea4554e71f5dc719a2b5ba0b701d080ac284f39dc89709"
+    }
+   ],
+   "total_bytes": 492293,
+   "license": "FEMA, USACE and city open data; names (c) OpenStreetMap contributors",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "norfolk-ground-1m",
+   "kind": "ground1m",
+   "version": 1,
+   "group": "norfolk",
+   "label": "Ground, 1 m lidar (low-lying areas)",
+   "title": "Norfolk: Ground, 1 m lidar (low-lying areas)",
+   "summary": "Ground height to the inch, offline, for land at or below 30 ft. The app uses it in place of the 10 m grid.",
+   "bbox": [
+    -76.36,
+    36.82,
+    -76.17,
+    36.97
+   ],
+   "files": [
+    {
+     "name": "norfolk_ground_1m.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ground_1m.bin",
+     "bytes": 151999436,
+     "sha256": "0273fd78cf73633480a7e2e2fece6cc00cbe0b53225c5c865484aaa690430682"
+    }
+   ],
+   "total_bytes": 151999436,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "norfolk-scenes",
+   "kind": "scenes",
+   "version": 1,
+   "group": "norfolk",
+   "label": "Lidar point clouds: The Hague, Ghent + 5 low spots",
+   "title": "Norfolk: Lidar point clouds: The Hague, Ghent + 5 low spots",
+   "summary": "Open them in the app to orbit the block and raise the water.",
+   "bbox": [
+    -76.36,
+    36.82,
+    -76.17,
+    36.97
+   ],
+   "files": [
+    {
+     "name": "norfolk_landmark.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_landmark.bin",
+     "bytes": 4620000,
+     "sha256": "9b017e9aac2f46968e57a9f2c053c3b2f580308860f5316b04c9f343ed65038b"
+    },
+    {
+     "name": "norfolk_landmark.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_landmark.json",
+     "bytes": 513,
+     "sha256": "e5139b11ea0187538ceb1581a8f5413e83419916e631c920b840d6ffed5f5f41"
+    },
+    {
+     "name": "norfolk_ls01.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls01.bin",
+     "bytes": 4620000,
+     "sha256": "14853df7f38afab986e6f36384826ce59b49f4ec4f82890423b7d3228f6d4ff1"
+    },
+    {
+     "name": "norfolk_ls01.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls01.json",
+     "bytes": 540,
+     "sha256": "38aae8f17a1af688fb2a57aa15cfddcdc5739a181b23963012b189bdbda0e5f5"
+    },
+    {
+     "name": "norfolk_ls02.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls02.bin",
+     "bytes": 4511976,
+     "sha256": "5fa874082af20eb86e3db6c89bd026e7a1fbe28823b82745a36597ebe67c2609"
+    },
+    {
+     "name": "norfolk_ls02.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls02.json",
+     "bytes": 557,
+     "sha256": "621e7cf4c17dbf7c2e8cab8c77f2f76a1f951796093d05c2801eaf5935587d2d"
+    },
+    {
+     "name": "norfolk_ls03.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls03.bin",
+     "bytes": 4620000,
+     "sha256": "1c6d4da379b55682e14bc5d35c2102ff4b8efa069615d33b61603333692b5a05"
+    },
+    {
+     "name": "norfolk_ls03.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls03.json",
+     "bytes": 544,
+     "sha256": "e3b3bada626343fee5a744292186f20cd039f2309c83bce4376037096b45d7ee"
+    },
+    {
+     "name": "norfolk_ls04.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls04.bin",
+     "bytes": 4620000,
+     "sha256": "52fcbe96d40fdf317bda41195f0e9eaa3b7d6ec19458eb4cd1c50015fb5bab07"
+    },
+    {
+     "name": "norfolk_ls04.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls04.json",
+     "bytes": 541,
+     "sha256": "d29c69c21008a88ac12b7d30221fb6b60ed102549d7dc1286c30cdfd0a13796e"
+    },
+    {
+     "name": "norfolk_ls05.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls05.bin",
+     "bytes": 4620000,
+     "sha256": "56e79ed906d19516661adbb55fa12dd4aea6651d298e832c5ccdde6d7c01f2d6"
+    },
+    {
+     "name": "norfolk_ls05.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls05.json",
+     "bytes": 536,
+     "sha256": "89900885de20d3eb525d036ef90439a585c36889485d40390c4a0836157a7a41"
+    }
+   ],
+   "total_bytes": 27615207,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "norfolk-laz",
+   "kind": "raw",
+   "version": 1,
+   "group": "norfolk",
+   "label": "Raw lidar (LAZ)",
+   "title": "Norfolk: Raw lidar (LAZ)",
+   "summary": "The same places as standard LAZ point clouds, for any lidar app. Saved to Files \u203a On My iPhone \u203a Waterline.",
+   "bbox": [
+    -76.36,
+    36.82,
+    -76.17,
+    36.97
+   ],
+   "files": [
+    {
+     "name": "norfolk_landmark.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_landmark.laz",
+     "bytes": 2098349,
+     "sha256": "e083e50f7a387f6829752d74ae78550eee4684f305e45f8a3b7a633120ebfcbf"
+    },
+    {
+     "name": "norfolk_ls01.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls01.laz",
+     "bytes": 1994883,
+     "sha256": "cb9afced83f21f4d8388af3960c07381595856530fe159e648712b4e0038d3d9"
+    },
+    {
+     "name": "norfolk_ls02.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls02.laz",
+     "bytes": 1529407,
+     "sha256": "4c27057e4db47c83b847260429192a3f590363a21712ba82937dddb0c861e9a9"
+    },
+    {
+     "name": "norfolk_ls03.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls03.laz",
+     "bytes": 1885792,
+     "sha256": "a1ab5cae4b06c2b9d3ef9055ca8ec7445547536c59a3a899769513d46242e85f"
+    },
+    {
+     "name": "norfolk_ls04.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls04.laz",
+     "bytes": 2116839,
+     "sha256": "86a176685bf80a75618e4e9e722eacfdcba6bde01c78d3c9bd28f8a5dc4890ce"
+    },
+    {
+     "name": "norfolk_ls05.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls05.laz",
+     "bytes": 1990899,
+     "sha256": "605ee1588c399ee1806a5761e93c2a8ea74955235303afabd1f39ff63442ae0d"
+    }
+   ],
+   "total_bytes": 11616169,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "norfolk-dem",
+   "kind": "raw",
+   "version": 1,
+   "group": "norfolk",
+   "label": "Elevation models (GeoTIFF)",
+   "title": "Norfolk: Elevation models (GeoTIFF)",
+   "summary": "10 m citywide DEM, plus 1 m DEMs of the landmark and top low spot. Heights are NAVD88.",
+   "bbox": [
+    -76.36,
+    36.82,
+    -76.17,
+    36.97
+   ],
+   "files": [
+    {
+     "name": "norfolk_dem_10m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_dem_10m.tif",
+     "bytes": 4980792,
+     "sha256": "e678c5d7c49cf1ca1599f348b4d6378fb27845bb20d9cb79c8ef9679238a2e7d"
+    },
+    {
+     "name": "norfolk_landmark_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_landmark_dem_1m.tif",
+     "bytes": 2606614,
+     "sha256": "4caab8aa85544132c733aef3e45c78bf83844c69f4b1f5d88df54843e3b531e8"
+    },
+    {
+     "name": "norfolk_ls01_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/norfolk_ls01_dem_1m.tif",
+     "bytes": 1259324,
+     "sha256": "dcfd321e77a36f8e187786deed2665ed0b3fdcddb87679aea6eaad21aec67c4c"
+    }
+   ],
+   "total_bytes": 8846730,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "charleston-layers",
+   "kind": "layers",
+   "version": 1,
+   "group": "charleston",
+   "label": "Map and AR layers",
+   "title": "Charleston: Map and AR layers",
+   "summary": "FEMA flood zones, levees and floodwalls, and mapped low spots. Shows on the Map and as tags in the camera view. City drains and service requests load live when you're online.",
+   "bbox": [
+    -80.02,
+    32.7,
+    -79.86,
+    32.86
+   ],
+   "files": [
+    {
+     "name": "charleston_layers.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_layers.json",
+     "bytes": 389928,
+     "sha256": "9b4d4deb3e7d6102ac22ee043d94de044ce6353f40f4643fdb076cb0434c73d2"
+    }
+   ],
+   "total_bytes": 389928,
+   "license": "FEMA, USACE and city open data; names (c) OpenStreetMap contributors",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "charleston-ground-1m",
+   "kind": "ground1m",
+   "version": 1,
+   "group": "charleston",
+   "label": "Ground, 1 m lidar (low-lying areas)",
+   "title": "Charleston: Ground, 1 m lidar (low-lying areas)",
+   "summary": "Ground height to the inch, offline, for land at or below 30 ft. The app uses it in place of the 10 m grid.",
+   "bbox": [
+    -80.02,
+    32.7,
+    -79.86,
+    32.86
+   ],
+   "files": [
+    {
+     "name": "charleston_ground_1m.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ground_1m.bin",
+     "bytes": 172434596,
+     "sha256": "33cbf988ef1bfb93de85f9501dfb92400d3a41d540a133de9798962c547c9dde"
+    }
+   ],
+   "total_bytes": 172434596,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "charleston-scenes",
+   "kind": "scenes",
+   "version": 1,
+   "group": "charleston",
+   "label": "Lidar point clouds: The Battery + 5 low spots",
+   "title": "Charleston: Lidar point clouds: The Battery + 5 low spots",
+   "summary": "Open them in the app to orbit the block and raise the water.",
+   "bbox": [
+    -80.02,
+    32.7,
+    -79.86,
+    32.86
+   ],
+   "files": [
+    {
+     "name": "charleston_landmark.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_landmark.bin",
+     "bytes": 4620000,
+     "sha256": "30cd6a240b2f7e4f63ecf75aeaa0bc46f8d8fe468581d1058fd0f1aac302af86"
+    },
+    {
+     "name": "charleston_landmark.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_landmark.json",
+     "bytes": 516,
+     "sha256": "b3060d4683228313f070d7e11412f5d81d14e710be12cdc14e5f01ec62c032e4"
+    },
+    {
+     "name": "charleston_ls01.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls01.bin",
+     "bytes": 4620000,
+     "sha256": "6482c98bdeda5ea1f061cd0fb615c655aef041aef396af8f7fe308d1e9b16b05"
+    },
+    {
+     "name": "charleston_ls01.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls01.json",
+     "bytes": 521,
+     "sha256": "1c3a695a06f6d2ad6acfb528e8199a93817edb1c0f0a2dc10979088e85a8e787"
+    },
+    {
+     "name": "charleston_ls02.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls02.bin",
+     "bytes": 4620000,
+     "sha256": "15003fc5643b9e30a521fa9d21bc760933f1f09f6a9958ad4eebfd6ad9a78da9"
+    },
+    {
+     "name": "charleston_ls02.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls02.json",
+     "bytes": 546,
+     "sha256": "35c8c100281b005c2d819280825f53efea587715b6e32ff1b78b84e1ee73e6d8"
+    },
+    {
+     "name": "charleston_ls03.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls03.bin",
+     "bytes": 4620000,
+     "sha256": "678203772fbf00426b3aa843ec88dc597215319b7578b423b85874c4e817fdf2"
+    },
+    {
+     "name": "charleston_ls03.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls03.json",
+     "bytes": 546,
+     "sha256": "072f4678a06ec22bf0384505319174c9bfd334636b149ce0ad9e99bffb84e01f"
+    },
+    {
+     "name": "charleston_ls04.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls04.bin",
+     "bytes": 4620000,
+     "sha256": "1e2e7a03f034de372de72945ff461cc47b99966f333afb33857a980ac4171f04"
+    },
+    {
+     "name": "charleston_ls04.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls04.json",
+     "bytes": 551,
+     "sha256": "bee72ca0ff5d6ee8e890f88d88f3d1bd1c5554cc5ca9e025b63e8de6c1a09700"
+    },
+    {
+     "name": "charleston_ls05.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls05.bin",
+     "bytes": 4620000,
+     "sha256": "3b233938fd0f6bc7baaf71b90b0ff05f891161ab6b49c745d25f6b771f35e5a1"
+    },
+    {
+     "name": "charleston_ls05.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls05.json",
+     "bytes": 557,
+     "sha256": "119f8fe60fc5200d77a62075472c1cdf74cd534c852d25e45f3a9f84091ab15f"
+    }
+   ],
+   "total_bytes": 27723237,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "charleston-laz",
+   "kind": "raw",
+   "version": 1,
+   "group": "charleston",
+   "label": "Raw lidar (LAZ)",
+   "title": "Charleston: Raw lidar (LAZ)",
+   "summary": "The same places as standard LAZ point clouds, for any lidar app. Saved to Files \u203a On My iPhone \u203a Waterline.",
+   "bbox": [
+    -80.02,
+    32.7,
+    -79.86,
+    32.86
+   ],
+   "files": [
+    {
+     "name": "charleston_landmark.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_landmark.laz",
+     "bytes": 2433055,
+     "sha256": "840c5293bea9ae14fbb12f9443fc2d39f36e2db53bebba132777f4517424c640"
+    },
+    {
+     "name": "charleston_ls01.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls01.laz",
+     "bytes": 2305497,
+     "sha256": "75c54e414da0990ff4d9bf602497d32c64528115677f72f35473d78527f76ef4"
+    },
+    {
+     "name": "charleston_ls02.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls02.laz",
+     "bytes": 2527803,
+     "sha256": "31ded88d71feeb0fc79458bd40c20988cc0888cc782031b79f191a93ff7d3bfd"
+    },
+    {
+     "name": "charleston_ls03.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls03.laz",
+     "bytes": 2454673,
+     "sha256": "60b224fbb78bb6782827595eed1cc603b2bdd0907b873186ab14a6d2d31963ee"
+    },
+    {
+     "name": "charleston_ls04.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls04.laz",
+     "bytes": 2431585,
+     "sha256": "bf4d830f7b7e4ea26d7a76d28458092f1506ac6e88e37106f0c757d994922e34"
+    },
+    {
+     "name": "charleston_ls05.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls05.laz",
+     "bytes": 2352797,
+     "sha256": "8f82b2aed92bf71e63720eae9931221eb23eedf537683d7e3d375ef66166ee3f"
+    }
+   ],
+   "total_bytes": 14505410,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "charleston-dem",
+   "kind": "raw",
+   "version": 1,
+   "group": "charleston",
+   "label": "Elevation models (GeoTIFF)",
+   "title": "Charleston: Elevation models (GeoTIFF)",
+   "summary": "10 m citywide DEM, plus 1 m DEMs of the landmark and top low spot. Heights are NAVD88.",
+   "bbox": [
+    -80.02,
+    32.7,
+    -79.86,
+    32.86
+   ],
+   "files": [
+    {
+     "name": "charleston_dem_10m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_dem_10m.tif",
+     "bytes": 5299566,
+     "sha256": "08ae4fa7ee469b3fbdf783b2c21c2d8ee144c24bd7f87f14a3058a696504163b"
+    },
+    {
+     "name": "charleston_landmark_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_landmark_dem_1m.tif",
+     "bytes": 1367153,
+     "sha256": "fedd8ac13327a0d677ca6a5101b2c42d441ac71c712c5139e2356290a1de4a99"
+    },
+    {
+     "name": "charleston_ls01_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/charleston_ls01_dem_1m.tif",
+     "bytes": 2589033,
+     "sha256": "d1ee398b4d8fedde6502e2be4712ec7850c95aa4fdf98417d398605576eb950f"
+    }
+   ],
+   "total_bytes": 9255752,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "houston-layers",
+   "kind": "layers",
+   "version": 1,
+   "group": "houston",
+   "label": "Map and AR layers",
+   "title": "Houston: Map and AR layers",
+   "summary": "FEMA flood zones, levees and floodwalls, and mapped low spots. Shows on the Map and as tags in the camera view. City drains and service requests load live when you're online.",
+   "bbox": [
+    -95.55,
+    29.62,
+    -95.2,
+    29.88
+   ],
+   "files": [
+    {
+     "name": "houston_layers.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_layers.json",
+     "bytes": 533006,
+     "sha256": "d71a1e18f9b5b8594f01594953e70fd40af73a6282544d18fd1dd3c7573e0a0f"
+    }
+   ],
+   "total_bytes": 533006,
+   "license": "FEMA, USACE and city open data; names (c) OpenStreetMap contributors",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "houston-ground-1m",
+   "kind": "ground1m",
+   "version": 1,
+   "group": "houston",
+   "label": "Ground, 1 m lidar (low-lying areas)",
+   "title": "Houston: Ground, 1 m lidar (low-lying areas)",
+   "summary": "Ground height to the inch, offline, for land at or below 30 ft. The app uses it in place of the 10 m grid.",
+   "bbox": [
+    -95.55,
+    29.62,
+    -95.2,
+    29.88
+   ],
+   "files": [
+    {
+     "name": "houston_ground_1m.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ground_1m.bin",
+     "bytes": 224937939,
+     "sha256": "497de2090bc8ad944b8d08cac5d30786aa65de53263f1c40abd6646ecf423a63"
+    }
+   ],
+   "total_bytes": 224937939,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "houston-scenes",
+   "kind": "scenes",
+   "version": 1,
+   "group": "houston",
+   "label": "Lidar point clouds: Meyerland, Brays Bayou + 5 low spots",
+   "title": "Houston: Lidar point clouds: Meyerland, Brays Bayou + 5 low spots",
+   "summary": "Open them in the app to orbit the block and raise the water.",
+   "bbox": [
+    -95.55,
+    29.62,
+    -95.2,
+    29.88
+   ],
+   "files": [
+    {
+     "name": "houston_landmark.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_landmark.bin",
+     "bytes": 4620000,
+     "sha256": "ca0cb249793a243555f90206337fbcd87dfb40aaa6deb480c78c72c1dcbe289f"
+    },
+    {
+     "name": "houston_landmark.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_landmark.json",
+     "bytes": 491,
+     "sha256": "53fce16da29b5105bdbeb3e74cfc9e664a6f8de09e4ca747aea69818f8c1892c"
+    },
+    {
+     "name": "houston_ls01.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls01.bin",
+     "bytes": 4620000,
+     "sha256": "012a0384df0feba14e4ae11c975dfbdeba8bfb15436712cbfdc4ea8836a294aa"
+    },
+    {
+     "name": "houston_ls01.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls01.json",
+     "bytes": 509,
+     "sha256": "17629aba5ef574678444f95fc3b703b7283436ca7756338a85a269782127237b"
+    },
+    {
+     "name": "houston_ls02.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls02.bin",
+     "bytes": 4620000,
+     "sha256": "5a6a83265bf06e82d959a72c8119a91fce98165b38fb0c61b2f5f8270b6df5b0"
+    },
+    {
+     "name": "houston_ls02.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls02.json",
+     "bytes": 519,
+     "sha256": "fe31b4a8299c7e8700992e70f1d1958be7a1c92beb74b277b78bf26270970024"
+    },
+    {
+     "name": "houston_ls03.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls03.bin",
+     "bytes": 4347280,
+     "sha256": "ae34eaa8a1b1295922fd43c7f654b5ff1e5bfecab95a6c4d8584f567f2680668"
+    },
+    {
+     "name": "houston_ls03.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls03.json",
+     "bytes": 524,
+     "sha256": "661a53d0d1865063ad97d3b4dac6ae4df1dd141de89dcc66aacdcd1dce427439"
+    },
+    {
+     "name": "houston_ls04.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls04.bin",
+     "bytes": 4047428,
+     "sha256": "e8b242531b1e2aef1e459d1f91bddae3f79f3c53c65fe54dbd4de3bcd1993a2d"
+    },
+    {
+     "name": "houston_ls04.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls04.json",
+     "bytes": 516,
+     "sha256": "1d20300f001b65c31cb861c59f33e8de63e811e596509e10247b0eb40568766d"
+    },
+    {
+     "name": "houston_ls05.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls05.bin",
+     "bytes": 3993990,
+     "sha256": "bd17f77b5c6f09c9dbe21252588cca157e506955f2a059a63bc3717bde06e6dc"
+    },
+    {
+     "name": "houston_ls05.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls05.json",
+     "bytes": 517,
+     "sha256": "9a3987dd5c13d080aa42a1c4326677ad599747dad5b2108a5bc895b288328a1e"
+    }
+   ],
+   "total_bytes": 26251774,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "houston-laz",
+   "kind": "raw",
+   "version": 1,
+   "group": "houston",
+   "label": "Raw lidar (LAZ)",
+   "title": "Houston: Raw lidar (LAZ)",
+   "summary": "The same places as standard LAZ point clouds, for any lidar app. Saved to Files \u203a On My iPhone \u203a Waterline.",
+   "bbox": [
+    -95.55,
+    29.62,
+    -95.2,
+    29.88
+   ],
+   "files": [
+    {
+     "name": "houston_landmark.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_landmark.laz",
+     "bytes": 2010274,
+     "sha256": "414e03d8c067aa0231a9ebb395300fb2cdb035b412f54f35e0782c95fc43e0e5"
+    },
+    {
+     "name": "houston_ls01.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls01.laz",
+     "bytes": 2243226,
+     "sha256": "637a6ff6ea9f43c09ea8ad3ea4d78b7a9c11b88cfcf844ffd2990b2dec4651d5"
+    },
+    {
+     "name": "houston_ls02.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls02.laz",
+     "bytes": 2290064,
+     "sha256": "b0143f5cb959d53f95046281a3c57a033efaf208985b7cfae9cd5c6a33773ba9"
+    },
+    {
+     "name": "houston_ls03.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls03.laz",
+     "bytes": 2167537,
+     "sha256": "8619110a24b33614fb24cd27434e77228018c2d78b8a0b363054cecc2b1700fc"
+    },
+    {
+     "name": "houston_ls04.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls04.laz",
+     "bytes": 1982860,
+     "sha256": "14726f212c871fa8bf8e204235f0c4655e7a9ddf66ecda18fe31b02585cd5717"
+    },
+    {
+     "name": "houston_ls05.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls05.laz",
+     "bytes": 1607474,
+     "sha256": "1319814ca895011c678cbf9f2acb0b640b35b968d26fb19765a790d42e911a90"
+    }
+   ],
+   "total_bytes": 12301435,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "houston-dem",
+   "kind": "raw",
+   "version": 1,
+   "group": "houston",
+   "label": "Elevation models (GeoTIFF)",
+   "title": "Houston: Elevation models (GeoTIFF)",
+   "summary": "10 m citywide DEM, plus 1 m DEMs of the landmark and top low spot. Heights are NAVD88.",
+   "bbox": [
+    -95.55,
+    29.62,
+    -95.2,
+    29.88
+   ],
+   "files": [
+    {
+     "name": "houston_dem_10m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_dem_10m.tif",
+     "bytes": 19809924,
+     "sha256": "8d1b96f93884f434e334bd77e972caa8ab43d3205bad11df6dc54f87f26190ae"
+    },
+    {
+     "name": "houston_landmark_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_landmark_dem_1m.tif",
+     "bytes": 2202705,
+     "sha256": "e8c6b7273bd007de44737cbe71061b70508dfa8fa5284e967b77df1ce937ea07"
+    },
+    {
+     "name": "houston_ls01_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/houston_ls01_dem_1m.tif",
+     "bytes": 2162399,
+     "sha256": "0fd50cd2fea4502a62aedc6ce2de6019803f63ff66854a7180f76b10184258ec"
+    }
+   ],
+   "total_bytes": 24175028,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "nyc-layers",
+   "kind": "layers",
+   "version": 1,
+   "group": "nyc",
+   "label": "Map and AR layers",
+   "title": "New York City (harbor shore): Map and AR layers",
+   "summary": "FEMA flood zones, levees and floodwalls, and mapped low spots. Shows on the Map and as tags in the camera view. City drains and service requests load live when you're online.",
+   "bbox": [
+    -74.06,
+    40.56,
+    -73.83,
+    40.76
+   ],
+   "files": [
+    {
+     "name": "nyc_layers.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_layers.json",
+     "bytes": 172158,
+     "sha256": "3e3464830a84121e042f69bf9d49d87ab6b6ea3a4a52c40b8b39c3c009e0af39"
+    }
+   ],
+   "total_bytes": 172158,
+   "license": "FEMA, USACE and city open data; names (c) OpenStreetMap contributors",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "nyc-ground-1m",
+   "kind": "ground1m",
+   "version": 1,
+   "group": "nyc",
+   "label": "Ground, 1 m lidar (low-lying areas)",
+   "title": "New York City (harbor shore): Ground, 1 m lidar (low-lying areas)",
+   "summary": "Ground height to the inch, offline, for land at or below 30 ft. The app uses it in place of the 10 m grid.",
+   "bbox": [
+    -74.06,
+    40.56,
+    -73.83,
+    40.76
+   ],
+   "files": [
+    {
+     "name": "nyc_ground_1m.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ground_1m.bin",
+     "bytes": 211128820,
+     "sha256": "06f54c97bdcb97fab921039d755fdca1d57cdea783151d572194842a8ce1f144"
+    }
+   ],
+   "total_bytes": 211128820,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "nyc-scenes",
+   "kind": "scenes",
+   "version": 1,
+   "group": "nyc",
+   "label": "Lidar point clouds: Battery Park + 5 low spots",
+   "title": "New York City (harbor shore): Lidar point clouds: Battery Park + 5 low spots",
+   "summary": "Open them in the app to orbit the block and raise the water.",
+   "bbox": [
+    -74.06,
+    40.56,
+    -73.83,
+    40.76
+   ],
+   "files": [
+    {
+     "name": "nyc_landmark.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_landmark.bin",
+     "bytes": 4620000,
+     "sha256": "fa7ec556505cf8801d9021f42a6965b6774f6288a737522dc78f3e3d8baa6be9"
+    },
+    {
+     "name": "nyc_landmark.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_landmark.json",
+     "bytes": 537,
+     "sha256": "a21a6f59dc2b1b2418c0d06e213c6dd2a34704354cdc61e06115fc5bae6cc15b"
+    },
+    {
+     "name": "nyc_ls01.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls01.bin",
+     "bytes": 3929464,
+     "sha256": "22f98f4ccd39811b5c65c8205fe46c85baeb66d134023698d17c542284927610"
+    },
+    {
+     "name": "nyc_ls01.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls01.json",
+     "bytes": 580,
+     "sha256": "11211a72effc29e2f5e762499dead53141c20ff18c07ffd2f3cfe804d6c47626"
+    },
+    {
+     "name": "nyc_ls02.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls02.bin",
+     "bytes": 4338390,
+     "sha256": "fdbca20e035d09b7485159510a2d9d3f6ad8ad00a85f4ff43b32388c553991b6"
+    },
+    {
+     "name": "nyc_ls02.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls02.json",
+     "bytes": 560,
+     "sha256": "5a80bb786268777ba1574450e8dd1622bef1417ec03dd41d5ec577ef7ec93a7b"
+    },
+    {
+     "name": "nyc_ls03.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls03.bin",
+     "bytes": 4620000,
+     "sha256": "cf9c04f3007c28ae369c535cec0f4c361e7a44eea5a09d2c08e459dbfe560b4e"
+    },
+    {
+     "name": "nyc_ls03.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls03.json",
+     "bytes": 565,
+     "sha256": "ce2f62761d5e0925fe5099636af7f31dafea8af6c4001ad31fca2f4636958944"
+    },
+    {
+     "name": "nyc_ls04.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls04.bin",
+     "bytes": 4620000,
+     "sha256": "9d57739149ee5c44ef282379eaea220f1df752ce37bb363e5619dec1c4b213c9"
+    },
+    {
+     "name": "nyc_ls04.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls04.json",
+     "bytes": 577,
+     "sha256": "26dcb642fe9d9c8e9c82d960adf78d1b39a0ac988b13627323bdc236169d0883"
+    },
+    {
+     "name": "nyc_ls05.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls05.bin",
+     "bytes": 4598412,
+     "sha256": "5397d7f5f032b4b4145f33917d5a8055dda8b3656c8489b842c71a2f19f8199a"
+    },
+    {
+     "name": "nyc_ls05.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls05.json",
+     "bytes": 570,
+     "sha256": "33572102dfdf1091ddfeb14f1b9c3284b5609e1b065207d2cd9dbdf7824195df"
+    }
+   ],
+   "total_bytes": 26729655,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "nyc-laz",
+   "kind": "raw",
+   "version": 1,
+   "group": "nyc",
+   "label": "Raw lidar (LAZ)",
+   "title": "New York City (harbor shore): Raw lidar (LAZ)",
+   "summary": "The same places as standard LAZ point clouds, for any lidar app. Saved to Files \u203a On My iPhone \u203a Waterline.",
+   "bbox": [
+    -74.06,
+    40.56,
+    -73.83,
+    40.76
+   ],
+   "files": [
+    {
+     "name": "nyc_landmark.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_landmark.laz",
+     "bytes": 2147807,
+     "sha256": "c22cf5926ca5120cf9934098e805099e7bee07562e42674a6c48d0e4ef73ceca"
+    },
+    {
+     "name": "nyc_ls01.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls01.laz",
+     "bytes": 1472101,
+     "sha256": "fc371cad41fdd6aa46b3a902062e6e76a3f4d803f1774133048e2709c1aae79a"
+    },
+    {
+     "name": "nyc_ls02.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls02.laz",
+     "bytes": 1702229,
+     "sha256": "a3196a1ef9277bfa1dbc51c75fe1689098b3b519bfdf73233d298cce612765dc"
+    },
+    {
+     "name": "nyc_ls03.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls03.laz",
+     "bytes": 1914431,
+     "sha256": "235ce48f1e8041ab17fa45666c358eb3d585344f47d8365b7a585c1c8d9d4507"
+    },
+    {
+     "name": "nyc_ls04.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls04.laz",
+     "bytes": 1854258,
+     "sha256": "a9af4dff49a40cecb3c8ecdc75780acdf8719f4805d91ca1ea4c600311a16359"
+    },
+    {
+     "name": "nyc_ls05.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls05.laz",
+     "bytes": 1784456,
+     "sha256": "da0b0e17f5f1d70502a4fd60fd7c97b1917e230234f93fd62f1d788de5ee7bb1"
+    }
+   ],
+   "total_bytes": 10875282,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "nyc-dem",
+   "kind": "raw",
+   "version": 1,
+   "group": "nyc",
+   "label": "Elevation models (GeoTIFF)",
+   "title": "New York City (harbor shore): Elevation models (GeoTIFF)",
+   "summary": "10 m citywide DEM, plus 1 m DEMs of the landmark and top low spot. Heights are NAVD88.",
+   "bbox": [
+    -74.06,
+    40.56,
+    -73.83,
+    40.76
+   ],
+   "files": [
+    {
+     "name": "nyc_dem_10m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_dem_10m.tif",
+     "bytes": 6430934,
+     "sha256": "0c2d5a3a0683fd666371b9de9fae8d2fa3d0b59deae1398430ccdfe82a1febfa"
+    },
+    {
+     "name": "nyc_landmark_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_landmark_dem_1m.tif",
+     "bytes": 1155086,
+     "sha256": "fb76f2077ee3ac6b3a9d41ef1cbcc8e220bb68c6d7aa9cb2ed263853bb385f71"
+    },
+    {
+     "name": "nyc_ls01_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/nyc_ls01_dem_1m.tif",
+     "bytes": 2040183,
+     "sha256": "67e39a330ead90bd798d125416586ea9f5656bd6916c148a3e10e1cb93df853e"
+    }
+   ],
+   "total_bytes": 9626203,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "boston-layers",
+   "kind": "layers",
+   "version": 1,
+   "group": "boston",
+   "label": "Map and AR layers",
+   "title": "Boston: Map and AR layers",
+   "summary": "FEMA flood zones, levees and floodwalls, and mapped low spots. Shows on the Map and as tags in the camera view. City drains and service requests load live when you're online.",
+   "bbox": [
+    -71.12,
+    42.32,
+    -70.98,
+    42.4
+   ],
+   "files": [
+    {
+     "name": "boston_layers.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_layers.json",
+     "bytes": 91239,
+     "sha256": "9cdb64c2221c609e4b12e27f359a1ff2d2d2102d6edb9b6114e813d7b9442ae9"
+    }
+   ],
+   "total_bytes": 91239,
+   "license": "FEMA, USACE and city open data; names (c) OpenStreetMap contributors",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "boston-ground-1m",
+   "kind": "ground1m",
+   "version": 1,
+   "group": "boston",
+   "label": "Ground, 1 m lidar (low-lying areas)",
+   "title": "Boston: Ground, 1 m lidar (low-lying areas)",
+   "summary": "Ground height to the inch, offline, for land at or below 30 ft. The app uses it in place of the 10 m grid.",
+   "bbox": [
+    -71.12,
+    42.32,
+    -70.98,
+    42.4
+   ],
+   "files": [
+    {
+     "name": "boston_ground_1m.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ground_1m.bin",
+     "bytes": 68036612,
+     "sha256": "f4569500820f1ede47acb3be4b9373fcab00c76420a8396966e089b5cf88f5ce"
+    }
+   ],
+   "total_bytes": 68036612,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "boston-scenes",
+   "kind": "scenes",
+   "version": 1,
+   "group": "boston",
+   "label": "Lidar point clouds: Long Wharf + 5 low spots",
+   "title": "Boston: Lidar point clouds: Long Wharf + 5 low spots",
+   "summary": "Open them in the app to orbit the block and raise the water.",
+   "bbox": [
+    -71.12,
+    42.32,
+    -70.98,
+    42.4
+   ],
+   "files": [
+    {
+     "name": "boston_landmark.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_landmark.bin",
+     "bytes": 4620000,
+     "sha256": "22253d8a979695bfeb368c391699d9af7799fc5d25a845c34f265db703b03590"
+    },
+    {
+     "name": "boston_landmark.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_landmark.json",
+     "bytes": 487,
+     "sha256": "8ab6d585228de58f20a1fb7a40d4f25ece45ddb81ca5d58e8df95815a153955c"
+    },
+    {
+     "name": "boston_ls01.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls01.bin",
+     "bytes": 4620000,
+     "sha256": "5dc7f738f9366f937e183bf60958824d1447f49797bef7fae861e05114804eab"
+    },
+    {
+     "name": "boston_ls01.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls01.json",
+     "bytes": 531,
+     "sha256": "35e4e3bdfd496992b22ba104906b23d876e205af504a138744d7222dd8d051b3"
+    },
+    {
+     "name": "boston_ls02.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls02.bin",
+     "bytes": 4620000,
+     "sha256": "6f89c17af03ea64a85eadd7b7904ec9a5b935619a54a1b31ab821e5be166cf38"
+    },
+    {
+     "name": "boston_ls02.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls02.json",
+     "bytes": 532,
+     "sha256": "24d9c8e06132d4ccbbbee17a3a2cbff6aac5777d817122809ec919f13429587f"
+    },
+    {
+     "name": "boston_ls03.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls03.bin",
+     "bytes": 4620000,
+     "sha256": "5c4ece226770c4d8fde2dc06b70c463441d4ed276c29b98ff27f70e55a9ced49"
+    },
+    {
+     "name": "boston_ls03.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls03.json",
+     "bytes": 527,
+     "sha256": "da7b11c6ff2474f9d2bd8b0a42de2256fbbf9f8949b3990715566af8a281bd2a"
+    },
+    {
+     "name": "boston_ls04.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls04.bin",
+     "bytes": 4620000,
+     "sha256": "9f88f361212a904ae47f1dc959ae577d46cffdb072affcf4cf9cda5ba0aebb26"
+    },
+    {
+     "name": "boston_ls04.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls04.json",
+     "bytes": 532,
+     "sha256": "d18d276648cd6c55b65b704156e348d3829afff391a3f9e7f28242e3df43ab4e"
+    },
+    {
+     "name": "boston_ls05.bin",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls05.bin",
+     "bytes": 4620000,
+     "sha256": "51fe68c8848f63fd060c1784b6278ff3ea25cf96e39301d94bc3c83de54bd6f5"
+    },
+    {
+     "name": "boston_ls05.json",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls05.json",
+     "bytes": 536,
+     "sha256": "1c49987f55f23278b243b6898e9147a8a141d96ed7f54e966efd10959445dd05"
+    }
+   ],
+   "total_bytes": 27723145,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "boston-laz",
+   "kind": "raw",
+   "version": 1,
+   "group": "boston",
+   "label": "Raw lidar (LAZ)",
+   "title": "Boston: Raw lidar (LAZ)",
+   "summary": "The same places as standard LAZ point clouds, for any lidar app. Saved to Files \u203a On My iPhone \u203a Waterline.",
+   "bbox": [
+    -71.12,
+    42.32,
+    -70.98,
+    42.4
+   ],
+   "files": [
+    {
+     "name": "boston_landmark.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_landmark.laz",
+     "bytes": 1885985,
+     "sha256": "205ec0df7614a42950bd38ada30873993e98c70b9978db3a774275edf35910e6"
+    },
+    {
+     "name": "boston_ls01.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls01.laz",
+     "bytes": 2196664,
+     "sha256": "2756aaa374b174a755cd87a1915100b02fa0dbe5021d36c38c37ece6625afcd0"
+    },
+    {
+     "name": "boston_ls02.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls02.laz",
+     "bytes": 2386444,
+     "sha256": "f293d1b9e399937fc2f6714bb478998d6d477151381b206e89f6e7bb6b3fc369"
+    },
+    {
+     "name": "boston_ls03.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls03.laz",
+     "bytes": 2215695,
+     "sha256": "000352410a0a169416bd37668e6bd72a7be657988da8988e2b9c7db892da62cd"
+    },
+    {
+     "name": "boston_ls04.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls04.laz",
+     "bytes": 2465672,
+     "sha256": "90bb9b95b30d9fbe610ef05bd81783a0d8989ea8ff59d894b7cf8950781f77bb"
+    },
+    {
+     "name": "boston_ls05.laz",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls05.laz",
+     "bytes": 2172003,
+     "sha256": "7604b441fc351941d1d9645dda354b77bc4e12b4ee076effb2b4a864c7be7b74"
+    }
+   ],
+   "total_bytes": 13322463,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  },
+  {
+   "id": "boston-dem",
+   "kind": "raw",
+   "version": 1,
+   "group": "boston",
+   "label": "Elevation models (GeoTIFF)",
+   "title": "Boston: Elevation models (GeoTIFF)",
+   "summary": "10 m citywide DEM, plus 1 m DEMs of the landmark and top low spot. Heights are NAVD88.",
+   "bbox": [
+    -71.12,
+    42.32,
+    -70.98,
+    42.4
+   ],
+   "files": [
+    {
+     "name": "boston_dem_10m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_dem_10m.tif",
+     "bytes": 2051137,
+     "sha256": "b0342b7f3b0d60b36baf406b94fec0a4068a3a32e20a9c09df404bb6c2ea8c4e"
+    },
+    {
+     "name": "boston_landmark_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_landmark_dem_1m.tif",
+     "bytes": 1423359,
+     "sha256": "5042da1db364504133f47b79b2737870fe4cd6954b2e1cf9cbb7d0ed273eeda5"
+    },
+    {
+     "name": "boston_ls01_dem_1m.tif",
+     "url": "https://github.com/craigm26/waterline/releases/download/packs-v1/boston_ls01_dem_1m.tif",
+     "bytes": 2619558,
+     "sha256": "77779711e1115d4ea6e90be53a54a1396c8b7ceff1b6e2eefc6449bba30d97d4"
+    }
+   ],
+   "total_bytes": 6094054,
+   "license": "Public domain (USGS 3DEP)",
+   "source": "https://github.com/craigm26/waterline (scripts/build_region_packs.py)"
+  }
+ ],
+ "groups": [
+  {
+   "id": "san-francisco",
+   "name": "San Francisco",
+   "state": "CA",
+   "bbox": [
+    -122.53,
+    37.703,
+    -122.355,
+    37.835
+   ],
+   "bundled": true
+  },
+  {
+   "id": "sacramento",
+   "name": "Sacramento",
+   "state": "CA",
+   "bbox": [
+    -121.62,
+    38.43,
+    -121.36,
+    38.72
+   ],
+   "hazards": [
+    "river",
+    "levee",
+    "rain"
+   ],
+   "why": "Two rivers held back by levees. Natomas and the Pocket sit 15-25 ft below the Sacramento River at flood stage; FEMA maps Natomas A99 (levee still being built to the 1% standard).",
+   "caveat": null,
+   "live": {
+    "reports_label": "Drain service requests",
+    "drains": {
+     "type": "arcgis",
+     "url": "https://services1.arcgis.com/5NARefyPVtAeuJPU/arcgis/rest/services/DepartmentofWaterResourcesAssets/FeatureServer/2/query",
+     "where": "1=1",
+     "note": "County only: no inlets inside the City of Sacramento"
+    },
+    "reports": {
+     "type": "arcgis",
+     "url": "https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/SalesForce311_View/FeatureServer/0/query",
+     "where": "CategoryName IN ('Drains Plugged Drain Inlet','Drains Drain Inlet Foreign Material','Drains General')"
+    }
+   },
+   "usgs_1m": {
+    "url": "https://apps.nationalmap.gov/downloader/",
+    "tiles": 28,
+    "bytes": 5439186001
+   }
+  },
+  {
+   "id": "new-orleans",
+   "name": "New Orleans",
+   "state": "LA",
+   "bbox": [
+    -90.17,
+    29.88,
+    -89.92,
+    30.05
+   ],
+   "hazards": [
+    "surge",
+    "levee",
+    "rain"
+   ],
+   "why": "Much of the city is below sea level inside levees and depends on pumps; heavy rain ponds where the pumps can't keep up.",
+   "caveat": "Caveat: the drainage-canal floodwalls are thinner than the 10 m grid, so the city's rim reads near lake level and the bowl understates how deep a protection failure could get. Compare the ground with lake and river levels instead.",
+   "live": {
+    "reports_label": "Drainage and flooding requests",
+    "drains": {
+     "type": "socrata",
+     "url": "https://data.nola.gov/resource/se4p-ierc.json",
+     "where": "within_box(the_geom,{n},{w},{s},{e})"
+    },
+    "reports": {
+     "type": "socrata",
+     "url": "https://data.nola.gov/resource/2jgv-pqrq.json",
+     "where": "request_reason in('Catch Basin Not Draining','Catch Basin - Clogged','Street Flooding','Catch Basin Clogged','Street Flooding / Drainage') AND latitude between {s} and {n} AND longitude between {w} and {e}"
+    }
+   },
+   "usgs_1m": {
+    "url": "https://apps.nationalmap.gov/downloader/",
+    "tiles": 43,
+    "bytes": 11879527969
+   }
+  },
+  {
+   "id": "miami",
+   "name": "Miami & Miami Beach",
+   "state": "FL",
+   "bbox": [
+    -80.35,
+    25.7,
+    -80.11,
+    25.88
+   ],
+   "hazards": [
+    "tide",
+    "surge",
+    "rain"
+   ],
+   "why": "High-tide flooding on sunny days, porous limestone under the seawalls, and hurricane surge.",
+   "caveat": "Caveat: seawalls are thinner than the 10 m grid, and sunny-day flooding comes up through storm drains and porous rock, so compare the ground with the tide rather than relying on the bowl.",
+   "live": {
+    "reports_label": "Flooding and drainage requests",
+    "drains": {
+     "type": "arcgis",
+     "url": "https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/StormWaterPoint_gdb/FeatureServer/0/query",
+     "where": "TYPE='CATCH BASIN'"
+    },
+    "reports": {
+     "type": "arcgis_table",
+     "url": "https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/data_311_2026/FeatureServer/0/query",
+     "where": "Subject IN ('Flooding or Drainage Issue','Storm Flood or Drainage - City of Miami') AND Latitude BETWEEN {s} AND {n} AND Longitude BETWEEN {w} AND {e}",
+     "lat": "Latitude",
+     "lon": "Longitude"
+    }
+   },
+   "usgs_1m": {
+    "url": "https://apps.nationalmap.gov/downloader/",
+    "tiles": 12,
+    "bytes": 3245133337
+   }
+  },
+  {
+   "id": "norfolk",
+   "name": "Norfolk",
+   "state": "VA",
+   "bbox": [
+    -76.36,
+    36.82,
+    -76.17,
+    36.97
+   ],
+   "hazards": [
+    "tide",
+    "surge",
+    "rain"
+   ],
+   "why": "The fastest relative sea-level rise on the US East Coast; tidal flooding closes streets many times a year.",
+   "caveat": null,
+   "live": {
+    "reports_label": "Flood reports, 2010 to 2020",
+    "drains": {
+     "type": "arcgis",
+     "url": "https://services3.arcgis.com/Pn95KPPz613AKHXi/arcgis/rest/services/City_of_Norfolk_Stormwater/FeatureServer/6/query",
+     "where": "GENERAL_TY IN ('Catch Basin','Drop Inlet','Yard Basin','Gutter Basin')"
+    },
+    "reports": {
+     "type": "socrata",
+     "url": "https://data.norfolk.gov/resource/mrv3-rcpc.json",
+     "where": "upper(event_type) like '%FLOOD%' AND latitude between {s} and {n} AND longitude between {w} and {e}"
+    }
+   },
+   "usgs_1m": {
+    "url": "https://apps.nationalmap.gov/downloader/",
+    "tiles": 21,
+    "bytes": 5659448354
+   }
+  },
+  {
+   "id": "charleston",
+   "name": "Charleston",
+   "state": "SC",
+   "bbox": [
+    -80.02,
+    32.7,
+    -79.86,
+    32.86
+   ],
+   "hazards": [
+    "tide",
+    "surge",
+    "rain"
+   ],
+   "why": "The peninsula's low streets flood at king tides and in ordinary heavy rain when the outfalls are under water.",
+   "caveat": "Caveat: the Battery seawall and outfall flap gates are thinner than the 10 m grid; compare the ground with the tide.",
+   "live": {
+    "reports_label": "Citizen flood photos",
+    "drains": {
+     "type": "arcgis",
+     "url": "https://services2.arcgis.com/tQaXW7Zb1Vphzvgd/arcgis/rest/services/SW_Inlets/FeatureServer/0/query",
+     "where": "INLETTYPE IS NOT NULL AND INLETTYPE <> 'Pipe'"
+    },
+    "reports": {
+     "type": "arcgis",
+     "url": "https://services2.arcgis.com/tQaXW7Zb1Vphzvgd/arcgis/rest/services/Flooding_Report_Public_View/FeatureServer/0/query",
+     "where": "1=1"
+    }
+   },
+   "usgs_1m": {
+    "url": "https://apps.nationalmap.gov/downloader/",
+    "tiles": 11,
+    "bytes": 2819021842
+   }
+  },
+  {
+   "id": "houston",
+   "name": "Houston",
+   "state": "TX",
+   "bbox": [
+    -95.55,
+    29.62,
+    -95.2,
+    29.88
+   ],
+   "hazards": [
+    "rain",
+    "bayou"
+   ],
+   "why": "Flat land, clay soil and bayous that overtop in heavy rain; Harvey put 50 in of rain on the region.",
+   "caveat": null,
+   "live": {
+    "reports_label": "Flooding and drainage requests",
+    "drains": {
+     "type": "arcgis",
+     "url": "https://geogimsms.houstontx.gov/arcgis/rest/services/TDO/StormWater_Maintenance_gx/MapServer/9/query",
+     "where": "1=1"
+    },
+    "reports": {
+     "type": "arcgis",
+     "url": "https://mycity2.houstontx.gov/gisweb01/rest/services/311/Houston311_Archives/MapServer/0/query",
+     "where": "CASE_TYPE IN ('Flooding','Poor Drainage','Inlet Clogged Needs Cleaning ROW')"
+    }
+   },
+   "usgs_1m": {
+    "url": "https://apps.nationalmap.gov/downloader/",
+    "tiles": 33,
+    "bytes": 12840383503
+   }
+  },
+  {
+   "id": "nyc",
+   "name": "New York City (harbor shore)",
+   "state": "NY",
+   "bbox": [
+    -74.06,
+    40.56,
+    -73.83,
+    40.76
+   ],
+   "hazards": [
+    "surge",
+    "tide",
+    "rain"
+   ],
+   "why": "Lower Manhattan, Red Hook and the south Brooklyn and Queens shore flooded in Sandy; basement apartments flood in cloudbursts.",
+   "caveat": null,
+   "live": {
+    "reports_label": "Street flooding requests",
+    "drains": {
+     "type": "socrata",
+     "url": "https://data.cityofnewyork.us/resource/2w2g-fk3i.json",
+     "where": "within_box(the_geom,{n},{w},{s},{e})"
+    },
+    "reports": {
+     "type": "socrata",
+     "url": "https://data.cityofnewyork.us/resource/erm2-nwe9.json",
+     "where": "descriptor in('Catch Basin Clogged/Flooding (Use Comments) (SC)','Street Flooding (SJ)','Highway Flooding (SH)','Catch Basin Clogged','Flooding on Street','Flooding on Highway') AND within_box(location,{n},{w},{s},{e})"
+    }
+   },
+   "usgs_1m": {
+    "url": "https://apps.nationalmap.gov/downloader/",
+    "tiles": 19,
+    "bytes": 3952421449
+   }
+  },
+  {
+   "id": "boston",
+   "name": "Boston",
+   "state": "MA",
+   "bbox": [
+    -71.12,
+    42.32,
+    -70.98,
+    42.4
+   ],
+   "hazards": [
+    "surge",
+    "tide"
+   ],
+   "why": "Much of downtown, the Seaport and East Boston is filled marsh a few feet above today's high tides.",
+   "caveat": null,
+   "live": {
+    "reports_label": "Flooding work orders",
+    "drains": {
+     "type": "arcgis",
+     "url": "https://services.arcgis.com/sFnw0xNflSi8J0uh/ArcGIS/rest/services/Catch_Basin/FeatureServer/0/query",
+     "where": "1=1"
+    },
+    "reports": {
+     "type": "arcgis",
+     "url": "https://services.arcgis.com/sFnw0xNflSi8J0uh/ArcGIS/rest/services/BWSC_cityworks_Nodupes_04092025_ExcelToTable_Geocoded/FeatureServer/0/query",
+     "where": "1=1"
+    }
+   },
+   "usgs_1m": {
+    "url": "https://apps.nationalmap.gov/downloader/",
+    "tiles": 12,
+    "bytes": 2490685285
+   }
   }
  ]
 }
