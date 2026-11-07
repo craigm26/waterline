@@ -1,0 +1,12 @@
+{
+ "_note": "Volunteer drain programs by place. Status: open = public sign-up, pilot = limited area, none = no sign-up found (which is not proof there isn't one). Checked Nov 6, 2026. The app only links out: it never signs anyone up.",
+ "san-francisco": {"status": "open", "name": "Adopt a Drain SF", "operator": "SFPUC", "url": "https://adoptadrain.sfwater.org", "detail": "Pick a drain, name it, and get an email before large storms."},
+ "new-orleans": {"status": "open", "name": "Adopt-A-Catch Basin", "operator": "City of New Orleans", "url": "https://nola.gov/adopt-a-catch-basin", "detail": "Pick a basin on the city map, name it, and sweep the leaves and grass off it."},
+ "charleston": {"status": "open", "name": "Adopt-a-Drain", "operator": "City of Charleston", "url": "https://charleston-sc.gov/2017/Adopt-A-Drain", "detail": "Keep the grate clear between city cleanings. You're never asked to clear inside a drain."},
+ "houston": {"status": "open", "name": "Adopt-A-Drain", "operator": "City of Houston", "url": "https://houstonadoptadrain.org", "detail": "Adopt a drain near you and clear it about four times a year."},
+ "nyc": {"status": "pilot", "name": "Adopt-a-Catch Basin", "operator": "NYC DEP", "url": "https://www.nyc.gov/site/dep/whats-new/adopt-a-catch-basin.page", "detail": "Pilot in East Greenpoint, Brooklyn. Outside it, DEP takes your details and contacts you when it expands."},
+ "boston": {"status": "none", "operator": "Boston Water and Sewer Commission", "detail": "BWSC asks residents to adopt a nearby catch basin and clear snow from it, but we found no sign-up. Its site has a catch basin map.", "url": "https://www.bwsc.org/"},
+ "norfolk": {"status": "none", "operator": "City of Norfolk", "detail": "A neighborhood pilot was reported in 2018. We found no current sign-up.", "url": null},
+ "miami": {"status": "none", "operator": "City of Miami", "detail": "A local report said a program was coming. We found no sign-up.", "url": null},
+ "sacramento": {"status": "none", "operator": "City and County of Sacramento", "detail": "We found no city or county program.", "url": null}
+}

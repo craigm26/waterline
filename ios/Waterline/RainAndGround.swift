@@ -8,8 +8,11 @@ struct RainOutlook {
     let chance24Pct: Int
     let updated: String
     let source: URL
+    /// Forecast by the hour for the next 24 hours, in.
+    var hourlyNext24In: [Double] = []
+    var observationStations: String?
 
-    private struct Points: Decodable { struct P: Decodable { let forecastGridData: String }; let properties: P }
+    private struct Points: Decodable { struct P: Decodable { let forecastGridData: String; let observationStations: String? }; let properties: P }
     private struct Grid: Decodable {
         struct Series: Decodable { struct V: Decodable { let validTime: String; let value: Double? }; let values: [V] }
         struct P: Decodable { let updateTime: String?; let quantitativePrecipitation: Series; let probabilityOfPrecipitation: Series }
@@ -35,7 +38,16 @@ struct RainOutlook {
             guard let sp = span(v.validTime), sp.0.addingTimeInterval(sp.1 * 3600) > now, sp.0 < now.addingTimeInterval(86400) else { return nil }
             return v.value
         }.max() ?? 0
-        return RainOutlook(next24In: sum(24), next72In: sum(72), chance24Pct: Int(pop), updated: g.properties.updateTime ?? "", source: url)
+        func hour(_ i: Int) -> Double {
+            let a = now.addingTimeInterval(Double(i) * 3600), b = a.addingTimeInterval(3600)
+            return g.properties.quantitativePrecipitation.values.reduce(0) { acc, v in
+                guard let sp = span(v.validTime), let mm = v.value, sp.1 > 0 else { return acc }
+                let start = max(sp.0, a), end = min(sp.0.addingTimeInterval(sp.1 * 3600), b)
+                return end > start ? acc + mm * end.timeIntervalSince(start) / (sp.1 * 3600) / 25.4 : acc
+            }
+        }
+        return RainOutlook(next24In: sum(24), next72In: sum(72), chance24Pct: Int(pop), updated: g.properties.updateTime ?? "", source: url,
+                           hourlyNext24In: (0..<24).map(hour), observationStations: pts.properties.observationStations)
     }
 
     /// "2026-11-06T18:00:00+00:00/P1DT6H" -> (start, hours)

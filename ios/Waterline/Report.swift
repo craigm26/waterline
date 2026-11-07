@@ -35,6 +35,7 @@ struct SpotReport {
     var nearbyBowl: ElevationGrid.GridSpot?
     var tide: TideOutlook?
     var rain: RainOutlook?
+    var rainEstimate: RainEstimate?
     var drains: [(Places.Drain, Double)] = []
     var flood311Near = 0        // within 150 m (~500 ft)
     var lowSpot: (Places.LowSpot, Double)?
@@ -181,6 +182,16 @@ struct SpotReport {
     /// Water levels to see in AR, as depth above the ground here.
     var scenarios: [WaterScenario] {
         var out: [WaterScenario] = []
+        if let e = rainEstimate {
+            func d(_ ft: Double) -> Double? { ft >= 0.05 ? ft : nil }
+            let rain = String(format: "%.2f in forecast", e.forecastIn)
+            out.append(.init(id: "rain-work", label: "Next 24 h rain, drains working", detail: "\(rain) · Waterline estimate, drains assumed to take 0.5 in/h",
+                             depthFt: d(e.workingFt), provenance: .derived, isStressTest: false))
+            out.append(.init(id: "rain-block", label: "Next 24 h rain, drains blocked", detail: "\(rain) · Waterline estimate",
+                             depthFt: d(e.blockedFt), provenance: .assumed, isStressTest: false))
+            out.append(.init(id: "rain-stress", label: "2 in in an hour, drains blocked", detail: "Waterline estimate",
+                             depthFt: d(e.stressFt), provenance: .assumed, isStressTest: true))
+        }
         if bowlFt >= 0.3 {
             out.append(.init(id: "bowl", label: "Rain fills the bowl", detail: String(format: "%.1f ft before it spills (lidar)", bowlFt),
                              depthFt: bowlFt, provenance: .derived, isStressTest: false))
@@ -238,6 +249,9 @@ struct SpotReport {
         r.ground = await ground
         r.tide = await tide
         r.rain = await rain
+        if let hours = r.rain?.hourlyNext24In {
+            r.rainEstimate = await Task.detached(priority: .userInitiated) { RainEstimate.make(c, forecast: hours) }.value
+        }
         r.placeLabel = await label
         r.gauges = await gauges
         r.fema = await fema

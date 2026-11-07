@@ -127,6 +127,24 @@ enum Net {
         return try JSONDecoder().decode(T.self, from: data)
     }
 
+    /// The network's copy, falling back to the last one saved when offline. For a file that
+    /// changes shape between builds: a stale copy can hide new data entirely.
+    static func freshJSON<T: Decodable>(_ url: URL, cacheName: String) async throws -> T {
+        let file = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent(cacheName)
+        var r = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+        r.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        do {
+            let (data, resp) = try await URLSession.shared.data(for: r)
+            guard (resp as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+            let v = try JSONDecoder().decode(T.self, from: data)
+            try? data.write(to: file)
+            return v
+        } catch {
+            guard let d = try? Data(contentsOf: file), let v = try? JSONDecoder().decode(T.self, from: d) else { throw error }
+            return v
+        }
+    }
+
     static func cachedJSON<T: Decodable>(_ url: URL, cacheName: String, maxAge: TimeInterval) async throws -> T {
         let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
         let file = dir.appendingPathComponent(cacheName)

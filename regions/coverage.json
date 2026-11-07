@@ -1,0 +1,120 @@
+{
+ "checked": "2026-11-06",
+ "places": {
+  "san-francisco": {
+   "tide": {
+    "name": "San Francisco",
+    "km": 4.6
+   },
+   "gauges": 119,
+   "fema": 114,
+   "levees": 1,
+   "floodwalls": 0,
+   "pumps": 0
+  },
+  "sacramento": {
+   "tide": {
+    "name": "Port of West Sacramento, Washington Lake",
+    "km": 5.1
+   },
+   "gauges": 25,
+   "fema": 513,
+   "levees": 209,
+   "floodwalls": 294,
+   "pumps": 3,
+   "drains": 18566,
+   "reports": 2206
+  },
+  "new-orleans": {
+   "tide": {
+    "name": "New Canal Station",
+    "km": 9.5
+   },
+   "gauges": 71,
+   "fema": 2289,
+   "levees": 891,
+   "floodwalls": 460,
+   "pumps": 48,
+   "drains": 77656,
+   "reports": 18144
+  },
+  "miami": {
+   "tide": {
+    "name": "Virginia Key",
+    "km": 9.4
+   },
+   "gauges": 12,
+   "fema": 945,
+   "levees": 0,
+   "floodwalls": 0,
+   "pumps": 0,
+   "drains": 49769,
+   "reports": 992
+  },
+  "norfolk": {
+   "tide": {
+    "name": "Sewells Point",
+    "km": 7.8
+   },
+   "gauges": 70,
+   "fema": 480,
+   "levees": 26,
+   "floodwalls": 20,
+   "pumps": 1,
+   "drains": 20001,
+   "reports": 1237
+  },
+  "charleston": {
+   "tide": {
+    "name": "Charleston",
+    "km": 1.5
+   },
+   "gauges": 23,
+   "fema": 343,
+   "levees": 0,
+   "floodwalls": 0,
+   "pumps": 0,
+   "drains": 8789,
+   "reports": 509
+  },
+  "houston": {
+   "tide": {
+    "name": "Manchester",
+    "km": 10.9
+   },
+   "gauges": 49,
+   "fema": 1051,
+   "levees": 0,
+   "floodwalls": 0,
+   "pumps": 0,
+   "drains": 94554,
+   "reports": 18064
+  },
+  "nyc": {
+   "tide": {
+    "name": "The Battery",
+    "km": 7.4
+   },
+   "gauges": 93,
+   "fema": 115,
+   "levees": 0,
+   "floodwalls": 0,
+   "pumps": 0,
+   "drains": 65149,
+   "reports": null
+  },
+  "boston": {
+   "tide": {
+    "name": "Boston",
+    "km": 0.7
+   },
+   "gauges": 51,
+   "fema": 173,
+   "levees": 8,
+   "floodwalls": 17,
+   "pumps": 0,
+   "drains": 19768,
+   "reports": 591
+  }
+ }
+}

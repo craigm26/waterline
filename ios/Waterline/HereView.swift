@@ -186,6 +186,9 @@ struct HereView: View {
             ForEach(Array(r.actions.enumerated()), id: \.offset) { i, a in
                 Label { Text(a).font(.subheadline) } icon: { Text("\(i + 1)").font(.caption.bold()) }
             }
+            if let a = PackStore.shared.adopt(at: r.coordinate), let u = a.url, !r.drains.isEmpty {
+                Link("Adopt a drain here: \(a.name ?? "city program")", destination: u).font(.subheadline.bold())
+            }
         }
     }
 

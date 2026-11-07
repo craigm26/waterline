@@ -54,7 +54,7 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             report = r
             loading = false
             if arScenarioID == nil || !r.scenarios.contains(where: { $0.id == arScenarioID }) {
-                arScenarioID = r.scenarios.first(where: { $0.depthFt != nil })?.id ?? r.scenarios.first?.id
+                arScenarioID = r.scenarios.first(where: { $0.depthFt != nil && !$0.isStressTest })?.id ?? r.scenarios.first?.id
             }
         }
     }

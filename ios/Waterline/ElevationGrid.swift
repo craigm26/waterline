@@ -79,6 +79,39 @@ final class ElevationGrid {
         return (row, col)
     }
 
+    /// A square of the grid for the drainage model. Ground is in m, NaN off land.
+    struct Window {
+        let rows: Int, cols: Int, resM: Double
+        let groundM: [Float], bowlM: [Float]
+        let centerRow: Int, centerCol: Int
+        let center: CLLocationCoordinate2D
+
+        func coordinate(row: Double, col: Double) -> CLLocationCoordinate2D {
+            .init(latitude: center.latitude + (Double(centerRow) - row) * resM / 111_132,
+                  longitude: center.longitude + (col - Double(centerCol)) * resM / (111_320 * cos(center.latitude * .pi / 180)))
+        }
+        func index(_ c: CLLocationCoordinate2D) -> Int? {
+            let r = Int((Double(centerRow) - (c.latitude - center.latitude) * 111_132 / resM).rounded(.down))
+            let cc = Int((Double(centerCol) + (c.longitude - center.longitude) * 111_320 * cos(center.latitude * .pi / 180) / resM).rounded(.down))
+            return r >= 0 && r < rows && cc >= 0 && cc < cols ? r * cols + cc : nil
+        }
+    }
+
+    func window(near c: CLLocationCoordinate2D, radiusM: Double) -> Window? {
+        guard let rc = cell(c) else { return nil }
+        let k = Int(radiusM / h.res_m)
+        let r0 = max(0, rc.r - k), r1 = min(h.rows - 1, rc.r + k), c0 = max(0, rc.c - k), c1 = min(h.cols - 1, rc.c + k)
+        let rows = r1 - r0 + 1, cols = c1 - c0 + 1
+        var g = [Float](repeating: .nan, count: rows * cols), b = [Float](repeating: 0, count: rows * cols)
+        for r in 0..<rows {
+            for cc in 0..<cols {
+                let i = (r + r0) * h.cols + cc + c0
+                if Int(ground[i]) != h.nodata_ground { g[r * cols + cc] = Float(ground[i]) / 100; b[r * cols + cc] = Float(bowl[i]) / 100 }
+            }
+        }
+        return Window(rows: rows, cols: cols, resM: h.res_m, groundM: g, bowlM: b, centerRow: rc.r - r0, centerCol: rc.c - c0, center: c)
+    }
+
     /// nil outside the grid or over open water.
     func sample(_ c: CLLocationCoordinate2D) -> Sample? {
         guard let rc = cell(c) else { return nil }

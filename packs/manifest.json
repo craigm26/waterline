@@ -2408,7 +2408,202 @@
     -122.355,
     37.835
    ],
-   "bundled": true
+   "bundled": true,
+   "datasets": [
+    {
+     "id": "san-francisco-0",
+     "section": "Ground and lidar",
+     "name": "Ground, 5 m",
+     "detail": "Citywide ground height and depth to the nearest spill point, offline.",
+     "source": "USGS 3DEP lidar",
+     "access": "bundled"
+    },
+    {
+     "id": "san-francisco-1",
+     "section": "Ground and lidar",
+     "name": "Ground, 1 m lidar (low-lying areas)",
+     "detail": "Ground to the inch on land at or below 30 ft, offline.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "sf-ground-1m"
+    },
+    {
+     "id": "san-francisco-2",
+     "section": "Ground and lidar",
+     "name": "Lidar point clouds: Ferry Building + 5 low spots",
+     "detail": "Orbit the block in the app and raise the water.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "sf-lidar-scenes"
+    },
+    {
+     "id": "san-francisco-3",
+     "section": "Ground and lidar",
+     "name": "Raw lidar (LAZ)",
+     "detail": "The same places as LAZ files, for other lidar apps.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "raw-laz"
+    },
+    {
+     "id": "san-francisco-4",
+     "section": "Ground and lidar",
+     "name": "Elevation models (GeoTIFF)",
+     "detail": "5 m citywide, plus 1 m around the Ferry Building and 17th & Folsom.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "raw-dem"
+    },
+    {
+     "id": "san-francisco-5",
+     "section": "Ground and lidar",
+     "name": "Citywide 1 m DEM tiles",
+     "detail": "The four USGS 1 m tiles that cover the city.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "raw-dem-1m"
+    },
+    {
+     "id": "san-francisco-6",
+     "section": "Ground and lidar",
+     "name": "Ground at this block, about 1 m",
+     "detail": "Streamed for the 3D ground view on the Here tab.",
+     "source": "USGS 3DEP elevation service",
+     "access": "live"
+    },
+    {
+     "id": "san-francisco-7",
+     "section": "Ground and lidar",
+     "name": "Ground at this spot",
+     "detail": "Used when no download covers the spot.",
+     "source": "USGS Elevation Point Query",
+     "access": "live"
+    },
+    {
+     "id": "san-francisco-8",
+     "section": "Flood maps",
+     "name": "SFPUC 100-year storm flood map",
+     "detail": "The city's own flood zone, on the Map.",
+     "source": "SFPUC via DataSF",
+     "access": "bundled"
+    },
+    {
+     "id": "san-francisco-9",
+     "section": "Flood maps",
+     "name": "FEMA flood zone at this spot",
+     "detail": "The zone for the spot you're checking.",
+     "source": "FEMA NFHL",
+     "access": "live"
+    },
+    {
+     "id": "san-francisco-10",
+     "section": "Flood maps",
+     "name": "Rainfall frequency",
+     "detail": "How much rain a 10, 100 or 1000 year storm brings at a spot.",
+     "source": "NOAA Atlas 14",
+     "access": "link",
+     "url": "https://hdsc.nws.noaa.gov/pfds/"
+    },
+    {
+     "id": "san-francisco-11",
+     "section": "Flood maps",
+     "name": "Sea level rise scenarios",
+     "detail": "Mapped inundation at each foot of sea level rise.",
+     "source": "NOAA Office for Coastal Management",
+     "access": "link",
+     "url": "https://coast.noaa.gov/slr/"
+    },
+    {
+     "id": "san-francisco-12",
+     "section": "Water and weather",
+     "name": "Tide and water level",
+     "detail": "Nearest station San Francisco, 3 mi from the city center.",
+     "source": "NOAA CO-OPS",
+     "access": "live"
+    },
+    {
+     "id": "san-francisco-13",
+     "section": "Water and weather",
+     "name": "River gauges",
+     "detail": "119 gauges within 37 mi, with flood stages and forecasts.",
+     "source": "NOAA National Water Prediction Service",
+     "access": "live"
+    },
+    {
+     "id": "san-francisco-14",
+     "section": "Water and weather",
+     "name": "Rain forecast",
+     "detail": "Hourly forecast for the spot you're checking.",
+     "source": "National Weather Service",
+     "access": "live"
+    },
+    {
+     "id": "san-francisco-15",
+     "section": "Water and weather",
+     "name": "Rain water estimate",
+     "detail": "Where rain would stand on the Map and in the camera, with drains working or blocked. Computed from the ground and rain, with assumed drain and runoff rates.",
+     "source": "Waterline, from NWS rain and USGS ground",
+     "access": "bundled"
+    },
+    {
+     "id": "san-francisco-16",
+     "section": "Water and weather",
+     "name": "USGS stream gauges",
+     "detail": "Stage and flow history for rivers and creeks.",
+     "source": "USGS Water Data",
+     "access": "link",
+     "url": "https://api.waterdata.usgs.gov/"
+    },
+    {
+     "id": "san-francisco-17",
+     "section": "Streets and city records",
+     "name": "Adopt a Drain SF",
+     "detail": "Pick a drain, name it, and get an email before large storms.",
+     "source": "SFPUC",
+     "access": "program",
+     "url": "https://adoptadrain.sfwater.org"
+    },
+    {
+     "id": "san-francisco-18",
+     "section": "Streets and city records",
+     "name": "Worst storm drains",
+     "detail": "500 drains ranked citywide by how much water can stand over them.",
+     "source": "DataSF, Waterline ranking",
+     "access": "bundled"
+    },
+    {
+     "id": "san-francisco-19",
+     "section": "Streets and city records",
+     "name": "Street low spots",
+     "detail": "The 50 worst, measured from the lidar.",
+     "source": "Derived by Waterline",
+     "access": "bundled"
+    },
+    {
+     "id": "san-francisco-20",
+     "section": "Streets and city records",
+     "name": "Past flooding reports",
+     "detail": "26,458 311 reports.",
+     "source": "DataSF 311",
+     "access": "bundled"
+    },
+    {
+     "id": "san-francisco-21",
+     "section": "Streets and city records",
+     "name": "Levees and pumps",
+     "detail": "Mapped nationally. San Francisco's Map doesn't show them yet.",
+     "source": "USACE National Levee Database",
+     "access": "link",
+     "url": "https://levees.sec.usace.army.mil/"
+    }
+   ],
+   "adopt": {
+    "status": "open",
+    "name": "Adopt a Drain SF",
+    "operator": "SFPUC",
+    "url": "https://adoptadrain.sfwater.org",
+    "detail": "Pick a drain, name it, and get an email before large storms."
+   }
   },
   {
    "id": "sacramento",
@@ -2445,6 +2640,219 @@
     "url": "https://apps.nationalmap.gov/downloader/",
     "tiles": 28,
     "bytes": 5439186001
+   },
+   "datasets": [
+    {
+     "id": "sacramento-0",
+     "section": "Ground and lidar",
+     "name": "Ground and bowls, 10 m",
+     "detail": "Ground height offline, and how deep water can stand at each spot (derived from the lidar).",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "region-sacramento"
+    },
+    {
+     "id": "sacramento-1",
+     "section": "Ground and lidar",
+     "name": "Ground, 1 m lidar (low-lying areas)",
+     "detail": "Ground to the inch on land at or below 30 ft, offline.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "sacramento-ground-1m"
+    },
+    {
+     "id": "sacramento-2",
+     "section": "Ground and lidar",
+     "name": "Lidar point clouds: Old Sacramento waterfront + 5 low spots",
+     "detail": "Orbit the block in the app and raise the water.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "sacramento-scenes"
+    },
+    {
+     "id": "sacramento-3",
+     "section": "Ground and lidar",
+     "name": "Raw lidar (LAZ)",
+     "detail": "The same places as LAZ files, for other lidar apps.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "sacramento-laz"
+    },
+    {
+     "id": "sacramento-4",
+     "section": "Ground and lidar",
+     "name": "Elevation models (GeoTIFF)",
+     "detail": "10 m citywide, plus 1 m around the landmark and top low spot.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "sacramento-dem"
+    },
+    {
+     "id": "sacramento-5",
+     "section": "Ground and lidar",
+     "name": "Ground at this block, about 1 m",
+     "detail": "Streamed for the 3D ground view on the Here tab.",
+     "source": "USGS 3DEP elevation service",
+     "access": "live"
+    },
+    {
+     "id": "sacramento-6",
+     "section": "Ground and lidar",
+     "name": "Ground at this spot",
+     "detail": "Used when no download covers the spot.",
+     "source": "USGS Elevation Point Query",
+     "access": "live"
+    },
+    {
+     "id": "sacramento-7",
+     "section": "Ground and lidar",
+     "name": "All 28 USGS 1 m tiles",
+     "detail": "The full citywide survey, 5.4 GB. Download it from USGS.",
+     "source": "USGS National Map",
+     "access": "link",
+     "url": "https://apps.nationalmap.gov/downloader/"
+    },
+    {
+     "id": "sacramento-8",
+     "section": "Flood maps",
+     "name": "Map and AR layers",
+     "detail": "FEMA zones, any levees and pumps, and mapped low spots together, offline.",
+     "source": "FEMA, USACE, Waterline low spots",
+     "access": "download",
+     "pack": "sacramento-layers"
+    },
+    {
+     "id": "sacramento-9",
+     "section": "Flood maps",
+     "name": "FEMA flood zones",
+     "detail": "513 high-risk zones in this area. Loaded around you without the pack.",
+     "source": "FEMA NFHL",
+     "access": "live"
+    },
+    {
+     "id": "sacramento-10",
+     "section": "Flood maps",
+     "name": "Rainfall frequency",
+     "detail": "How much rain a 10, 100 or 1000 year storm brings at a spot.",
+     "source": "NOAA Atlas 14",
+     "access": "link",
+     "url": "https://hdsc.nws.noaa.gov/pfds/"
+    },
+    {
+     "id": "sacramento-11",
+     "section": "Flood maps",
+     "name": "California floodplain maps",
+     "detail": "State Best Available Maps of 100, 200 and 500 year floodplains.",
+     "source": "California DWR",
+     "access": "link",
+     "url": "https://gis.bam.water.ca.gov/bam/"
+    },
+    {
+     "id": "sacramento-12",
+     "section": "Water and weather",
+     "name": "Tide and water level",
+     "detail": "Nearest station Port of West Sacramento, Washington Lake, 3 mi from the city center.",
+     "source": "NOAA CO-OPS",
+     "access": "live"
+    },
+    {
+     "id": "sacramento-13",
+     "section": "Water and weather",
+     "name": "River gauges",
+     "detail": "25 gauges within 37 mi, with flood stages and forecasts.",
+     "source": "NOAA National Water Prediction Service",
+     "access": "live"
+    },
+    {
+     "id": "sacramento-14",
+     "section": "Water and weather",
+     "name": "Rain forecast",
+     "detail": "Hourly forecast for the spot you're checking.",
+     "source": "National Weather Service",
+     "access": "live"
+    },
+    {
+     "id": "sacramento-15",
+     "section": "Water and weather",
+     "name": "Rain water estimate",
+     "detail": "Where rain would stand on the Map and in the camera, with drains working or blocked. Computed from the ground and rain, with assumed drain and runoff rates. Uses Ground and bowls, 10 m.",
+     "source": "Waterline, from NWS rain and USGS ground",
+     "access": "download",
+     "pack": "region-sacramento"
+    },
+    {
+     "id": "sacramento-16",
+     "section": "Water and weather",
+     "name": "USGS stream gauges",
+     "detail": "Stage and flow history for rivers and creeks.",
+     "source": "USGS Water Data",
+     "access": "link",
+     "url": "https://api.waterdata.usgs.gov/"
+    },
+    {
+     "id": "sacramento-17",
+     "section": "Water and weather",
+     "name": "California river and reservoir sensors",
+     "detail": "State stage, flow and storage readings, including sites NOAA doesn't carry.",
+     "source": "California DWR CDEC",
+     "access": "link",
+     "url": "https://cdec.water.ca.gov/"
+    },
+    {
+     "id": "sacramento-18",
+     "section": "Streets and city records",
+     "name": "Adopt a drain",
+     "detail": "We found no city or county program.",
+     "source": "City and County of Sacramento",
+     "access": "missing"
+    },
+    {
+     "id": "sacramento-19",
+     "section": "Streets and city records",
+     "name": "Levees, floodwalls and pumps",
+     "detail": "209 levee segments, 294 floodwalls, 3 pump stations mapped here. Tagged on the Map and in the camera.",
+     "source": "USACE National Levee Database",
+     "access": "live"
+    },
+    {
+     "id": "sacramento-20",
+     "section": "Streets and city records",
+     "name": "Street low spots",
+     "detail": "Mapped from the lidar and included in Map and AR layers.",
+     "source": "Derived by Waterline",
+     "access": "download",
+     "pack": "sacramento-layers"
+    },
+    {
+     "id": "sacramento-21",
+     "section": "Streets and city records",
+     "name": "Storm drains",
+     "detail": "18,566 drains in this area. Read from the city near you, never copied. County only: no inlets inside the City of Sacramento.",
+     "source": "Sacramento open data",
+     "access": "live"
+    },
+    {
+     "id": "sacramento-22",
+     "section": "Streets and city records",
+     "name": "City of Sacramento storm drains",
+     "detail": "The city doesn't publish its inlets, so downtown shows none.",
+     "source": "City of Sacramento",
+     "access": "missing"
+    },
+    {
+     "id": "sacramento-23",
+     "section": "Streets and city records",
+     "name": "Drain service requests",
+     "detail": "2,206 records in this area. They add context and don't change the risk level.",
+     "source": "Sacramento open data",
+     "access": "live"
+    }
+   ],
+   "adopt": {
+    "status": "none",
+    "operator": "City and County of Sacramento",
+    "detail": "We found no city or county program.",
+    "url": null
    }
   },
   {
@@ -2481,6 +2889,213 @@
     "url": "https://apps.nationalmap.gov/downloader/",
     "tiles": 43,
     "bytes": 11879527969
+   },
+   "datasets": [
+    {
+     "id": "new-orleans-0",
+     "section": "Ground and lidar",
+     "name": "Ground and bowls, 10 m",
+     "detail": "Ground height offline, and how deep water can stand at each spot (derived from the lidar).",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "region-new-orleans"
+    },
+    {
+     "id": "new-orleans-1",
+     "section": "Ground and lidar",
+     "name": "Ground, 1 m lidar (low-lying areas)",
+     "detail": "Ground to the inch on land at or below 30 ft, offline.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "new-orleans-ground-1m"
+    },
+    {
+     "id": "new-orleans-2",
+     "section": "Ground and lidar",
+     "name": "Lidar point clouds: Industrial Canal floodwall, Lower Ninth + 5 low spots",
+     "detail": "Orbit the block in the app and raise the water.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "new-orleans-scenes"
+    },
+    {
+     "id": "new-orleans-3",
+     "section": "Ground and lidar",
+     "name": "Raw lidar (LAZ)",
+     "detail": "The same places as LAZ files, for other lidar apps.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "new-orleans-laz"
+    },
+    {
+     "id": "new-orleans-4",
+     "section": "Ground and lidar",
+     "name": "Elevation models (GeoTIFF)",
+     "detail": "10 m citywide, plus 1 m around the landmark and top low spot.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "new-orleans-dem"
+    },
+    {
+     "id": "new-orleans-5",
+     "section": "Ground and lidar",
+     "name": "Ground at this block, about 1 m",
+     "detail": "Streamed for the 3D ground view on the Here tab.",
+     "source": "USGS 3DEP elevation service",
+     "access": "live"
+    },
+    {
+     "id": "new-orleans-6",
+     "section": "Ground and lidar",
+     "name": "Ground at this spot",
+     "detail": "Used when no download covers the spot.",
+     "source": "USGS Elevation Point Query",
+     "access": "live"
+    },
+    {
+     "id": "new-orleans-7",
+     "section": "Ground and lidar",
+     "name": "All 43 USGS 1 m tiles",
+     "detail": "The full citywide survey, 11.9 GB. Download it from USGS.",
+     "source": "USGS National Map",
+     "access": "link",
+     "url": "https://apps.nationalmap.gov/downloader/"
+    },
+    {
+     "id": "new-orleans-8",
+     "section": "Flood maps",
+     "name": "Map and AR layers",
+     "detail": "FEMA zones, any levees and pumps, and mapped low spots together, offline.",
+     "source": "FEMA, USACE, Waterline low spots",
+     "access": "download",
+     "pack": "new-orleans-layers"
+    },
+    {
+     "id": "new-orleans-9",
+     "section": "Flood maps",
+     "name": "FEMA flood zones",
+     "detail": "2,289 high-risk zones in this area. Loaded around you without the pack.",
+     "source": "FEMA NFHL",
+     "access": "live"
+    },
+    {
+     "id": "new-orleans-10",
+     "section": "Flood maps",
+     "name": "Rainfall frequency",
+     "detail": "How much rain a 10, 100 or 1000 year storm brings at a spot.",
+     "source": "NOAA Atlas 14",
+     "access": "link",
+     "url": "https://hdsc.nws.noaa.gov/pfds/"
+    },
+    {
+     "id": "new-orleans-11",
+     "section": "Flood maps",
+     "name": "Sea level rise scenarios",
+     "detail": "Mapped inundation at each foot of sea level rise.",
+     "source": "NOAA Office for Coastal Management",
+     "access": "link",
+     "url": "https://coast.noaa.gov/slr/"
+    },
+    {
+     "id": "new-orleans-12",
+     "section": "Flood maps",
+     "name": "Hurricane storm surge risk",
+     "detail": "Worst-case surge depth for each hurricane category.",
+     "source": "NOAA National Hurricane Center",
+     "access": "link",
+     "url": "https://www.nhc.noaa.gov/nationalsurge/"
+    },
+    {
+     "id": "new-orleans-13",
+     "section": "Water and weather",
+     "name": "Tide and water level",
+     "detail": "Nearest station New Canal Station, 6 mi from the city center.",
+     "source": "NOAA CO-OPS",
+     "access": "live"
+    },
+    {
+     "id": "new-orleans-14",
+     "section": "Water and weather",
+     "name": "River gauges",
+     "detail": "71 gauges within 37 mi, with flood stages and forecasts.",
+     "source": "NOAA National Water Prediction Service",
+     "access": "live"
+    },
+    {
+     "id": "new-orleans-15",
+     "section": "Water and weather",
+     "name": "Rain forecast",
+     "detail": "Hourly forecast for the spot you're checking.",
+     "source": "National Weather Service",
+     "access": "live"
+    },
+    {
+     "id": "new-orleans-16",
+     "section": "Water and weather",
+     "name": "Rain water estimate",
+     "detail": "Where rain would stand on the Map and in the camera, with drains working or blocked. Computed from the ground and rain, with assumed drain and runoff rates. Uses Ground and bowls, 10 m.",
+     "source": "Waterline, from NWS rain and USGS ground",
+     "access": "download",
+     "pack": "region-new-orleans"
+    },
+    {
+     "id": "new-orleans-17",
+     "section": "Water and weather",
+     "name": "USGS stream gauges",
+     "detail": "Stage and flow history for rivers and creeks.",
+     "source": "USGS Water Data",
+     "access": "link",
+     "url": "https://api.waterdata.usgs.gov/"
+    },
+    {
+     "id": "new-orleans-18",
+     "section": "Streets and city records",
+     "name": "Adopt-A-Catch Basin",
+     "detail": "Pick a basin on the city map, name it, and sweep the leaves and grass off it.",
+     "source": "City of New Orleans",
+     "access": "program",
+     "url": "https://nola.gov/adopt-a-catch-basin"
+    },
+    {
+     "id": "new-orleans-19",
+     "section": "Streets and city records",
+     "name": "Levees, floodwalls and pumps",
+     "detail": "891 levee segments, 460 floodwalls, 48 pump stations mapped here. Tagged on the Map and in the camera.",
+     "source": "USACE National Levee Database",
+     "access": "live"
+    },
+    {
+     "id": "new-orleans-20",
+     "section": "Streets and city records",
+     "name": "Street low spots",
+     "detail": "Mapped from the lidar and included in Map and AR layers.",
+     "source": "Derived by Waterline",
+     "access": "download",
+     "pack": "new-orleans-layers"
+    },
+    {
+     "id": "new-orleans-21",
+     "section": "Streets and city records",
+     "name": "Storm drains",
+     "detail": "77,656 drains in this area. Read from the city near you, never copied.",
+     "source": "New Orleans open data",
+     "access": "live"
+    },
+    {
+     "id": "new-orleans-22",
+     "section": "Streets and city records",
+     "name": "Drainage and flooding requests",
+     "detail": "18,144 records in this area. They add context and don't change the risk level.",
+     "source": "New Orleans open data",
+     "access": "live"
+    }
+   ],
+   "adopt": {
+    "status": "open",
+    "name": "Adopt-A-Catch Basin",
+    "operator": "City of New Orleans",
+    "url": "https://nola.gov/adopt-a-catch-basin",
+    "detail": "Pick a basin on the city map, name it, and sweep the leaves and grass off it."
    }
   },
   {
@@ -2519,6 +3134,211 @@
     "url": "https://apps.nationalmap.gov/downloader/",
     "tiles": 12,
     "bytes": 3245133337
+   },
+   "datasets": [
+    {
+     "id": "miami-0",
+     "section": "Ground and lidar",
+     "name": "Ground and bowls, 10 m",
+     "detail": "Ground height offline, and how deep water can stand at each spot (derived from the lidar).",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "region-miami"
+    },
+    {
+     "id": "miami-1",
+     "section": "Ground and lidar",
+     "name": "Ground, 1 m lidar (low-lying areas)",
+     "detail": "Ground to the inch on land at or below 30 ft, offline.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "miami-ground-1m"
+    },
+    {
+     "id": "miami-2",
+     "section": "Ground and lidar",
+     "name": "Lidar point clouds: Miami Beach, West Ave + 5 low spots",
+     "detail": "Orbit the block in the app and raise the water.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "miami-scenes"
+    },
+    {
+     "id": "miami-3",
+     "section": "Ground and lidar",
+     "name": "Raw lidar (LAZ)",
+     "detail": "The same places as LAZ files, for other lidar apps.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "miami-laz"
+    },
+    {
+     "id": "miami-4",
+     "section": "Ground and lidar",
+     "name": "Elevation models (GeoTIFF)",
+     "detail": "10 m citywide, plus 1 m around the landmark and top low spot.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "miami-dem"
+    },
+    {
+     "id": "miami-5",
+     "section": "Ground and lidar",
+     "name": "Ground at this block, about 1 m",
+     "detail": "Streamed for the 3D ground view on the Here tab.",
+     "source": "USGS 3DEP elevation service",
+     "access": "live"
+    },
+    {
+     "id": "miami-6",
+     "section": "Ground and lidar",
+     "name": "Ground at this spot",
+     "detail": "Used when no download covers the spot.",
+     "source": "USGS Elevation Point Query",
+     "access": "live"
+    },
+    {
+     "id": "miami-7",
+     "section": "Ground and lidar",
+     "name": "All 12 USGS 1 m tiles",
+     "detail": "The full citywide survey, 3.2 GB. Download it from USGS.",
+     "source": "USGS National Map",
+     "access": "link",
+     "url": "https://apps.nationalmap.gov/downloader/"
+    },
+    {
+     "id": "miami-8",
+     "section": "Flood maps",
+     "name": "Map and AR layers",
+     "detail": "FEMA zones, any levees and pumps, and mapped low spots together, offline.",
+     "source": "FEMA, USACE, Waterline low spots",
+     "access": "download",
+     "pack": "miami-layers"
+    },
+    {
+     "id": "miami-9",
+     "section": "Flood maps",
+     "name": "FEMA flood zones",
+     "detail": "945 high-risk zones in this area. Loaded around you without the pack.",
+     "source": "FEMA NFHL",
+     "access": "live"
+    },
+    {
+     "id": "miami-10",
+     "section": "Flood maps",
+     "name": "Rainfall frequency",
+     "detail": "How much rain a 10, 100 or 1000 year storm brings at a spot.",
+     "source": "NOAA Atlas 14",
+     "access": "link",
+     "url": "https://hdsc.nws.noaa.gov/pfds/"
+    },
+    {
+     "id": "miami-11",
+     "section": "Flood maps",
+     "name": "Sea level rise scenarios",
+     "detail": "Mapped inundation at each foot of sea level rise.",
+     "source": "NOAA Office for Coastal Management",
+     "access": "link",
+     "url": "https://coast.noaa.gov/slr/"
+    },
+    {
+     "id": "miami-12",
+     "section": "Flood maps",
+     "name": "Hurricane storm surge risk",
+     "detail": "Worst-case surge depth for each hurricane category.",
+     "source": "NOAA National Hurricane Center",
+     "access": "link",
+     "url": "https://www.nhc.noaa.gov/nationalsurge/"
+    },
+    {
+     "id": "miami-13",
+     "section": "Water and weather",
+     "name": "Tide and water level",
+     "detail": "Nearest station Virginia Key, 6 mi from the city center.",
+     "source": "NOAA CO-OPS",
+     "access": "live"
+    },
+    {
+     "id": "miami-14",
+     "section": "Water and weather",
+     "name": "River gauges",
+     "detail": "12 gauges within 37 mi, with flood stages and forecasts.",
+     "source": "NOAA National Water Prediction Service",
+     "access": "live"
+    },
+    {
+     "id": "miami-15",
+     "section": "Water and weather",
+     "name": "Rain forecast",
+     "detail": "Hourly forecast for the spot you're checking.",
+     "source": "National Weather Service",
+     "access": "live"
+    },
+    {
+     "id": "miami-16",
+     "section": "Water and weather",
+     "name": "Rain water estimate",
+     "detail": "Where rain would stand on the Map and in the camera, with drains working or blocked. Computed from the ground and rain, with assumed drain and runoff rates. Uses Ground and bowls, 10 m.",
+     "source": "Waterline, from NWS rain and USGS ground",
+     "access": "download",
+     "pack": "region-miami"
+    },
+    {
+     "id": "miami-17",
+     "section": "Water and weather",
+     "name": "USGS stream gauges",
+     "detail": "Stage and flow history for rivers and creeks.",
+     "source": "USGS Water Data",
+     "access": "link",
+     "url": "https://api.waterdata.usgs.gov/"
+    },
+    {
+     "id": "miami-18",
+     "section": "Streets and city records",
+     "name": "Adopt a drain",
+     "detail": "A local report said a program was coming. We found no sign-up.",
+     "source": "City of Miami",
+     "access": "missing"
+    },
+    {
+     "id": "miami-19",
+     "section": "Streets and city records",
+     "name": "Levees, floodwalls and pumps",
+     "detail": "None in the national database for this area. The app still checks as you move.",
+     "source": "USACE National Levee Database",
+     "access": "live"
+    },
+    {
+     "id": "miami-20",
+     "section": "Streets and city records",
+     "name": "Street low spots",
+     "detail": "Mapped from the lidar and included in Map and AR layers.",
+     "source": "Derived by Waterline",
+     "access": "download",
+     "pack": "miami-layers"
+    },
+    {
+     "id": "miami-21",
+     "section": "Streets and city records",
+     "name": "Storm drains",
+     "detail": "49,769 drains in this area. Read from the city near you, never copied.",
+     "source": "Miami & Miami Beach open data",
+     "access": "live"
+    },
+    {
+     "id": "miami-22",
+     "section": "Streets and city records",
+     "name": "Flooding and drainage requests",
+     "detail": "992 records in this area. They add context and don't change the risk level.",
+     "source": "Miami & Miami Beach open data",
+     "access": "live"
+    }
+   ],
+   "adopt": {
+    "status": "none",
+    "operator": "City of Miami",
+    "detail": "A local report said a program was coming. We found no sign-up.",
+    "url": null
    }
   },
   {
@@ -2555,6 +3375,220 @@
     "url": "https://apps.nationalmap.gov/downloader/",
     "tiles": 21,
     "bytes": 5659448354
+   },
+   "datasets": [
+    {
+     "id": "norfolk-0",
+     "section": "Ground and lidar",
+     "name": "Ground and bowls, 10 m",
+     "detail": "Ground height offline, and how deep water can stand at each spot (derived from the lidar).",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "region-norfolk"
+    },
+    {
+     "id": "norfolk-1",
+     "section": "Ground and lidar",
+     "name": "Ground, 1 m lidar (low-lying areas)",
+     "detail": "Ground to the inch on land at or below 30 ft, offline.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "norfolk-ground-1m"
+    },
+    {
+     "id": "norfolk-2",
+     "section": "Ground and lidar",
+     "name": "Lidar point clouds: The Hague, Ghent + 5 low spots",
+     "detail": "Orbit the block in the app and raise the water.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "norfolk-scenes"
+    },
+    {
+     "id": "norfolk-3",
+     "section": "Ground and lidar",
+     "name": "Raw lidar (LAZ)",
+     "detail": "The same places as LAZ files, for other lidar apps.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "norfolk-laz"
+    },
+    {
+     "id": "norfolk-4",
+     "section": "Ground and lidar",
+     "name": "Elevation models (GeoTIFF)",
+     "detail": "10 m citywide, plus 1 m around the landmark and top low spot.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "norfolk-dem"
+    },
+    {
+     "id": "norfolk-5",
+     "section": "Ground and lidar",
+     "name": "Ground at this block, about 1 m",
+     "detail": "Streamed for the 3D ground view on the Here tab.",
+     "source": "USGS 3DEP elevation service",
+     "access": "live"
+    },
+    {
+     "id": "norfolk-6",
+     "section": "Ground and lidar",
+     "name": "Ground at this spot",
+     "detail": "Used when no download covers the spot.",
+     "source": "USGS Elevation Point Query",
+     "access": "live"
+    },
+    {
+     "id": "norfolk-7",
+     "section": "Ground and lidar",
+     "name": "All 21 USGS 1 m tiles",
+     "detail": "The full citywide survey, 5.7 GB. Download it from USGS.",
+     "source": "USGS National Map",
+     "access": "link",
+     "url": "https://apps.nationalmap.gov/downloader/"
+    },
+    {
+     "id": "norfolk-8",
+     "section": "Flood maps",
+     "name": "Map and AR layers",
+     "detail": "FEMA zones, any levees and pumps, and mapped low spots together, offline.",
+     "source": "FEMA, USACE, Waterline low spots",
+     "access": "download",
+     "pack": "norfolk-layers"
+    },
+    {
+     "id": "norfolk-9",
+     "section": "Flood maps",
+     "name": "FEMA flood zones",
+     "detail": "480 high-risk zones in this area. Loaded around you without the pack.",
+     "source": "FEMA NFHL",
+     "access": "live"
+    },
+    {
+     "id": "norfolk-10",
+     "section": "Flood maps",
+     "name": "Rainfall frequency",
+     "detail": "How much rain a 10, 100 or 1000 year storm brings at a spot.",
+     "source": "NOAA Atlas 14",
+     "access": "link",
+     "url": "https://hdsc.nws.noaa.gov/pfds/"
+    },
+    {
+     "id": "norfolk-11",
+     "section": "Flood maps",
+     "name": "Sea level rise scenarios",
+     "detail": "Mapped inundation at each foot of sea level rise.",
+     "source": "NOAA Office for Coastal Management",
+     "access": "link",
+     "url": "https://coast.noaa.gov/slr/"
+    },
+    {
+     "id": "norfolk-12",
+     "section": "Flood maps",
+     "name": "Hurricane storm surge risk",
+     "detail": "Worst-case surge depth for each hurricane category.",
+     "source": "NOAA National Hurricane Center",
+     "access": "link",
+     "url": "https://www.nhc.noaa.gov/nationalsurge/"
+    },
+    {
+     "id": "norfolk-13",
+     "section": "Water and weather",
+     "name": "Tide and water level",
+     "detail": "Nearest station Sewells Point, 5 mi from the city center.",
+     "source": "NOAA CO-OPS",
+     "access": "live"
+    },
+    {
+     "id": "norfolk-14",
+     "section": "Water and weather",
+     "name": "River gauges",
+     "detail": "70 gauges within 37 mi, with flood stages and forecasts.",
+     "source": "NOAA National Water Prediction Service",
+     "access": "live"
+    },
+    {
+     "id": "norfolk-15",
+     "section": "Water and weather",
+     "name": "Rain forecast",
+     "detail": "Hourly forecast for the spot you're checking.",
+     "source": "National Weather Service",
+     "access": "live"
+    },
+    {
+     "id": "norfolk-16",
+     "section": "Water and weather",
+     "name": "Rain water estimate",
+     "detail": "Where rain would stand on the Map and in the camera, with drains working or blocked. Computed from the ground and rain, with assumed drain and runoff rates. Uses Ground and bowls, 10 m.",
+     "source": "Waterline, from NWS rain and USGS ground",
+     "access": "download",
+     "pack": "region-norfolk"
+    },
+    {
+     "id": "norfolk-17",
+     "section": "Water and weather",
+     "name": "USGS stream gauges",
+     "detail": "Stage and flow history for rivers and creeks.",
+     "source": "USGS Water Data",
+     "access": "link",
+     "url": "https://api.waterdata.usgs.gov/"
+    },
+    {
+     "id": "norfolk-18",
+     "section": "Water and weather",
+     "name": "StormSense water sensors",
+     "detail": "Tide and flood sensors around Hampton Roads.",
+     "source": "StormSense",
+     "access": "link",
+     "url": "https://www.stormsense.com/"
+    },
+    {
+     "id": "norfolk-19",
+     "section": "Streets and city records",
+     "name": "Adopt a drain",
+     "detail": "A neighborhood pilot was reported in 2018. We found no current sign-up.",
+     "source": "City of Norfolk",
+     "access": "missing"
+    },
+    {
+     "id": "norfolk-20",
+     "section": "Streets and city records",
+     "name": "Levees, floodwalls and pumps",
+     "detail": "26 levee segments, 20 floodwalls, 1 pump station mapped here. Tagged on the Map and in the camera.",
+     "source": "USACE National Levee Database",
+     "access": "live"
+    },
+    {
+     "id": "norfolk-21",
+     "section": "Streets and city records",
+     "name": "Street low spots",
+     "detail": "Mapped from the lidar and included in Map and AR layers.",
+     "source": "Derived by Waterline",
+     "access": "download",
+     "pack": "norfolk-layers"
+    },
+    {
+     "id": "norfolk-22",
+     "section": "Streets and city records",
+     "name": "Storm drains",
+     "detail": "20,001 drains in this area. Read from the city near you, never copied.",
+     "source": "Norfolk open data",
+     "access": "live"
+    },
+    {
+     "id": "norfolk-23",
+     "section": "Streets and city records",
+     "name": "Flood reports, 2010 to 2020",
+     "detail": "1,237 records in this area. They add context and don't change the risk level.",
+     "source": "Norfolk open data",
+     "access": "live"
+    }
+   ],
+   "adopt": {
+    "status": "none",
+    "operator": "City of Norfolk",
+    "detail": "A neighborhood pilot was reported in 2018. We found no current sign-up.",
+    "url": null
    }
   },
   {
@@ -2591,6 +3625,213 @@
     "url": "https://apps.nationalmap.gov/downloader/",
     "tiles": 11,
     "bytes": 2819021842
+   },
+   "datasets": [
+    {
+     "id": "charleston-0",
+     "section": "Ground and lidar",
+     "name": "Ground and bowls, 10 m",
+     "detail": "Ground height offline, and how deep water can stand at each spot (derived from the lidar).",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "region-charleston"
+    },
+    {
+     "id": "charleston-1",
+     "section": "Ground and lidar",
+     "name": "Ground, 1 m lidar (low-lying areas)",
+     "detail": "Ground to the inch on land at or below 30 ft, offline.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "charleston-ground-1m"
+    },
+    {
+     "id": "charleston-2",
+     "section": "Ground and lidar",
+     "name": "Lidar point clouds: The Battery + 5 low spots",
+     "detail": "Orbit the block in the app and raise the water.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "charleston-scenes"
+    },
+    {
+     "id": "charleston-3",
+     "section": "Ground and lidar",
+     "name": "Raw lidar (LAZ)",
+     "detail": "The same places as LAZ files, for other lidar apps.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "charleston-laz"
+    },
+    {
+     "id": "charleston-4",
+     "section": "Ground and lidar",
+     "name": "Elevation models (GeoTIFF)",
+     "detail": "10 m citywide, plus 1 m around the landmark and top low spot.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "charleston-dem"
+    },
+    {
+     "id": "charleston-5",
+     "section": "Ground and lidar",
+     "name": "Ground at this block, about 1 m",
+     "detail": "Streamed for the 3D ground view on the Here tab.",
+     "source": "USGS 3DEP elevation service",
+     "access": "live"
+    },
+    {
+     "id": "charleston-6",
+     "section": "Ground and lidar",
+     "name": "Ground at this spot",
+     "detail": "Used when no download covers the spot.",
+     "source": "USGS Elevation Point Query",
+     "access": "live"
+    },
+    {
+     "id": "charleston-7",
+     "section": "Ground and lidar",
+     "name": "All 11 USGS 1 m tiles",
+     "detail": "The full citywide survey, 2.8 GB. Download it from USGS.",
+     "source": "USGS National Map",
+     "access": "link",
+     "url": "https://apps.nationalmap.gov/downloader/"
+    },
+    {
+     "id": "charleston-8",
+     "section": "Flood maps",
+     "name": "Map and AR layers",
+     "detail": "FEMA zones, any levees and pumps, and mapped low spots together, offline.",
+     "source": "FEMA, USACE, Waterline low spots",
+     "access": "download",
+     "pack": "charleston-layers"
+    },
+    {
+     "id": "charleston-9",
+     "section": "Flood maps",
+     "name": "FEMA flood zones",
+     "detail": "343 high-risk zones in this area. Loaded around you without the pack.",
+     "source": "FEMA NFHL",
+     "access": "live"
+    },
+    {
+     "id": "charleston-10",
+     "section": "Flood maps",
+     "name": "Rainfall frequency",
+     "detail": "How much rain a 10, 100 or 1000 year storm brings at a spot.",
+     "source": "NOAA Atlas 14",
+     "access": "link",
+     "url": "https://hdsc.nws.noaa.gov/pfds/"
+    },
+    {
+     "id": "charleston-11",
+     "section": "Flood maps",
+     "name": "Sea level rise scenarios",
+     "detail": "Mapped inundation at each foot of sea level rise.",
+     "source": "NOAA Office for Coastal Management",
+     "access": "link",
+     "url": "https://coast.noaa.gov/slr/"
+    },
+    {
+     "id": "charleston-12",
+     "section": "Flood maps",
+     "name": "Hurricane storm surge risk",
+     "detail": "Worst-case surge depth for each hurricane category.",
+     "source": "NOAA National Hurricane Center",
+     "access": "link",
+     "url": "https://www.nhc.noaa.gov/nationalsurge/"
+    },
+    {
+     "id": "charleston-13",
+     "section": "Water and weather",
+     "name": "Tide and water level",
+     "detail": "Nearest station Charleston, 1 mi from the city center.",
+     "source": "NOAA CO-OPS",
+     "access": "live"
+    },
+    {
+     "id": "charleston-14",
+     "section": "Water and weather",
+     "name": "River gauges",
+     "detail": "23 gauges within 37 mi, with flood stages and forecasts.",
+     "source": "NOAA National Water Prediction Service",
+     "access": "live"
+    },
+    {
+     "id": "charleston-15",
+     "section": "Water and weather",
+     "name": "Rain forecast",
+     "detail": "Hourly forecast for the spot you're checking.",
+     "source": "National Weather Service",
+     "access": "live"
+    },
+    {
+     "id": "charleston-16",
+     "section": "Water and weather",
+     "name": "Rain water estimate",
+     "detail": "Where rain would stand on the Map and in the camera, with drains working or blocked. Computed from the ground and rain, with assumed drain and runoff rates. Uses Ground and bowls, 10 m.",
+     "source": "Waterline, from NWS rain and USGS ground",
+     "access": "download",
+     "pack": "region-charleston"
+    },
+    {
+     "id": "charleston-17",
+     "section": "Water and weather",
+     "name": "USGS stream gauges",
+     "detail": "Stage and flow history for rivers and creeks.",
+     "source": "USGS Water Data",
+     "access": "link",
+     "url": "https://api.waterdata.usgs.gov/"
+    },
+    {
+     "id": "charleston-18",
+     "section": "Streets and city records",
+     "name": "Adopt-a-Drain",
+     "detail": "Keep the grate clear between city cleanings. You're never asked to clear inside a drain.",
+     "source": "City of Charleston",
+     "access": "program",
+     "url": "https://charleston-sc.gov/2017/Adopt-A-Drain"
+    },
+    {
+     "id": "charleston-19",
+     "section": "Streets and city records",
+     "name": "Levees, floodwalls and pumps",
+     "detail": "None in the national database for this area. The app still checks as you move.",
+     "source": "USACE National Levee Database",
+     "access": "live"
+    },
+    {
+     "id": "charleston-20",
+     "section": "Streets and city records",
+     "name": "Street low spots",
+     "detail": "Mapped from the lidar and included in Map and AR layers.",
+     "source": "Derived by Waterline",
+     "access": "download",
+     "pack": "charleston-layers"
+    },
+    {
+     "id": "charleston-21",
+     "section": "Streets and city records",
+     "name": "Storm drains",
+     "detail": "8,789 drains in this area. Read from the city near you, never copied.",
+     "source": "Charleston open data",
+     "access": "live"
+    },
+    {
+     "id": "charleston-22",
+     "section": "Streets and city records",
+     "name": "Citizen flood photos",
+     "detail": "509 records in this area. They add context and don't change the risk level.",
+     "source": "Charleston open data",
+     "access": "live"
+    }
+   ],
+   "adopt": {
+    "status": "open",
+    "name": "Adopt-a-Drain",
+    "operator": "City of Charleston",
+    "url": "https://charleston-sc.gov/2017/Adopt-A-Drain",
+    "detail": "Keep the grate clear between city cleanings. You're never asked to clear inside a drain."
    }
   },
   {
@@ -2626,6 +3867,222 @@
     "url": "https://apps.nationalmap.gov/downloader/",
     "tiles": 33,
     "bytes": 12840383503
+   },
+   "datasets": [
+    {
+     "id": "houston-0",
+     "section": "Ground and lidar",
+     "name": "Ground and bowls, 10 m",
+     "detail": "Ground height offline, and how deep water can stand at each spot (derived from the lidar).",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "region-houston"
+    },
+    {
+     "id": "houston-1",
+     "section": "Ground and lidar",
+     "name": "Ground, 1 m lidar (low-lying areas)",
+     "detail": "Ground to the inch on land at or below 30 ft, offline.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "houston-ground-1m"
+    },
+    {
+     "id": "houston-2",
+     "section": "Ground and lidar",
+     "name": "Lidar point clouds: Meyerland, Brays Bayou + 5 low spots",
+     "detail": "Orbit the block in the app and raise the water.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "houston-scenes"
+    },
+    {
+     "id": "houston-3",
+     "section": "Ground and lidar",
+     "name": "Raw lidar (LAZ)",
+     "detail": "The same places as LAZ files, for other lidar apps.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "houston-laz"
+    },
+    {
+     "id": "houston-4",
+     "section": "Ground and lidar",
+     "name": "Elevation models (GeoTIFF)",
+     "detail": "10 m citywide, plus 1 m around the landmark and top low spot.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "houston-dem"
+    },
+    {
+     "id": "houston-5",
+     "section": "Ground and lidar",
+     "name": "Ground at this block, about 1 m",
+     "detail": "Streamed for the 3D ground view on the Here tab.",
+     "source": "USGS 3DEP elevation service",
+     "access": "live"
+    },
+    {
+     "id": "houston-6",
+     "section": "Ground and lidar",
+     "name": "Ground at this spot",
+     "detail": "Used when no download covers the spot.",
+     "source": "USGS Elevation Point Query",
+     "access": "live"
+    },
+    {
+     "id": "houston-7",
+     "section": "Ground and lidar",
+     "name": "All 33 USGS 1 m tiles",
+     "detail": "The full citywide survey, 12.8 GB. Download it from USGS.",
+     "source": "USGS National Map",
+     "access": "link",
+     "url": "https://apps.nationalmap.gov/downloader/"
+    },
+    {
+     "id": "houston-8",
+     "section": "Flood maps",
+     "name": "Map and AR layers",
+     "detail": "FEMA zones, any levees and pumps, and mapped low spots together, offline.",
+     "source": "FEMA, USACE, Waterline low spots",
+     "access": "download",
+     "pack": "houston-layers"
+    },
+    {
+     "id": "houston-9",
+     "section": "Flood maps",
+     "name": "FEMA flood zones",
+     "detail": "1,051 high-risk zones in this area. Loaded around you without the pack.",
+     "source": "FEMA NFHL",
+     "access": "live"
+    },
+    {
+     "id": "houston-10",
+     "section": "Flood maps",
+     "name": "Rainfall frequency",
+     "detail": "How much rain a 10, 100 or 1000 year storm brings at a spot.",
+     "source": "NOAA Atlas 14",
+     "access": "link",
+     "url": "https://hdsc.nws.noaa.gov/pfds/"
+    },
+    {
+     "id": "houston-11",
+     "section": "Flood maps",
+     "name": "Sea level rise scenarios",
+     "detail": "Mapped inundation at each foot of sea level rise.",
+     "source": "NOAA Office for Coastal Management",
+     "access": "link",
+     "url": "https://coast.noaa.gov/slr/"
+    },
+    {
+     "id": "houston-12",
+     "section": "Flood maps",
+     "name": "Hurricane storm surge risk",
+     "detail": "Worst-case surge depth for each hurricane category.",
+     "source": "NOAA National Hurricane Center",
+     "access": "link",
+     "url": "https://www.nhc.noaa.gov/nationalsurge/"
+    },
+    {
+     "id": "houston-13",
+     "section": "Water and weather",
+     "name": "Tide and water level",
+     "detail": "Nearest station Manchester, 7 mi from the city center.",
+     "source": "NOAA CO-OPS",
+     "access": "live"
+    },
+    {
+     "id": "houston-14",
+     "section": "Water and weather",
+     "name": "River gauges",
+     "detail": "49 gauges within 37 mi, with flood stages and forecasts.",
+     "source": "NOAA National Water Prediction Service",
+     "access": "live"
+    },
+    {
+     "id": "houston-15",
+     "section": "Water and weather",
+     "name": "Rain forecast",
+     "detail": "Hourly forecast for the spot you're checking.",
+     "source": "National Weather Service",
+     "access": "live"
+    },
+    {
+     "id": "houston-16",
+     "section": "Water and weather",
+     "name": "Rain water estimate",
+     "detail": "Where rain would stand on the Map and in the camera, with drains working or blocked. Computed from the ground and rain, with assumed drain and runoff rates. Uses Ground and bowls, 10 m.",
+     "source": "Waterline, from NWS rain and USGS ground",
+     "access": "download",
+     "pack": "region-houston"
+    },
+    {
+     "id": "houston-17",
+     "section": "Water and weather",
+     "name": "USGS stream gauges",
+     "detail": "Stage and flow history for rivers and creeks.",
+     "source": "USGS Water Data",
+     "access": "link",
+     "url": "https://api.waterdata.usgs.gov/"
+    },
+    {
+     "id": "houston-18",
+     "section": "Water and weather",
+     "name": "Harris County rain and bayou sensors",
+     "detail": "County network of rain and channel gauges.",
+     "source": "Harris County Flood Warning System",
+     "access": "link",
+     "url": "https://www.harriscountyfws.org/"
+    },
+    {
+     "id": "houston-19",
+     "section": "Streets and city records",
+     "name": "Adopt-A-Drain",
+     "detail": "Adopt a drain near you and clear it about four times a year.",
+     "source": "City of Houston",
+     "access": "program",
+     "url": "https://houstonadoptadrain.org"
+    },
+    {
+     "id": "houston-20",
+     "section": "Streets and city records",
+     "name": "Levees, floodwalls and pumps",
+     "detail": "None in the national database for this area. The app still checks as you move.",
+     "source": "USACE National Levee Database",
+     "access": "live"
+    },
+    {
+     "id": "houston-21",
+     "section": "Streets and city records",
+     "name": "Street low spots",
+     "detail": "Mapped from the lidar and included in Map and AR layers.",
+     "source": "Derived by Waterline",
+     "access": "download",
+     "pack": "houston-layers"
+    },
+    {
+     "id": "houston-22",
+     "section": "Streets and city records",
+     "name": "Storm drains",
+     "detail": "94,554 drains in this area. Read from the city near you, never copied.",
+     "source": "Houston open data",
+     "access": "live"
+    },
+    {
+     "id": "houston-23",
+     "section": "Streets and city records",
+     "name": "Flooding and drainage requests",
+     "detail": "18,064 records in this area. They add context and don't change the risk level.",
+     "source": "Houston open data",
+     "access": "live"
+    }
+   ],
+   "adopt": {
+    "status": "open",
+    "name": "Adopt-A-Drain",
+    "operator": "City of Houston",
+    "url": "https://houstonadoptadrain.org",
+    "detail": "Adopt a drain near you and clear it about four times a year."
    }
   },
   {
@@ -2662,6 +4119,222 @@
     "url": "https://apps.nationalmap.gov/downloader/",
     "tiles": 19,
     "bytes": 3952421449
+   },
+   "datasets": [
+    {
+     "id": "nyc-0",
+     "section": "Ground and lidar",
+     "name": "Ground and bowls, 10 m",
+     "detail": "Ground height offline, and how deep water can stand at each spot (derived from the lidar).",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "region-nyc"
+    },
+    {
+     "id": "nyc-1",
+     "section": "Ground and lidar",
+     "name": "Ground, 1 m lidar (low-lying areas)",
+     "detail": "Ground to the inch on land at or below 30 ft, offline.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "nyc-ground-1m"
+    },
+    {
+     "id": "nyc-2",
+     "section": "Ground and lidar",
+     "name": "Lidar point clouds: Battery Park + 5 low spots",
+     "detail": "Orbit the block in the app and raise the water.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "nyc-scenes"
+    },
+    {
+     "id": "nyc-3",
+     "section": "Ground and lidar",
+     "name": "Raw lidar (LAZ)",
+     "detail": "The same places as LAZ files, for other lidar apps.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "nyc-laz"
+    },
+    {
+     "id": "nyc-4",
+     "section": "Ground and lidar",
+     "name": "Elevation models (GeoTIFF)",
+     "detail": "10 m citywide, plus 1 m around the landmark and top low spot.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "nyc-dem"
+    },
+    {
+     "id": "nyc-5",
+     "section": "Ground and lidar",
+     "name": "Ground at this block, about 1 m",
+     "detail": "Streamed for the 3D ground view on the Here tab.",
+     "source": "USGS 3DEP elevation service",
+     "access": "live"
+    },
+    {
+     "id": "nyc-6",
+     "section": "Ground and lidar",
+     "name": "Ground at this spot",
+     "detail": "Used when no download covers the spot.",
+     "source": "USGS Elevation Point Query",
+     "access": "live"
+    },
+    {
+     "id": "nyc-7",
+     "section": "Ground and lidar",
+     "name": "All 19 USGS 1 m tiles",
+     "detail": "The full citywide survey, 4.0 GB. Download it from USGS.",
+     "source": "USGS National Map",
+     "access": "link",
+     "url": "https://apps.nationalmap.gov/downloader/"
+    },
+    {
+     "id": "nyc-8",
+     "section": "Flood maps",
+     "name": "Map and AR layers",
+     "detail": "FEMA zones, any levees and pumps, and mapped low spots together, offline.",
+     "source": "FEMA, USACE, Waterline low spots",
+     "access": "download",
+     "pack": "nyc-layers"
+    },
+    {
+     "id": "nyc-9",
+     "section": "Flood maps",
+     "name": "FEMA flood zones",
+     "detail": "115 high-risk zones in this area. Loaded around you without the pack.",
+     "source": "FEMA NFHL",
+     "access": "live"
+    },
+    {
+     "id": "nyc-10",
+     "section": "Flood maps",
+     "name": "Rainfall frequency",
+     "detail": "How much rain a 10, 100 or 1000 year storm brings at a spot.",
+     "source": "NOAA Atlas 14",
+     "access": "link",
+     "url": "https://hdsc.nws.noaa.gov/pfds/"
+    },
+    {
+     "id": "nyc-11",
+     "section": "Flood maps",
+     "name": "Sea level rise scenarios",
+     "detail": "Mapped inundation at each foot of sea level rise.",
+     "source": "NOAA Office for Coastal Management",
+     "access": "link",
+     "url": "https://coast.noaa.gov/slr/"
+    },
+    {
+     "id": "nyc-12",
+     "section": "Flood maps",
+     "name": "Hurricane storm surge risk",
+     "detail": "Worst-case surge depth for each hurricane category.",
+     "source": "NOAA National Hurricane Center",
+     "access": "link",
+     "url": "https://www.nhc.noaa.gov/nationalsurge/"
+    },
+    {
+     "id": "nyc-13",
+     "section": "Water and weather",
+     "name": "Tide and water level",
+     "detail": "Nearest station The Battery, 5 mi from the city center.",
+     "source": "NOAA CO-OPS",
+     "access": "live"
+    },
+    {
+     "id": "nyc-14",
+     "section": "Water and weather",
+     "name": "River gauges",
+     "detail": "93 gauges within 37 mi, with flood stages and forecasts.",
+     "source": "NOAA National Water Prediction Service",
+     "access": "live"
+    },
+    {
+     "id": "nyc-15",
+     "section": "Water and weather",
+     "name": "Rain forecast",
+     "detail": "Hourly forecast for the spot you're checking.",
+     "source": "National Weather Service",
+     "access": "live"
+    },
+    {
+     "id": "nyc-16",
+     "section": "Water and weather",
+     "name": "Rain water estimate",
+     "detail": "Where rain would stand on the Map and in the camera, with drains working or blocked. Computed from the ground and rain, with assumed drain and runoff rates. Uses Ground and bowls, 10 m.",
+     "source": "Waterline, from NWS rain and USGS ground",
+     "access": "download",
+     "pack": "region-nyc"
+    },
+    {
+     "id": "nyc-17",
+     "section": "Water and weather",
+     "name": "USGS stream gauges",
+     "detail": "Stage and flow history for rivers and creeks.",
+     "source": "USGS Water Data",
+     "access": "link",
+     "url": "https://api.waterdata.usgs.gov/"
+    },
+    {
+     "id": "nyc-18",
+     "section": "Water and weather",
+     "name": "FloodNet street sensors",
+     "detail": "Street-level flood depth sensors in the five boroughs.",
+     "source": "FloodNet NYC",
+     "access": "link",
+     "url": "https://www.floodnet.nyc/"
+    },
+    {
+     "id": "nyc-19",
+     "section": "Streets and city records",
+     "name": "Adopt-a-Catch Basin",
+     "detail": "Pilot in East Greenpoint, Brooklyn. Outside it, DEP takes your details and contacts you when it expands.",
+     "source": "NYC DEP",
+     "access": "program",
+     "url": "https://www.nyc.gov/site/dep/whats-new/adopt-a-catch-basin.page"
+    },
+    {
+     "id": "nyc-20",
+     "section": "Streets and city records",
+     "name": "Levees, floodwalls and pumps",
+     "detail": "None in the national database for this area. The app still checks as you move.",
+     "source": "USACE National Levee Database",
+     "access": "live"
+    },
+    {
+     "id": "nyc-21",
+     "section": "Streets and city records",
+     "name": "Street low spots",
+     "detail": "Mapped from the lidar and included in Map and AR layers.",
+     "source": "Derived by Waterline",
+     "access": "download",
+     "pack": "nyc-layers"
+    },
+    {
+     "id": "nyc-22",
+     "section": "Streets and city records",
+     "name": "Storm drains",
+     "detail": "65,149 drains in this area. Read from the city near you, never copied.",
+     "source": "New York City (harbor shore) open data",
+     "access": "live"
+    },
+    {
+     "id": "nyc-23",
+     "section": "Streets and city records",
+     "name": "Street flooding requests",
+     "detail": "They add context and don't change the risk level.",
+     "source": "New York City (harbor shore) open data",
+     "access": "live"
+    }
+   ],
+   "adopt": {
+    "status": "pilot",
+    "name": "Adopt-a-Catch Basin",
+    "operator": "NYC DEP",
+    "url": "https://www.nyc.gov/site/dep/whats-new/adopt-a-catch-basin.page",
+    "detail": "Pilot in East Greenpoint, Brooklyn. Outside it, DEP takes your details and contacts you when it expands."
    }
   },
   {
@@ -2697,7 +4370,214 @@
     "url": "https://apps.nationalmap.gov/downloader/",
     "tiles": 12,
     "bytes": 2490685285
+   },
+   "datasets": [
+    {
+     "id": "boston-0",
+     "section": "Ground and lidar",
+     "name": "Ground and bowls, 10 m",
+     "detail": "Ground height offline, and how deep water can stand at each spot (derived from the lidar).",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "region-boston"
+    },
+    {
+     "id": "boston-1",
+     "section": "Ground and lidar",
+     "name": "Ground, 1 m lidar (low-lying areas)",
+     "detail": "Ground to the inch on land at or below 30 ft, offline.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "boston-ground-1m"
+    },
+    {
+     "id": "boston-2",
+     "section": "Ground and lidar",
+     "name": "Lidar point clouds: Long Wharf + 5 low spots",
+     "detail": "Orbit the block in the app and raise the water.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "boston-scenes"
+    },
+    {
+     "id": "boston-3",
+     "section": "Ground and lidar",
+     "name": "Raw lidar (LAZ)",
+     "detail": "The same places as LAZ files, for other lidar apps.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "boston-laz"
+    },
+    {
+     "id": "boston-4",
+     "section": "Ground and lidar",
+     "name": "Elevation models (GeoTIFF)",
+     "detail": "10 m citywide, plus 1 m around the landmark and top low spot.",
+     "source": "USGS 3DEP lidar",
+     "access": "download",
+     "pack": "boston-dem"
+    },
+    {
+     "id": "boston-5",
+     "section": "Ground and lidar",
+     "name": "Ground at this block, about 1 m",
+     "detail": "Streamed for the 3D ground view on the Here tab.",
+     "source": "USGS 3DEP elevation service",
+     "access": "live"
+    },
+    {
+     "id": "boston-6",
+     "section": "Ground and lidar",
+     "name": "Ground at this spot",
+     "detail": "Used when no download covers the spot.",
+     "source": "USGS Elevation Point Query",
+     "access": "live"
+    },
+    {
+     "id": "boston-7",
+     "section": "Ground and lidar",
+     "name": "All 12 USGS 1 m tiles",
+     "detail": "The full citywide survey, 2.5 GB. Download it from USGS.",
+     "source": "USGS National Map",
+     "access": "link",
+     "url": "https://apps.nationalmap.gov/downloader/"
+    },
+    {
+     "id": "boston-8",
+     "section": "Flood maps",
+     "name": "Map and AR layers",
+     "detail": "FEMA zones, any levees and pumps, and mapped low spots together, offline.",
+     "source": "FEMA, USACE, Waterline low spots",
+     "access": "download",
+     "pack": "boston-layers"
+    },
+    {
+     "id": "boston-9",
+     "section": "Flood maps",
+     "name": "FEMA flood zones",
+     "detail": "173 high-risk zones in this area. Loaded around you without the pack.",
+     "source": "FEMA NFHL",
+     "access": "live"
+    },
+    {
+     "id": "boston-10",
+     "section": "Flood maps",
+     "name": "Rainfall frequency",
+     "detail": "How much rain a 10, 100 or 1000 year storm brings at a spot.",
+     "source": "NOAA Atlas 14",
+     "access": "link",
+     "url": "https://hdsc.nws.noaa.gov/pfds/"
+    },
+    {
+     "id": "boston-11",
+     "section": "Flood maps",
+     "name": "Sea level rise scenarios",
+     "detail": "Mapped inundation at each foot of sea level rise.",
+     "source": "NOAA Office for Coastal Management",
+     "access": "link",
+     "url": "https://coast.noaa.gov/slr/"
+    },
+    {
+     "id": "boston-12",
+     "section": "Flood maps",
+     "name": "Hurricane storm surge risk",
+     "detail": "Worst-case surge depth for each hurricane category.",
+     "source": "NOAA National Hurricane Center",
+     "access": "link",
+     "url": "https://www.nhc.noaa.gov/nationalsurge/"
+    },
+    {
+     "id": "boston-13",
+     "section": "Water and weather",
+     "name": "Tide and water level",
+     "detail": "Nearest station Boston, 0 mi from the city center.",
+     "source": "NOAA CO-OPS",
+     "access": "live"
+    },
+    {
+     "id": "boston-14",
+     "section": "Water and weather",
+     "name": "River gauges",
+     "detail": "51 gauges within 37 mi, with flood stages and forecasts.",
+     "source": "NOAA National Water Prediction Service",
+     "access": "live"
+    },
+    {
+     "id": "boston-15",
+     "section": "Water and weather",
+     "name": "Rain forecast",
+     "detail": "Hourly forecast for the spot you're checking.",
+     "source": "National Weather Service",
+     "access": "live"
+    },
+    {
+     "id": "boston-16",
+     "section": "Water and weather",
+     "name": "Rain water estimate",
+     "detail": "Where rain would stand on the Map and in the camera, with drains working or blocked. Computed from the ground and rain, with assumed drain and runoff rates. Uses Ground and bowls, 10 m.",
+     "source": "Waterline, from NWS rain and USGS ground",
+     "access": "download",
+     "pack": "region-boston"
+    },
+    {
+     "id": "boston-17",
+     "section": "Water and weather",
+     "name": "USGS stream gauges",
+     "detail": "Stage and flow history for rivers and creeks.",
+     "source": "USGS Water Data",
+     "access": "link",
+     "url": "https://api.waterdata.usgs.gov/"
+    },
+    {
+     "id": "boston-18",
+     "section": "Streets and city records",
+     "name": "Adopt a drain",
+     "detail": "BWSC asks residents to adopt a nearby catch basin and clear snow from it, but we found no sign-up. Its site has a catch basin map.",
+     "source": "Boston Water and Sewer Commission",
+     "access": "missing",
+     "url": "https://www.bwsc.org/"
+    },
+    {
+     "id": "boston-19",
+     "section": "Streets and city records",
+     "name": "Levees, floodwalls and pumps",
+     "detail": "8 levee segments, 17 floodwalls mapped here. Tagged on the Map and in the camera.",
+     "source": "USACE National Levee Database",
+     "access": "live"
+    },
+    {
+     "id": "boston-20",
+     "section": "Streets and city records",
+     "name": "Street low spots",
+     "detail": "Mapped from the lidar and included in Map and AR layers.",
+     "source": "Derived by Waterline",
+     "access": "download",
+     "pack": "boston-layers"
+    },
+    {
+     "id": "boston-21",
+     "section": "Streets and city records",
+     "name": "Storm drains",
+     "detail": "19,768 drains in this area. Read from the city near you, never copied.",
+     "source": "Boston open data",
+     "access": "live"
+    },
+    {
+     "id": "boston-22",
+     "section": "Streets and city records",
+     "name": "Flooding work orders",
+     "detail": "591 records in this area. They add context and don't change the risk level.",
+     "source": "Boston open data",
+     "access": "live"
+    }
+   ],
+   "adopt": {
+    "status": "none",
+    "operator": "Boston Water and Sewer Commission",
+    "detail": "BWSC asks residents to adopt a nearby catch basin and clear snow from it, but we found no sign-up. Its site has a catch basin map.",
+    "url": "https://www.bwsc.org/"
    }
   }
- ]
+ ],
+ "catalog_checked": "2026-11-06"
 }

@@ -154,7 +154,7 @@ struct TerrainSceneView: View {
         patch = p
     }
 
-    private static func build(_ p: TerrainPatch) -> (scene: SCNScene, water: SCNNode, sorted: [Float]) {
+    nonisolated private static func build(_ p: TerrainPatch) -> (scene: SCNScene, water: SCNNode, sorted: [Float]) {
         let g = p.groundValues.sorted()
         let fill = g[g.count / 2]
         let step = 2, n = p.side / step

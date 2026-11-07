@@ -4,7 +4,7 @@ import CoreLocation
 /// A tagged place in the AR sky view: river gauges upstream, the tide station, drains, low spots,
 /// higher ground, downloaded lidar scenes. Placed by true bearing from where you stand.
 struct POI: Identifiable, Hashable {
-    enum Kind { case gauge, tide, drain, lowSpot, higherGround, scene, levee, floodwall, pump }
+    enum Kind { case gauge, tide, drain, lowSpot, higherGround, scene, levee, floodwall, pump, ponding }
     let id: String
     let kind: Kind
     let title: String
@@ -27,6 +27,7 @@ struct POI: Identifiable, Hashable {
         case .levee: return "line.diagonal"
         case .floodwall: return "rectangle.split.3x1"
         case .pump: return "drop.degreesign"
+        case .ponding: return "drop.fill"
         }
     }
     var tint: Color {
@@ -89,6 +90,11 @@ extension SpotReport {
                            coordinate: t.stationCoordinate, severity: (t.anomalyFt ?? 0) > 0.75 ? 1 : 0, gauge: nil))
         }
         out += layerPOIs
+        for p in rainEstimate?.ponds ?? [] {
+            out.append(POI(id: "w-\(p.id)", kind: .ponding, title: "Estimated ponding",
+                           value: String(format: "Up to %.1f ft if the next 24 h of forecast rain falls and drains are blocked", p.maxFt),
+                           coordinate: p.coordinate, severity: p.maxFt >= 1.5 ? 2 : 1, gauge: nil))
+        }
         if let b = nearbyBowl, b.valueFt >= 1 {
             out.append(POI(id: "bowl", kind: .lowSpot, title: "Bowl", value: String(format: "%.1f ft deep", b.valueFt),
                            coordinate: b.coordinate, severity: 1, gauge: nil))
@@ -135,6 +141,13 @@ struct POIDetail: View {
                 Section {
                     LabeledContent("Distance", value: "\(Geo.walk(Geo.distance(from, poi.coordinate))) \(Geo.compass(from: from, to: poi.coordinate))")
                     Text(poi.value)
+                }
+                if poi.kind == .drain || poi.kind == .ponding, let a = PackStore.shared.adopt(at: poi.coordinate), let u = a.url {
+                    Section("Keep it clear") {
+                        Link("\(a.name ?? "Adopt a drain")\(a.operator.map { ", \($0)" } ?? "")", destination: u)
+                        Text(a.detail).font(.caption).foregroundStyle(.secondary)
+                        Text("Stay out of traffic, wear gloves, and clear only the top of the grate. Never lift a cover.").font(.caption2).foregroundStyle(.secondary)
+                    }
                 }
                 if let g = poi.gauge {
                     Section("NOAA hydrograph (observed and forecast)") {

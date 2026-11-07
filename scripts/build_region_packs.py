@@ -431,6 +431,8 @@ def manifest(regions):
         add(r, f"{rid}-dem", "raw", "Elevation models (GeoTIFF)", "10 m citywide DEM, plus 1 m DEMs of the landmark and top low spot. Heights are NAVD88.",
             [f"{rid}_dem_10m.tif"] + [f"{s['stem']}_dem_1m.tif" for s in scene_list(r)[:2]])
     m["groups"] = groups
+    import build_catalog
+    build_catalog.attach(m)
     mp.write_text(json.dumps(m, indent=1))
     print(f"manifest: {len(groups)} groups, {len(m['packs'])} packs, {sum(p['total_bytes'] for p in m['packs']) / 1e9:.2f} GB")
 

@@ -212,7 +212,7 @@ struct DataPacksView: View {
     var body: some View {
         List {
             Section {
-                Text("Download lidar and maps to use Waterline without a connection, look at the point clouds, or open the raw files in other apps (Files › On My iPhone › Waterline).")
+                Text("Everything Waterline knows about each place. Download what you want offline, or open the raw files in other apps (Files › On My iPhone › Waterline). Live data needs a connection.")
                     .font(.subheadline)
             }
             if store.manifest != nil {
@@ -230,6 +230,7 @@ struct DataPacksView: View {
             }
         }
         .navigationTitle("Offline data")
+        .refreshable { await store.load() }
         .task {
             await store.load()
             if let c = model.report?.coordinate, let g = store.manifest?.groups?.first(where: { $0.contains(c) }) { open.insert(g.id) }
@@ -241,6 +242,7 @@ struct DataPacksView: View {
         let have = packs.filter { store.states[$0.id] == .installed }.count
         let missing = packs.filter { store.states[$0.id] == .notInstalled || store.states[$0.id] == nil }
         let scenes = LidarScene.installed.filter { packs.map(\.id).contains($0.pack) }
+        let rows = g.datasets ?? []
         return Section {
             DisclosureGroup(isExpanded: Binding(get: { open.contains(g.id) }, set: { if $0 { open.insert(g.id) } else { open.remove(g.id) } })) {
                 if let w = g.why { Text(w).font(.caption).foregroundStyle(.secondary) }
@@ -249,19 +251,85 @@ struct DataPacksView: View {
                     Button("Download everything (\(size(missing.reduce(0) { $0 + $1.total_bytes })))") { store.downloadAll(in: g.id) }
                         .buttonStyle(.bordered)
                 }
-                ForEach(packs) { p in packRow(p) }
+                if rows.isEmpty {
+                    ForEach(packs) { p in packRow(p) }
+                } else {
+                    ForEach(sections(rows), id: \.0) { name, items in
+                        Text(name).font(.caption.bold()).foregroundStyle(.secondary).textCase(.uppercase)
+                        ForEach(items) { d in datasetRow(d) }
+                    }
+                }
                 ForEach(scenes) { s in
                     NavigationLink(s.title) { LidarSceneView(scene: s, presets: s.isSF ? presets : []) }
-                }
-                if let u = g.usgs_1m {
-                    Link("All \(u.tiles) USGS 1 m tiles (\(size(u.bytes))) at The National Map", destination: u.url).font(.caption)
                 }
             } label: {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(g.name), \(g.state)").font(.headline)
-                    Text("\(have) of \(packs.count) on this phone · \(size(packs.reduce(0) { $0 + $1.total_bytes }))").font(.caption).foregroundStyle(.secondary)
+                    Text(rows.isEmpty ? "\(have) of \(packs.count) on this phone · \(size(packs.reduce(0) { $0 + $1.total_bytes }))"
+                         : "\(rows.count) datasets · \(have) of \(packs.count) downloads on this phone · \(size(packs.reduce(0) { $0 + $1.total_bytes }))")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
             }
+        }
+    }
+
+    /// Sections in the order the catalog lists them.
+    private func sections(_ rows: [PackStore.Dataset]) -> [(String, [PackStore.Dataset])] {
+        var out: [(String, [PackStore.Dataset])] = []
+        for r in rows {
+            if let i = out.firstIndex(where: { $0.0 == r.section }) { out[i].1.append(r) } else { out.append((r.section, [r])) }
+        }
+        return out
+    }
+
+    private func datasetRow(_ d: PackStore.Dataset) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(d.name).font(.subheadline.weight(.medium))
+                Spacer(minLength: 8)
+                datasetControl(d)
+            }
+            Text(d.detail).font(.caption).foregroundStyle(.secondary)
+            Text(d.source).font(.caption2).foregroundStyle(.tertiary)
+            if let id = d.pack, case .failed(let why)? = store.states[id] { Text(why).font(.caption).foregroundStyle(.red) }
+        }
+        .padding(.vertical, 2)
+    }
+
+    @ViewBuilder private func datasetControl(_ d: PackStore.Dataset) -> some View {
+        switch d.access {
+        case "download":
+            if let id = d.pack, let p = store.manifest?.packs.first(where: { $0.id == id }) { packControl(p) }
+        case "bundled": tag("In the app", .green)
+        case "live": tag("Live", .blue)
+        case "program": if let u = d.url { Link("Sign up", destination: u).font(.caption.bold()).buttonStyle(.borderless) }
+        case "link": if let u = d.url { Link("Not in app yet", destination: u).font(.caption).buttonStyle(.borderless) }
+        default:
+            if let u = d.url { Link("None found", destination: u).font(.caption).buttonStyle(.borderless) } else { tag("None found", .secondary) }
+        }
+    }
+
+    private func tag(_ s: String, _ c: Color) -> some View { Text(s).font(.caption).foregroundStyle(c) }
+
+    /// Borderless throughout: a default button in a List row fires on a tap anywhere in the row.
+    @ViewBuilder private func packControl(_ p: PackStore.Pack) -> some View {
+        switch store.states[p.id] ?? .notInstalled {
+        case .notInstalled:
+            Button { store.download(p) } label: { Label(size(p.total_bytes), systemImage: "arrow.down.circle") }
+                .font(.caption).buttonStyle(.borderless)
+        case .downloading(let f):
+            HStack(spacing: 6) {
+                ProgressView(value: f).frame(width: 50)
+                Button { store.cancel(p.id) } label: { Image(systemName: "xmark.circle") }.buttonStyle(.borderless).accessibilityLabel("Cancel")
+            }
+        case .verifying:
+            ProgressView().controlSize(.small)
+        case .installed:
+            Menu {
+                Button("Remove from this phone", role: .destructive) { store.remove(p.id) }
+            } label: { Label("Saved", systemImage: "checkmark.circle.fill").foregroundStyle(.green).font(.caption) }
+        case .failed:
+            Button("Retry") { store.download(p) }.font(.caption).buttonStyle(.borderless)
         }
     }
 
@@ -277,32 +345,15 @@ struct DataPacksView: View {
     }
 
     @ViewBuilder private func packRow(_ p: PackStore.Pack) -> some View {
-        let state = store.states[p.id] ?? .notInstalled
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(p.shortTitle).font(.subheadline.bold())
-                Spacer()
-                Text(ByteCountFormatter.string(fromByteCount: p.total_bytes, countStyle: .file)).font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(p.shortTitle).font(.subheadline.weight(.medium))
+                Spacer(minLength: 8)
+                packControl(p)
             }
             Text(p.summary).font(.caption).foregroundStyle(.secondary)
-            switch state {
-            case .notInstalled:
-                Button("Download") { store.download(p) }.buttonStyle(.borderedProminent)
-            case .downloading(let f):
-                HStack { ProgressView(value: f); Button("Cancel") { store.cancel(p.id) }.font(.caption) }
-            case .verifying:
-                ProgressView("Checking…").font(.caption)
-            case .installed:
-                HStack {
-                    Label("On this phone", systemImage: "checkmark.circle.fill").foregroundStyle(.green).font(.caption)
-                    Spacer()
-                    Button("Remove", role: .destructive) { store.remove(p.id) }.font(.caption)
-                }
-            case .failed(let why):
-                Text(why).font(.caption).foregroundStyle(.red)
-                Button("Retry") { store.download(p) }.buttonStyle(.bordered)
-            }
+            if case .failed(let why)? = store.states[p.id] { Text(why).font(.caption).foregroundStyle(.red) }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
     }
 }

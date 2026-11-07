@@ -17,10 +17,22 @@ final class PackStore: ObservableObject {
         let why: String?, caveat: String?
         let usgs_1m: Source?
         let live: LiveLayers.Feeds?
+        let datasets: [Dataset]?
+        let adopt: Adopt?
         func contains(_ c: CLLocationCoordinate2D) -> Bool {
             bbox.count == 4 && (bbox[0]...bbox[2]).contains(c.longitude) && (bbox[1]...bbox[3]).contains(c.latitude)
         }
         var center: CLLocationCoordinate2D { .init(latitude: (bbox[1] + bbox[3]) / 2, longitude: (bbox[0] + bbox[2]) / 2) }
+    }
+    /// One line in a place's list: how the phone gets this data (scripts/build_catalog.py).
+    struct Dataset: Decodable, Identifiable {
+        let id: String, section: String, name: String, detail: String, source: String, access: String
+        let pack: String?, url: URL?
+    }
+    /// A volunteer drain program. The app links to it and never signs anyone up.
+    struct Adopt: Decodable {
+        let status: String, name: String?, `operator`: String?, url: URL?, detail: String
+        var isOpen: Bool { status != "none" && url != nil }
     }
     struct Pack: Decodable, Identifiable {
         struct File: Decodable { let name: String; let url: URL; let bytes: Int64; let sha256: String }
@@ -69,7 +81,7 @@ final class PackStore: ObservableObject {
 
     func load() async {
         do {
-            let m: Manifest = try await Net.cachedJSON(Self.manifestURL, cacheName: "packs-manifest.json", maxAge: 6 * 3600)
+            let m: Manifest = try await Net.freshJSON(Self.manifestURL, cacheName: "packs-manifest.json")
             manifest = m
             manifestError = nil
             for p in m.packs where states[p.id] == nil || states[p.id] == .notInstalled || states[p.id] == .installed {
@@ -143,6 +155,11 @@ final class PackStore: ObservableObject {
         try? FileManager.default.removeItem(at: Self.folder(id))
         states[id] = .notInstalled
         Self.reloadReaders()
+    }
+
+    /// The drain program for the place holding this spot, when one takes sign-ups.
+    func adopt(at c: CLLocationCoordinate2D) -> Adopt? {
+        manifest?.groups?.first { $0.contains(c) }?.adopt.flatMap { $0.isOpen ? $0 : nil }
     }
 
     func packs(in group: String) -> [Pack] { manifest?.packs.filter { $0.group == group } ?? [] }
