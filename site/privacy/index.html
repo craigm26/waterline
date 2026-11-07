@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waterline Privacy Policy</title>
+<meta name="description" content="What the Waterline iOS app does with your location and other data.">
+<style>
+:root { --bg:#fff; --fg:#17212b; --muted:#566573; --rule:#dde4ea; --link:#0b5fa8; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0f1922; --fg:#e8eef3; --muted:#8fa3b5; --rule:#22374a; --link:#6dbaff; } }
+body { background:var(--bg); color:var(--fg); font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; margin:0; }
+main { max-width:680px; margin:0 auto; padding:40px 16px 64px; }
+h1 { font-size:2rem; line-height:1.15; margin:0 0 6px; }
+h2 { font-size:1.2rem; margin:32px 0 6px; }
+p, ul { margin:8px 0; }
+li { margin:5px 0; }
+a { color:var(--link); }
+.muted { color:var(--muted); font-size:.92rem; }
+hr { border:0; border-top:1px solid var(--rule); margin:32px 0 16px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Waterline privacy policy</h1>
+<p class="muted">Effective November 6, 2026. This covers the Waterline iOS app, published by Craig Merry.</p>
+
+<p><strong>The short version:</strong> Waterline has no accounts, no ads, no analytics and no server of its own. It doesn't collect your data. To answer "does it flood here?" it sends the coordinates of the spot you're checking to public government services, and those services see that request.</p>
+
+<h2>Your location</h2>
+<p>With your permission, Waterline reads your location while the app is in use. It doesn't track you in the background and doesn't keep a location history. You can deny permission and check a spot by tapping the map instead. In that case, the coordinates of the spot you tapped are sent the same way.</p>
+<p>The coordinates, or a small area around them, go directly from your phone to:</p>
+<ul>
+  <li><strong>NOAA and the National Weather Service:</strong> tides, river gauges and rain forecasts</li>
+  <li><strong>USGS:</strong> ground elevation</li>
+  <li><strong>FEMA:</strong> flood zones</li>
+  <li><strong>US Army Corps of Engineers:</strong> levees, floodwalls and pump stations</li>
+  <li><strong>City and county open data services,</strong> some hosted by Esri ArcGIS, in places where Waterline shows local storm drains and service requests. Today that covers the Sacramento, New Orleans, Miami, Norfolk, Charleston, Houston, New York City and Boston areas.</li>
+  <li><strong>Apple:</strong> to turn coordinates into a place name, using the iPhone's built-in map service</li>
+</ul>
+<p>These requests aren't connected to your name or to any account, and I never receive them. Like any website, these services can see your IP address and what was requested, and their own privacy policies apply.</p>
+
+<h2>Camera and motion</h2>
+<p>The camera draws the water line over the live view and, on iPhones with LiDAR, measures steps and curbs. Camera images aren't saved or sent anywhere. The barometer measures how far your floor is above the street, and that reading isn't sent anywhere either.</p>
+
+<h2>What stays on your phone</h2>
+<p>Step and floor heights you measure, downloaded data packs and cached results are stored only on your iPhone. Data packs come from <a href="https://github.com/craigm26/waterline">the project's public GitHub releases</a>, so GitHub can see your IP address when you download one or when the app fetches the pack list. Deleting the app removes everything it stored.</p>
+
+<h2>TestFlight and the App Store</h2>
+<p>If you test Waterline through TestFlight, Apple may share your email address, the app version, crash reports and any feedback you send. I use that only to fix the app. <a href="https://www.apple.com/legal/privacy/">Apple's privacy policy</a> covers what Apple collects.</p>
+
+<h2>Sharing and sale</h2>
+<p>I don't sell or share personal data, because the app doesn't collect any. Waterline isn't directed at children under 13.</p>
+
+<h2>Changes</h2>
+<p>If this policy changes, the new version will appear on this page with a new date.</p>
+
+<h2>Contact</h2>
+<p>Questions? Email <a href="mailto:craig@craigmerry.com">craig@craigmerry.com</a>.</p>
+
+<hr>
+<p class="muted">Waterline is a screening tool, not a flood forecast or an official warning. <a href="/waterline/">Back to Waterline</a></p>
+</main>
+</body>
+</html>
