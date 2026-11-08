@@ -18,6 +18,9 @@ struct ARTab: View {
     /// The hour shown, for a scenario that plays out over time; playing steps it forward.
     @State private var hour: Int?
     @State private var playing = false
+    /// The layer shown, for a scenario built up in layers.
+    @State private var stage = 0
+    @State private var stacking = false
     @State private var picked: POI?
     @State private var showList = false
     @State private var topEdge: CGFloat = 200
@@ -66,7 +69,11 @@ struct ARTab: View {
             }
         }
         .onAppear { compass.start(); resetHour() }
-        .onChange(of: model.arScenarioID) { _, _ in playing = false; resetHour() }
+        .onChange(of: model.arScenarioID) { _, _ in playing = false; stacking = false; stage = 0; resetHour() }
+        .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
+            guard stacking, let s = scenario else { return }
+            if stage + 1 < s.stages.count { stage += 1 } else { stacking = false }
+        }
         .onReceive(Timer.publish(every: 0.4, on: .main, in: .common).autoconnect()) { _ in
             guard playing, let t = scenario?.timeline, let h = hour else { return }
             if h + 1 < t.points.count { hour = h + 1 } else { playing = false }
@@ -172,6 +179,7 @@ struct ARTab: View {
                 }
                 Text(headline).font(.headline.monospacedDigit()).multilineTextAlignment(.center)
                 if let t = scenario?.timeline { player(t) }
+                if let s = scenario, !s.stages.isEmpty { stacker(s) }
                 if let s = scenario { Text(s.detail).font(.caption).foregroundStyle(.secondary) }
                 Picker("Scenario", selection: Binding(get: { model.arScenarioID ?? "" }, set: { model.arScenarioID = $0 })) {
                     ForEach(r.scenarios) { s in Text("\(s.label) \(s.provenance.mark)").tag(s.id) }
@@ -199,6 +207,7 @@ struct ARTab: View {
     /// The depth drawn: the hour on the timeline, or the scenario's own depth.
     private var shownDepthFt: Double? {
         guard let s = scenario else { return nil }
+        if !s.stages.isEmpty { return s.stages[min(stage, s.stages.count - 1)].depthFt }
         if let t = s.timeline, let h = hour, t.points.indices.contains(h) {
             let ft = t.points[h].ft
             return ft >= 0.05 ? ft : nil
@@ -210,6 +219,31 @@ struct ARTab: View {
     private func resetHour() {
         guard let t = scenario?.timeline else { hour = nil; return }
         hour = t.whatIf != nil ? 0 : t.points.lastIndex { $0.date <= Date() } ?? 0
+    }
+
+    /// Add the layers one at a time: each press, or play, raises the water by the next one.
+    private func stacker(_ s: WaterScenario) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack {
+                Button {
+                    if stacking { stacking = false } else { if stage + 1 >= s.stages.count { stage = 0 }; stacking = true }
+                } label: { Image(systemName: stacking ? "pause.circle.fill" : "play.circle.fill").font(.title) }
+                .accessibilityLabel(stacking ? "Pause" : "Add the layers one at a time")
+                Text("Add the layers one at a time").font(.caption)
+                Spacer()
+            }
+            ForEach(Array(s.stages.enumerated()), id: \.offset) { i, st in
+                Button { stacking = false; stage = i } label: {
+                    HStack {
+                        Image(systemName: i <= stage ? "drop.fill" : "drop").foregroundStyle(i <= stage ? Color.orange : .secondary)
+                        Text("\(st.label) \(st.prov.mark)").font(.caption).bold(i == stage)
+                        Spacer()
+                        Text(st.depthFt.map { String(format: "%.1f ft", $0) } ?? "below").font(.caption.monospacedDigit())
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 
     /// Play, pause and scrub through the hours: measured rain first, then the forecast.
@@ -256,6 +290,11 @@ struct ARTab: View {
     private var headline: String {
         guard groundFound else { return "Point at the ground a few steps ahead" }
         guard let s = scenario else { return "" }
+        if !s.stages.isEmpty {
+            let st = s.stages[min(stage, s.stages.count - 1)]
+            guard let d = st.depthFt else { return "\(st.label): stays below where you stand" }
+            return String(format: "%@: %.1f ft deep where you stand", st.label, d)
+        }
         if s.timeline != nil {
             guard let d = shownDepthFt else { return "Dry where you stand" }
             return String(format: "%.1f ft deep where you stand", d)

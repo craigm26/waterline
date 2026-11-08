@@ -123,6 +123,24 @@ struct HereView: View {
                 }
                 Text("Heights in ft above MLLW at NOAA \(t.stationName) (\(Int(t.stationKm.rounded())) km away).")
                     .font(.caption2).foregroundStyle(.secondary)
+                if let layers = r.coastLayers, layers.count >= 2, let reach = r.bayReachesMLLW {
+                    Divider()
+                    Text("What can stack on a high tide").font(.subheadline.bold())
+                    CoastStackChart(stages: layers, reachFt: reach)
+                    ForEach(layers, id: \.self) { l in
+                        Row(label: l.label, value: l.depthFt.map { String(format: "%.1f ft deep here", $0) } ?? String(format: "%.1f ft below", reach - l.levelFt), prov: l.prov, note: l.detail)
+                    }
+                    if let e = r.enso {
+                        Row(label: "El Niño index (ONI)", value: String(format: "%+.1f", e.oni), prov: .official,
+                            note: "NOAA CPC, \(e.season): \(e.phase). On the Pacific coast El Niño lifts the sea for months.")
+                    }
+                    if let c = r.coast, !c.monthTop.isEmpty {
+                        Row(label: "Highest months since \(c.firstYearLabel)", value: c.monthTop.map { String(format: "%+.1f", $0.ft) }.joined(separator: ", "), prov: .derived,
+                            note: c.monthTop.map(\.label).joined(separator: ", ") + ". NOAA monthly mean sea level, long-term rise and seasons taken out")
+                    }
+                    Text("Stacked, these are a what-if ▨: the layers rarely peak on the same day. Orange bars reach this spot.")
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
             }
         }
     }
@@ -310,6 +328,8 @@ struct InfoView: View {
                     Link("USGS stream gauges (Water Data)", destination: URL(string: "https://waterdata.usgs.gov/")!)
                     Link("NOAA Atlas 14 rainfall frequency", destination: RainFrequency.page)
                     Link("NOAA sea level rise scenarios (2022 report)", destination: SeaLevelRise.page)
+                    Link("NOAA monthly mean sea level and trends", destination: CoastStack.monthlyPage)
+                    Link("NOAA CPC El Niño index (ONI)", destination: ENSO.page)
                     Link("NOAA NHC storm surge hazard maps", destination: SurgeHazard.page)
                     Link("FEMA National Flood Hazard Layer", destination: URL(string: "https://www.fema.gov/flood-maps/national-flood-hazard-layer")!)
                     Link("USACE National Levee Database", destination: URL(string: "https://levees.sec.usace.army.mil/")!)

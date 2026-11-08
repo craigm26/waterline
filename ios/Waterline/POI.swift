@@ -224,7 +224,7 @@ extension POI {
         var p = POI(id: "hg", kind: .higherGround, title: "Higher ground", value: String(format: "%.0f ft NAVD88", h.valueFt),
                     coordinate: h.coordinate, severity: 0, gauge: nil)
         p.what = "The nearest ground that stays dry in the worst case Waterline checks here."
-        p.why = "It clears this month's highest tide plus a 2 ft storm, and a major flood on the nearby river, whichever applies here."
+        p.why = "It clears this month's highest tide plus the tide station's record storm push (2 ft where there's no record), and a major flood on the nearby river, whichever applies here."
         p.facts = [.init(label: "Ground height", value: String(format: "%.0f ft NAVD88", h.valueFt), provenance: .derived)]
         p.notes = ["It's measured in a straight line. Check the route before you rely on it."]
         p.source = .init(name: "Ground model on this phone")

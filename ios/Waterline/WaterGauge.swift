@@ -152,3 +152,38 @@ struct PersonGauge: View {
         .accessibilityLabel(String(format: "%.1f feet of water beside a 5 foot 9 person", ft))
     }
 }
+
+/// The coastal layers as a staircase: each bar is the water level once that layer is added, in ft
+/// above MLLW at the tide station, against the level that reaches this spot.
+struct CoastStackChart: View {
+    let stages: [WaterScenario.Stage]
+    let reachFt: Double
+
+    private func short(_ s: WaterScenario.Stage) -> String {
+        if s.label.hasPrefix("King") || s.label.hasPrefix("Highest") { return "Tide" }
+        if s.label.contains("running high") { return "+ sea high" }
+        if s.label.contains("storm") { return "+ storm" }
+        if let y = ["2050", "2100"].first(where: { s.label.contains($0) }) { return y }
+        return s.label
+    }
+
+    var body: some View {
+        let top = max(reachFt, stages.map(\.levelFt).max() ?? 0) + 1
+        Chart {
+            ForEach(stages, id: \.self) { s in
+                BarMark(x: .value("Layer", short(s)), y: .value("Level", s.levelFt))
+                    .foregroundStyle(s.depthFt != nil ? Color.orange : Color(red: 0.25, green: 0.5, blue: 0.85))
+                    .annotation(position: .top) { Text(String(format: "%.1f", s.levelFt)).font(.system(size: 9).monospacedDigit()) }
+            }
+            RuleMark(y: .value("Reaches here", reachFt))
+                .foregroundStyle(.red).lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                .annotation(position: .top, alignment: .leading) { Text(String(format: "reaches your spot at %.1f ft", reachFt)).font(.system(size: 9)).foregroundStyle(.red) }
+        }
+        .chartYScale(domain: 0...top)
+        .chartYAxis { AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { v in
+            AxisGridLine(); AxisValueLabel { Text("\(Int(v.as(Double.self) ?? 0)) ft").font(.system(size: 9)) }
+        } }
+        .frame(height: 150)
+        .accessibilityLabel("Tide, sea anomaly, storm and sea level rise stacked, against the level that reaches this spot")
+    }
+}

@@ -24,6 +24,10 @@ struct WaterScenario: Identifiable, Hashable {
     let isStressTest: Bool
     /// For a scenario that plays out over time: the depth hour by hour.
     var timeline: WaterTimeline?
+    /// For a scenario built up in layers (a king tide, then El Niño, then a storm...): each layer's
+    /// running total, so the camera can raise the water one layer at a time.
+    var stages: [Stage] = []
+    struct Stage: Hashable { let label: String; let detail: String; let depthFt: Double?; let levelFt: Double; let prov: Provenance }
 }
 
 /// Everything Waterline knows about one spot. Built by `SpotReport.build(at:)`.
@@ -44,6 +48,8 @@ struct SpotReport {
     var frequency: RainFrequency?
     /// NOAA sea level rise scenarios at the tide station.
     var slr: SeaLevelRise?
+    var coast: CoastStack?
+    var enso: ENSO?
     /// USGS, state and local water sensors near the spot (no flood stages; context only).
     var sensors: [Sensor] = []
     /// California DWR's Best Available Maps and levee flood protection zone (California only).
@@ -53,7 +59,7 @@ struct SpotReport {
     var drains: [(Places.Drain, Double)] = []
     var flood311Near = 0        // within 150 m (~500 ft)
     var lowSpot: (Places.LowSpot, Double)?
-    /// Nearest dry ground for this month's highest tide + anomaly + a 2 ft storm (SF grid).
+    /// Nearest dry ground for this month's highest tide + anomaly + the record storm push (SF grid).
     var higherGround: ElevationGrid.GridSpot?
     var inZone = false
     var inSF = false
@@ -134,7 +140,11 @@ struct SpotReport {
             } else if m < 1 {
                 out.append(String(format: "Within a foot of the highest tide this month (%@).", when))
             } else if m < 6 {
-                out.append(String(format: "%.1f ft above the highest tide this month (%@). A strong storm surge adds about 2 ft.", m, when))
+                if let r = coast?.record, let push = r.pushFt, push > 0.1 {
+                    out.append(String(format: "%.1f ft above the highest tide this month (%@). The %d storm, %@'s record, pushed the sea %.1f ft above the tide.", m, when, r.year, tide?.stationName ?? "the station", push))
+                } else {
+                    out.append(String(format: "%.1f ft above the highest tide this month (%@). A strong storm surge adds about 2 ft (assumed).", m, when))
+                }
             } else {
                 quiet(String(format: "%.0f ft above the highest tide this month: the Bay isn't a risk here.", m))
             }
@@ -149,6 +159,20 @@ struct SpotReport {
             (left > 3 ? quiet : { out.append($0) })(String(format: "NOAA's intermediate scenario adds %.1f ft of sea level by 2050 at %@. This month's highest tide would then %@.",
                               rise, tide?.stationName ?? "the station",
                               left < 0 ? "reach this spot" : String(format: "stay %.1f ft below it", left)))
+        }
+        if let t = tide, let c = coast, let now = c.monthNow, let m = coastalMarginFt {
+            let enso = self.enso
+            var line: String
+            if c.pacific, let e = enso, e.isElNino {
+                line = String(format: "NOAA's El Niño index is +%.1f (%@): %@. The sea at %@ ran %+.1f ft above normal in %@", e.oni, e.season, e.phase, t.stationName, now.ft, now.label)
+            } else {
+                line = String(format: "The sea at %@ ran %+.1f ft against normal in %@", t.stationName, now.ft, now.label)
+            }
+            if let top = c.elNinoTop, top.ft > 0.3 {
+                line += String(format: ". Its highest month since %@ was %@ (%+.1f ft)", c.firstYearLabel, top.label, top.ft)
+            }
+            if let k = c.king { line += String(format: ". This year's king tide, %@ at %.1f ft, would arrive on top of whatever the sea is doing then.", Self.day.string(from: k.time), k.ft) } else { line += "." }
+            (m > 6 ? quiet : { out.append($0) })(line)
         }
         if let rv = river, let d = riverMajorAboveGroundFt {
             let name = rv.gauge.name
@@ -295,16 +319,53 @@ struct SpotReport {
                 out.append(.init(id: "top+a", label: "Highest + today's anomaly", detail: String(format: "+%.2f ft gauge anomaly, if it holds", anomaly),
                                  depthFt: depth(h.ft + anomaly), provenance: .derived, isStressTest: false))
             }
-            out.append(.init(id: "storm", label: "+ a strong storm", detail: "+2 ft surge on top, assumed",
-                             depthFt: depth(h.ft + anomaly + 2), provenance: .assumed, isStressTest: false))
-            out.append(.init(id: "stress", label: "Stress test", detail: "+3.07 ft, the Feb 1998 peak storm residual at SF",
-                             depthFt: depth(h.ft + 3.07), provenance: .assumed, isStressTest: true))
+            if let st = coastStages(depth), st.count >= 2 {
+                out.append(.init(id: "coast-stack", label: "Coast: tide, El Niño, storm, sea level rise",
+                                 detail: "Each layer from its own NOAA source, stacked. A what-if: they rarely all arrive at once, but in Jan 1983 most of them did at San Francisco.",
+                                 depthFt: st.last?.depthFt, provenance: .assumed, isStressTest: true, stages: st))
+            }
             for y in [2050, 2100] {
                 guard let rise = slr?.ft(by: y) else { continue }
                 out.append(.init(id: "slr-\(y)", label: "Highest tide this month, with \(y) sea level",
                                  detail: String(format: "+%.1f ft, NOAA intermediate scenario", rise),
                                  depthFt: depth(h.ft + rise), provenance: .derived, isStressTest: false))
             }
+        }
+        return out
+    }
+
+    /// The coastal layers with the depth each would leave here.
+    var coastLayers: [WaterScenario.Stage]? {
+        guard let g = groundMLLW, let reach = bayReachesMLLW else { return nil }
+        return coastStages { $0 >= reach ? $0 - g : nil }
+    }
+
+    /// The coastal layers, in the order they stack, each a running total in ft MLLW at the station.
+    func coastStages(_ depth: (Double) -> Double?) -> [WaterScenario.Stage]? {
+        guard let t = tide else { return nil }
+        let base = coast?.king ?? t.highest
+        guard let b = base else { return nil }
+        var out: [WaterScenario.Stage] = []
+        var level = b.ft
+        out.append(.init(label: coast?.king != nil ? "King tide" : "Highest tide this month",
+                         detail: "\(Self.day.string(from: b.time)), NOAA prediction at \(t.stationName)", depthFt: depth(level), levelFt: level, prov: .official))
+        if anomaly > 0.05 {
+            level += anomaly
+            let why = (enso?.isElNino ?? false) && (coast?.pacific ?? false) ? ", the El Niño sea" : ""
+            out.append(.init(label: String(format: "+ the sea running high, +%.1f ft", anomaly),
+                             detail: "Measured above prediction at \(t.stationName) over 30 days\(why)", depthFt: depth(level), levelFt: level, prov: .derived))
+        }
+        if let r = coast?.record, let push = r.pushFt, push > 0.1 {
+            level += push
+            out.append(.init(label: String(format: "+ the %d storm, +%.1f ft", r.year, push),
+                             detail: String(format: "The storm push in %@'s record high water (%.1f ft, %d), tide and sea anomaly taken out", t.stationName, r.ftMLLW, r.year),
+                             depthFt: depth(level), levelFt: level, prov: .derived))
+        }
+        let now = level
+        for y in [2050, 2100] {
+            guard let rise = slr?.ft(by: y) else { continue }
+            out.append(.init(label: String(format: "+ sea level rise by %d, +%.1f ft", y, rise),
+                             detail: "NOAA 2022 intermediate scenario at \(t.stationName)", depthFt: depth(now + rise), levelFt: now + rise, prov: .official))
         }
         return out
     }
@@ -412,6 +473,9 @@ struct SpotReport {
         let gaugeList = r.gauges, stationID = r.tide?.stationID
         async let sensors = Sensor.near(c, skipping: gaugeList)
         async let slr: SeaLevelRise? = stationID == nil ? nil : SeaLevelRise.load(station: stationID!)
+        let tideNow = r.tide
+        async let coast: CoastStack? = tideNow == nil ? nil : CoastStack.load(tideNow!)
+        async let enso = ENSO.load()
         r.river = await RiverFloodLevels.load(r.gauges, near: c)
         if let rv = r.river, let d = await GaugeDetail.load(rv.gauge.id), let top = d.topCrest {
             r.riverRecord = (top.stage + rv.datum, top.time, d.olderHigher)
@@ -425,10 +489,13 @@ struct SpotReport {
         }
         r.sensors = await sensors
         r.slr = await slr
-        // Higher ground: dry for this month's highest tide + anomaly + a 2 ft storm, and above the
+        r.coast = await coast
+        r.enso = await enso
+        // Higher ground: dry for this month's highest tide + anomaly + the station's record storm
+        // push (2 ft where there's no record), and above the
         // nearby river at major flood stage, whichever is higher.
         var needNAVD: Double?
-        if let m = r.coastalMarginFt, m < 3, let w = r.worstWaterMLLW, let k = r.navdToMLLW { needNAVD = w + 2 - k }
+        if let m = r.coastalMarginFt, m < 3, let w = r.worstWaterMLLW, let k = r.navdToMLLW { needNAVD = w + (r.coast?.record?.pushFt ?? 2) - k }
         if let rv = r.river, (r.riverMajorAboveGroundFt ?? -1) > 0 { needNAVD = max(needNAVD ?? -.infinity, rv.majorNAVD88 + 1) }
         if let need = needNAVD, let g = r.ground?.navd88Ft, g < need {
             r.higherGround = await Task.detached(priority: .userInitiated) {
