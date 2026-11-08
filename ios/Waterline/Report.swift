@@ -272,6 +272,10 @@ struct SpotReport {
                                  detail: String(format: "NOAA Atlas 14's 100-year day with its heaviest hour on this year's king tide. Drains here can't empty for %d hours (assumed ▨: tide within %.0f ft of the ground). A what-if, not a forecast.", k.lockedHours, TideLock.pipeFt),
                                  depthFt: k.peak?.ft, provenance: .assumed, isStressTest: true, timeline: k))
             }
+            for (i, m) in e.megastorms.enumerated() {
+                out.append(.init(id: "mega-\(i)", label: m.whatIf ?? "Megastorm", detail: (m.detail ?? "") + " Waterline estimate, drains working.",
+                                 depthFt: m.peak?.ft, provenance: .assumed, isStressTest: true, timeline: m))
+            }
             if let y = e.day1000 {
                 out.append(.init(id: "rain-day1000", label: "Monster storm: 1000-year, 24 hours", detail: String(format: "%.1f in, NOAA Atlas 14 · Waterline estimate, drains working. A what-if, not a forecast.", y.inches),
                                  depthFt: e.waterDay1000.map { $0.peak?.ft } ?? d(y.ft), provenance: .assumed, isStressTest: true, timeline: e.waterDay1000))

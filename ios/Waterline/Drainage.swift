@@ -217,6 +217,8 @@ struct RainEstimate {
     var waterDay1000: WaterTimeline?
     /// The 100-year day with its heaviest hour on this year's king tide.
     var waterDay100King: WaterTimeline?
+    /// California's megastorms near this spot: ARkStorm 2.0 and 1862 as measured.
+    var megastorms: [WaterTimeline] = []
     let ponds: [DrainageMap.Pond]
 
     static func make(_ c: CLLocationCoordinate2D, forecast: [Double], forecast72: [Double] = [], observed: [Double?] = [], frequency: RainFrequency?, now: Date = Date(),
@@ -232,6 +234,7 @@ struct RainEstimate {
             if let h = frequency?.dayStorm(years: y) { e[keyPath: key] = (h.reduce(0, +), DrainageMap.build(f, hours: h, drainsWorking: true).depthFt(c)) }
         }
         if !forecast72.isEmpty { e.water = WaterTimeline.make(f, at: c, observed: observed, forecast: forecast72, now: now, lock: lock) }
+        e.megastorms = Megastorm.near(c).map { WaterTimeline.asFell($0, f, at: c, now: now) }
         if let h = frequency?.dayStorm(years: 100), let k = kingLock { e.waterDay100King = WaterTimeline.whatIf("100-year day on the king tide", f, at: c, hours: h, now: now, lock: k) }
         if let h = frequency?.dayStorm(years: 100) { e.waterDay100 = WaterTimeline.whatIf("100-year day", f, at: c, hours: h, now: now, lock: lock) }
         if let h = frequency?.dayStorm(years: 1000) { e.waterDay1000 = WaterTimeline.whatIf("1000-year day", f, at: c, hours: h, now: now, lock: lock) }
@@ -261,10 +264,14 @@ struct WaterTimeline: Hashable {
     /// nil for the forecast; otherwise the what-if storm's name. A what-if starts at hour 0, now.
     var whatIf: String? = nil
 
-    /// "Tue 3 AM" for the forecast, "hour 14" for a what-if storm.
+    /// Where a what-if's numbers come from, for its labels.
+    var detail: String?
+
+    /// "Tue 3 AM" for the forecast, "hour 14" for a what-if storm, "day 3, hour 14" for a long one.
     func when(_ p: Point) -> String {
         guard whatIf != nil else { return SpotReport.day.string(from: p.date) }
-        return "hour \(Int((p.date.timeIntervalSince(now) / 3600).rounded()))"
+        let h = Int((p.date.timeIntervalSince(now) / 3600).rounded())
+        return points.count > 100 ? "day \(h / 24 + 1), hour \(h % 24)" : "hour \(h)"
     }
 
     var current: Point? { points.last { $0.date <= now } }
@@ -286,19 +293,30 @@ struct WaterTimeline: Hashable {
         for (k, v) in forecast.enumerated() { rows.append((start.addingTimeInterval(Double(k) * hour), v, false)) }
         var runoffIn = 0.0
         var memo: [Int: Double] = [:]
+        // Runoff in steps of 0.005 in, or 0.02 in for a month-long storm, so it stays a few hundred runs.
+        let q = rows.count > 200 ? 50.0 : 200.0
         let points = rows.map { (date, rain, measured) -> Point in
             let locked = lock?.locked(at: date) ?? false
             runoffIn = max(0, runoffIn + rain * DrainageAssumptions.runoff - (locked ? 0 : DrainageAssumptions.drainInPerHour))
-            let key = Int((runoffIn * 200).rounded())          // 0.005 in steps
+            let key = Int((runoffIn * q).rounded())
             let ft: Double
             if let m = memo[key] { ft = m } else {
-                let r = f.model.run(runoffM: Double(key) / 200 * 0.0254)
+                let r = f.model.run(runoffM: Double(key) / q * 0.0254)
                 ft = key == 0 ? 0 : DrainageMap(patches: [], paths: [], ponds: [], rainIn: 0, result: r, field: f).depthFt(c)
                 memo[key] = ft
             }
             return Point(date: date, rainIn: rain, ft: ft, measured: measured, tideLocked: locked)
         }
         return WaterTimeline(points: points, now: now)
+    }
+
+    /// A long recorded or modelled storm as it fell, hour by hour, starting now, then a dry day.
+    static func asFell(_ s: Megastorm.Storm, _ f: DrainageField, at c: CLLocationCoordinate2D, now: Date) -> WaterTimeline {
+        let start = Calendar.current.dateInterval(of: .hour, for: now)?.start ?? now
+        var t = make(f, at: c, observed: [], forecast: s.hours + Array(repeating: 0, count: 24), now: start)
+        t.whatIf = s.name
+        t.detail = s.detail
+        return t
     }
 
     /// A design storm starting now, then a dry day so the drains can be seen catching up. The

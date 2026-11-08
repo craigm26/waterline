@@ -1,3 +1,4 @@
+#if os(iOS)
 import Foundation
 import CoreLocation
 import CoreMotion
@@ -66,3 +67,4 @@ struct PointerChip: View {
         .background(.ultraThinMaterial, in: Capsule())
     }
 }
+#endif

@@ -1,6 +1,8 @@
+#if os(iOS)
 import SwiftUI
 import CoreLocation
 import Charts
+import ARKit
 
 /// The camera view: the water line at your feet for each scenario, plus three sensor tools that
 /// turn "the street floods" into "does it reach my door": LiDAR step measure, barometer floor
@@ -20,6 +22,12 @@ struct ARTab: View {
     @State private var playing = false
     /// The layer shown, for a scenario built up in layers.
     @State private var stage = 0
+    /// "On the street": the water spread over the ground around this spot, pinned by geo tracking.
+    @State private var street = false
+    @State private var streetOK: Bool?
+    @State private var streetStatus = ""
+    @State private var patch: TerrainPatch?
+    @State private var field: GeoWaterField?
     @State private var stacking = false
     @State private var picked: POI?
     @State private var showList = false
@@ -52,7 +60,7 @@ struct ARTab: View {
 
     var body: some View {
         ZStack {
-            WaterARView(mode: mode, depthFt: shownDepthFt, playing: playing, placements: placements,
+            WaterARView(mode: mode, depthFt: shownDepthFt, playing: playing, street: street, geo: field, onGeoStatus: { streetStatus = $0 }, placements: placements,
                         onGround: { found in groundFound = found },
                         onMeasure: { ft in stepFt = max(0, ft); mode = .water },
                         onProject: { screen = $0 })
@@ -69,6 +77,7 @@ struct ARTab: View {
             }
         }
         .onAppear { compass.start(); resetHour() }
+        .task(id: "\(street)-\(String(format: "%.2f", shownDepthFt ?? 0))") { await spreadOnStreet() }
         .onChange(of: model.arScenarioID) { _, _ in playing = false; stacking = false; stage = 0; resetHour() }
         .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
             guard stacking, let s = scenario else { return }
@@ -76,7 +85,8 @@ struct ARTab: View {
         }
         .onReceive(Timer.publish(every: 0.4, on: .main, in: .common).autoconnect()) { _ in
             guard playing, let t = scenario?.timeline, let h = hour else { return }
-            if h + 1 < t.points.count { hour = h + 1 } else { playing = false }
+            let jump = max(1, t.points.count / 120)        // a month-long storm plays in about 50 s
+            if h + jump < t.points.count { hour = h + jump } else { hour = t.points.count - 1; playing = false }
         }
         .onDisappear { compass.stop(); floor.stop() }
         .sheet(isPresented: $showFloor) { floorSheet.presentationDetents([.medium]) }
@@ -185,6 +195,7 @@ struct ARTab: View {
                     ForEach(r.scenarios) { s in Text("\(s.label) \(s.provenance.mark)").tag(s.id) }
                 }
                 .pickerStyle(.menu)
+                if WaterARView.Coordinator.geoSupported { streetToggle }
                 if stepFt > 0 || floorFt > 0 { thresholds }
                 HStack {
                     Button(mode == .measure ? "Tap the street, then the step" : "Measure a step") { mode = mode == .measure ? .water : .measure }
@@ -202,6 +213,34 @@ struct ARTab: View {
         .padding()
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         .padding()
+    }
+
+    private var streetToggle: some View {
+        VStack(spacing: 2) {
+            Picker("Where", selection: $street) {
+                Text("At my feet").tag(false)
+                Text("On the street").tag(true)
+            }
+            .pickerStyle(.segmented)
+            .disabled(streetOK == false)
+            if street, !streetStatus.isEmpty { Text(streetStatus).font(.caption2).foregroundStyle(.secondary) }
+            if streetOK == false { Text("Apple's street tracking doesn't cover this spot yet.").font(.caption2).foregroundStyle(.secondary) }
+        }
+        .task {
+            guard streetOK == nil, let c = report?.coordinate else { return }
+            streetOK = await withCheckedContinuation { k in
+                ARGeoTrackingConfiguration.checkAvailability(at: c) { ok, _ in k.resume(returning: ok) }
+            }
+        }
+    }
+
+    /// Spread the shown depth over the USGS ground around this spot.
+    private func spreadOnStreet() async {
+        guard street, let r = report else { field = nil; return }
+        if patch == nil { patch = try? await TerrainPatch.load(r.coordinate) }
+        guard let p = patch else { field = nil; return }
+        let d = shownDepthFt ?? 0, c = r.coordinate
+        field = await Task.detached(priority: .userInitiated) { GeoWaterField.build(p, center: c, depthFt: d) }.value
     }
 
     /// The depth drawn: the hour on the timeline, or the scenario's own depth.
@@ -335,3 +374,4 @@ struct ARTab: View {
         .padding()
     }
 }
+#endif

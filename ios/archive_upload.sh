@@ -8,16 +8,18 @@
 # builds are unlimited and catch everything an upload would.
 # Same flow as the other apps on team WYGG3JXWMG: login keychain + ASC API key,
 # cloud signing. Usage: KEYCHAIN_PASSWORD piped in via the caller.
-#   ./archive_upload.sh <KEY_ID> <ISSUER_ID>
+#   ./archive_upload.sh <KEY_ID> <ISSUER_ID> [iOS|visionOS]
+# One target builds both: each platform is its own archive, upload and TestFlight train.
 set -euo pipefail
 
 KEY_ID="${1:?usage: archive_upload.sh <KEY_ID> <ISSUER_ID>}"
 ISSUER_ID="${2:?usage: archive_upload.sh <KEY_ID> <ISSUER_ID>}"
+PLATFORM="${3:-iOS}"
 KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${KEY_ID}.p8"
 [ -f "$KEY_PATH" ] || { echo "Missing $KEY_PATH"; exit 1; }
 
 cd "$(dirname "$0")"
-ARCHIVE="build/Waterline.xcarchive"
+ARCHIVE="build/Waterline-$PLATFORM.xcarchive"
 LOGIN_KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
 
 # A locked login keychain fails CodeSign with errSecInternalComponent, and each
@@ -47,7 +49,7 @@ xcodegen generate
 xcodebuild archive \
   -project Waterline.xcodeproj \
   -scheme Waterline \
-  -destination 'generic/platform=iOS' \
+  -destination "generic/platform=$PLATFORM" \
   -archivePath "$ARCHIVE" \
   -allowProvisioningUpdates \
   -authenticationKeyPath "$KEY_PATH" \

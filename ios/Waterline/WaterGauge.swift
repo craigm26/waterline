@@ -12,12 +12,15 @@ struct WaterGauge: View {
     @State private var pick = 0
 
     private var timeline: WaterTimeline { timelines[min(pick, timelines.count - 1)] }
+    private var megaIndex: Int { timelines.filter { $0.points.count > 200 }.firstIndex(of: timeline) ?? 0 }
+    private var long: Bool { timeline.points.count > 200 }
     private var scenarioID: String {
         switch timeline.whatIf {
         case nil: return "forecast"
         case "100-year day": return "rain-day100"
         case "100-year day on the king tide": return "rain-day100-king"
-        default: return "rain-day1000"
+        case "1000-year day": return "rain-day1000"
+        default: return "mega-\(max(0, megaIndex))"
         }
     }
 
@@ -29,10 +32,17 @@ struct WaterGauge: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if timelines.count > 1 {
-                Picker("Rain", selection: $pick) {
-                    ForEach(timelines.indices, id: \.self) { i in Text(Self.short(timelines[i].whatIf)).tag(i) }
+                if timelines.count <= 4 {
+                    Picker("Rain", selection: $pick) {
+                        ForEach(timelines.indices, id: \.self) { i in Text(Self.short(timelines[i].whatIf)).tag(i) }
+                    }
+                    .pickerStyle(.segmented)
+                } else {
+                    Picker("Rain", selection: $pick) {
+                        ForEach(timelines.indices, id: \.self) { i in Text(timelines[i].whatIf ?? "Forecast, next 3 days").tag(i) }
+                    }
+                    .pickerStyle(.menu)
                 }
-                .pickerStyle(.segmented)
             }
             if let w = timeline.whatIf {
                 Text("WHAT-IF · \(w.uppercased()) · NOT A FORECAST").font(.caption2.bold()).padding(.horizontal, 8).padding(.vertical, 3)
@@ -45,7 +55,7 @@ struct WaterGauge: View {
                 } else {
                     stat("Dry", timeline.whatIf == nil ? "for the next 3 days" : "all storm")
                 }
-                stat(String(format: "%.1f in", timeline.measuredIn + timeline.forecastIn), timeline.whatIf == nil ? "of rain" : "in 24 h")
+                stat(String(format: "%.1f in", timeline.measuredIn + timeline.forecastIn), timeline.whatIf == nil ? "of rain" : long ? "in 30 days" : "in 24 h")
             }
             HStack(alignment: .bottom, spacing: 10) {
                 PersonGauge(ft: peak?.ft ?? now?.ft ?? 0)
@@ -57,7 +67,7 @@ struct WaterGauge: View {
             }
             if let onWatch {
                 Button { onWatch(scenarioID) } label: {
-                    Label("Watch the water rise in the camera", systemImage: "camera.viewfinder").frame(maxWidth: .infinity)
+                    Label(Self.watchLabel, systemImage: "camera.viewfinder").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent).tint(Color(red: 0.42, green: 0.37, blue: 0.27))
             }
@@ -65,12 +75,19 @@ struct WaterGauge: View {
         }
     }
 
+    #if os(visionOS)
+    static let watchLabel = "See the water in your room"
+    #else
+    static let watchLabel = "Watch the water rise in the camera"
+    #endif
+
     static func short(_ w: String?) -> String {
         switch w {
         case nil: return "Forecast"
         case "100-year day": return "100-yr"
         case "100-year day on the king tide": return "+ king tide"
-        default: return "1000-yr"
+        case "1000-year day": return "1000-yr"
+        default: return w ?? ""
         }
     }
 
@@ -124,6 +141,11 @@ struct WaterGauge: View {
                     AxisGridLine()
                     AxisValueLabel(format: .dateTime.weekday(.abbreviated), centered: false).font(.system(size: 9))
                 }
+            } else if long {
+                AxisMarks(values: .stride(by: .day, count: 5)) { v in
+                    AxisGridLine()
+                    AxisValueLabel { Text("day \(Int(((v.as(Date.self) ?? timeline.now).timeIntervalSince(timeline.now) / 86400).rounded()) + 1)").font(.system(size: 9)) }
+                }
             } else {
                 AxisMarks(values: .stride(by: .hour, count: 12)) { v in
                     AxisGridLine()
@@ -139,6 +161,9 @@ struct WaterGauge: View {
     }
 
     private var caption: String {
+        if let d = timeline.detail {
+            return d + " Water ○: Waterline's estimate on the lidar ground here. Assumed ▨: 80% of rain runs off and working drains take 0.5 in an hour, also after the rain eases."
+        }
         if let w = timeline.whatIf {
             return "Rain ●: NOAA Atlas 14's \(w) storm for this spot, hour by hour, starting now\(w.contains("king") ? ", its heaviest hour on this year's king tide" : ""), then a dry day. Water ○: Waterline's estimate on the lidar ground here. Assumed ▨: 80% of rain runs off and working drains take 0.5 in an hour, also after the rain eases.\(lockNote)"
         }

@@ -89,8 +89,8 @@ struct HereView: View {
             Text("Next 3 days here").font(.headline)
             Text(f.headline).font(.subheadline.bold())
             if let e = r.rainEstimate, let w = e.water {
-                WaterGauge(timelines: [w] + [e.waterDay100, (e.waterDay100King?.lockedHours ?? 0) > 0 ? e.waterDay100King : nil, e.waterDay1000].compactMap { $0 }, station: r.rainStation,
-                           onWatch: WaterlineApp.hasAR && !model.usingPin ? { id in model.arScenarioID = id; model.tab = .ar } : nil)
+                WaterGauge(timelines: [w] + [e.waterDay100, (e.waterDay100King?.lockedHours ?? 0) > 0 ? e.waterDay100King : nil, e.waterDay1000].compactMap { $0 } + e.megastorms, station: r.rainStation,
+                           onWatch: WaterlineApp.hasWaterView && !model.usingPin ? { id in model.arScenarioID = id; model.tab = .ar } : nil)
             }
             ForEach(f.rows, id: \.label) { row in
                 Row(label: row.label, value: row.value, prov: row.prov, note: row.note)

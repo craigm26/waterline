@@ -15,6 +15,9 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var loading = false
     @Published var locationDenied = false
     @Published var arScenarioID: String?
+    /// Vision Pro: the depth shown in the room, and whether a timeline is playing.
+    @Published var roomDepthFt: Double?
+    @Published var roomPlaying = false
 
     private let manager = CLLocationManager()
     private var reportedAt: CLLocationCoordinate2D?
@@ -65,12 +68,18 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         let s = m.authorizationStatus
         Task { @MainActor in
             locationDenied = (s == .denied || s == .restricted)
-            if s == .authorizedWhenInUse || s == .authorizedAlways { manager.startUpdatingLocation() }
+            if s == .authorizedWhenInUse || s.rawValue == 3 { manager.startUpdatingLocation() }   // 3 = always, unavailable by name on visionOS
         }
     }
 
     nonisolated func locationManager(_ m: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let l = locations.last, l.horizontalAccuracy >= 0, l.horizontalAccuracy < 100 else { return }
+        // Vision Pro locates by Wi-Fi, so its fixes are looser than a phone's GPS.
+        #if os(visionOS)
+        let worst = 500.0
+        #else
+        let worst = 100.0
+        #endif
+        guard let l = locations.last, l.horizontalAccuracy >= 0, l.horizontalAccuracy < worst else { return }
         let c = l.coordinate, acc = l.horizontalAccuracy
         Task { @MainActor in
             gps = c

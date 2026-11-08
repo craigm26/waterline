@@ -1,3 +1,4 @@
+#if os(iOS)
 import SwiftUI
 import RealityKit
 import ARKit
@@ -25,6 +26,11 @@ struct WaterARView: UIViewRepresentable {
     /// While a timeline plays, depth changes glide quickly from hour to hour; otherwise the water
     /// rises slowly into place, so the change itself reads as water coming up.
     var playing = false
+    /// "On the street": water spread over the real ground, pinned to its latitude and longitude
+    /// with ARKit geo tracking. nil = the level at your feet.
+    var street = false
+    var geo: GeoWaterField? = nil
+    var onGeoStatus: (String) -> Void = { _ in }
     var placements: [Placement] = []
     var onGround: (Bool) -> Void = { _ in }
     var onMeasure: (Double) -> Void = { _ in }
@@ -66,6 +72,8 @@ struct WaterARView: UIViewRepresentable {
         co.onProject = onProject
         co.placements = placements
         co.playing = playing
+        co.onGeoStatus = onGeoStatus
+        co.setGeo(street: street, field: geo)
         co.setDepth(depthFt)
     }
 
@@ -86,6 +94,11 @@ struct WaterARView: UIViewRepresentable {
         var timer: Timer?
         var playing = false
         var ripple: Cancellable?
+        var onGeoStatus: (String) -> Void = { _ in }
+        private var geoField: GeoWaterField?
+        private var streetOn = false
+        private var geoAnchor: ARGeoAnchor?
+        private var geoEntity: AnchorEntity?
 
         private var groundAnchor: AnchorEntity?
         private let water: ModelEntity
@@ -99,117 +112,116 @@ struct WaterARView: UIViewRepresentable {
         private var measureAnchors: [AnchorEntity] = []
 
         override init() {
-            waterMaterial = Self.makeWaterMaterial()
+            waterMaterial = WaterLook.material()
             water = ModelEntity(mesh: .generatePlane(width: 30, depth: 30), materials: [waterMaterial])
             water.isEnabled = false
-            person = Self.makePerson()
+            person = WaterLook.person()
             person.position = SIMD3<Float>(0.75, 0, 0)
             super.init()
         }
 
-        // MARK: water look
+        // MARK: on the street
 
-        /// Flood water is murky, not pool blue: a brown-grey surface with soft streaks, tiled
-        /// every 2.5 m and drifting slowly so it reads as moving water.
-        private static func makeWaterMaterial() -> PhysicallyBasedMaterial {
-            var m = PhysicallyBasedMaterial()
-            m.baseColor = .init(tint: UIColor(red: 0.42, green: 0.37, blue: 0.27, alpha: 1))
-            if let img = streaks(), let tex = try? TextureResource.generate(from: img, options: .init(semantic: .color)) {
-                let d = MTLSamplerDescriptor()
-                d.sAddressMode = .repeat; d.tAddressMode = .repeat
-                d.minFilter = .linear; d.magFilter = .linear; d.mipFilter = .linear
-                m.baseColor = .init(tint: .white, texture: .init(tex, sampler: .init(d)))
+        static var geoSupported: Bool { ARGeoTrackingConfiguration.isSupported }
+
+        /// Switch between the level at your feet and water pinned to the street.
+        func setGeo(street: Bool, field f: GeoWaterField?) {
+            guard let view, street != streetOn || f != geoField else { return }
+            let wasGeo = streetOn
+            streetOn = street
+            geoField = f
+            if street, !wasGeo {
+                groundAnchor?.isEnabled = false
+                let c = ARGeoTrackingConfiguration()
+                c.planeDetection = [.horizontal]
+                view.session.run(c, options: [.resetTracking, .removeExistingAnchors])
+                geoAnchor = nil; geoEntity = nil
+                onGeoStatus("Finding where you are: point the camera at buildings across the street")
+            } else if !street, wasGeo {
+                geoEntity?.removeFromParent(); geoEntity = nil; geoAnchor = nil
+                let c = ARWorldTrackingConfiguration()
+                c.planeDetection = [.horizontal, .vertical]
+                c.worldAlignment = .gravityAndHeading
+                if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) { c.sceneReconstruction = .mesh }
+                view.session.run(c, options: [.resetTracking, .removeExistingAnchors])
+                groundAnchor = nil
+                startAutoGround()
+                return
             }
-            m.roughness = .init(floatLiteral: 0.15)
-            m.metallic = .init(floatLiteral: 0.0)
-            m.blending = .transparent(opacity: .init(floatLiteral: 0.78))
-            m.textureCoordinateTransform.scale = SIMD2<Float>(12, 12)
-            return m
+            guard street, let f else { geoEntity?.children.removeAll(); return }
+            if let a = geoAnchor, a.coordinate.latitude == f.center.latitude, a.coordinate.longitude == f.center.longitude {
+                fillGeo()
+            } else {
+                if let a = geoAnchor { view.session.remove(anchor: a) }
+                let a = ARGeoAnchor(coordinate: f.center)   // altitude: ARKit's own ground there
+                geoAnchor = a
+                view.session.add(anchor: a)
+            }
         }
 
-        /// A seamless 256 px tile: sums of whole-period waves, so its edges meet.
-        private static func streaks() -> CGImage? {
-            let n = 256
-            var px = [UInt8](repeating: 255, count: n * n * 4)
-            let tau = Float.pi * 2
-            for y in 0..<n {
-                for x in 0..<n {
-                    let u = Float(x) / Float(n), v = Float(y) / Float(n)
-                    var t = sin(tau * (3 * u + 2 * v)) * 0.5 + sin(tau * (5 * u - 3 * v) + 1.3) * 0.3
-                    t += sin(tau * (2 * u + 7 * v) + 2.1) * 0.25 + sin(tau * (9 * u + 4 * v) + 0.7) * 0.12
-                    let k = max(0, min(1, (t + 1.2) / 2.4))
-                    let hi = pow(k, 3)                       // a few bright ridges
-                    let i = (y * n + x) * 4
-                    px[i] = UInt8(min(255, 95 + 55 * k + 70 * hi))
-                    px[i + 1] = UInt8(min(255, 84 + 50 * k + 66 * hi))
-                    px[i + 2] = UInt8(min(255, 60 + 38 * k + 60 * hi))
+        func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
+            guard let view, let a = anchors.compactMap({ $0 as? ARGeoAnchor }).first(where: { $0 === geoAnchor }) else { return }
+            let e = AnchorEntity(anchor: a)
+            view.scene.addAnchor(e)
+            geoEntity = e
+            startRipple()
+            fillGeo()
+        }
+
+        func session(_ session: ARSession, didChange status: ARGeoTrackingStatus) {
+            let text: String
+            switch status.state {
+            case .localized: text = "On the street: the water sits on the ground around your spot"
+            case .localizing: text = "Finding where you are: point the camera at buildings across the street"
+            case .initializing: text = "Starting street tracking…"
+            default: text = "Street tracking isn't available here. Use \"At my feet\"."
+            }
+            DispatchQueue.main.async { self.onGeoStatus(text) }
+        }
+
+        /// One flat sheet over the field's cells, with the gauge and the person at the spot.
+        private func fillGeo() {
+            guard let e = geoEntity, let f = geoField else { return }
+            e.children.removeAll()
+            var pos: [SIMD3<Float>] = [], uv: [SIMD2<Float>] = [], idx: [UInt32] = []
+            let h = f.cellM / 2, y = f.levelM
+            for c in f.cells {
+                let b = UInt32(pos.count)
+                for (dx, dz) in [(-h, -h), (h, -h), (h, h), (-h, h)] as [(Float, Float)] {
+                    let p = SIMD3<Float>(c.x + dx, y, c.y + dz)
+                    pos.append(p); uv.append(SIMD2<Float>(p.x / 30, p.z / 30))
                 }
+                idx += [b, b + 2, b + 1, b, b + 3, b + 2]
             }
-            return px.withUnsafeMutableBytes { b in
-                CGContext(data: b.baseAddress, width: n, height: n, bitsPerComponent: 8, bytesPerRow: n * 4,
-                          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)?.makeImage()
+            var d = MeshDescriptor(name: "street-water")
+            d.positions = MeshBuffers.Positions(pos)
+            d.textureCoordinates = MeshBuffers.TextureCoordinates(uv)
+            d.primitives = .triangles(idx)
+            if !pos.isEmpty, let mesh = try? MeshResource.generate(from: [d]) {
+                let sheet = ModelEntity(mesh: mesh, materials: [waterMaterial])
+                sheet.name = "sheet"
+                e.addChild(sheet)
             }
+            let feet = max(3, Int((Double(y) * Geo.ftPerM).rounded(.up)) + 1)
+            e.addChild(WaterLook.ruler(feet: feet))
+            let p = WaterLook.person(); p.position = SIMD3<Float>(0.75, 0, 0); e.addChild(p)
         }
+
+        // MARK: water look
 
         /// Drift the surface a little every frame.
         func startRipple() {
             guard ripple == nil, let view else { return }
             ripple = view.scene.subscribe(to: SceneEvents.Update.self) { [weak self] e in
-                guard let self, self.water.isEnabled else { return }
+                guard let self else { return }
                 self.clock += Float(e.deltaTime)
                 self.waterMaterial.textureCoordinateTransform.offset = SIMD2<Float>(self.clock * 0.018, self.clock * 0.011)
-                self.water.model?.materials = [self.waterMaterial]
+                if self.water.isEnabled { self.water.model?.materials = [self.waterMaterial] }
+                if let sheet = self.geoEntity?.findEntity(named: "sheet") as? ModelEntity { sheet.model?.materials = [self.waterMaterial] }
             }
         }
 
         // MARK: scale
-
-        /// A person 5 ft 9 in (1.75 m) tall, in plain grey blocks, standing on the ground.
-        private static func makePerson() -> Entity {
-            var mat = PhysicallyBasedMaterial()
-            mat.baseColor = .init(tint: UIColor(white: 0.85, alpha: 1))
-            mat.roughness = .init(floatLiteral: 0.8)
-            mat.blending = .transparent(opacity: .init(floatLiteral: 0.92))
-            let p = Entity()
-            func part(_ mesh: MeshResource, _ at: SIMD3<Float>) {
-                let e = ModelEntity(mesh: mesh, materials: [mat]); e.position = at; p.addChild(e)
-            }
-            part(.generateBox(size: SIMD3<Float>(0.13, 0.84, 0.15), cornerRadius: 0.05), SIMD3<Float>(-0.09, 0.42, 0))
-            part(.generateBox(size: SIMD3<Float>(0.13, 0.84, 0.15), cornerRadius: 0.05), SIMD3<Float>(0.09, 0.42, 0))
-            part(.generateBox(size: SIMD3<Float>(0.38, 0.62, 0.21), cornerRadius: 0.07), SIMD3<Float>(0, 1.15, 0))
-            part(.generateBox(size: SIMD3<Float>(0.08, 0.6, 0.1), cornerRadius: 0.04), SIMD3<Float>(-0.25, 1.13, 0))
-            part(.generateBox(size: SIMD3<Float>(0.08, 0.6, 0.1), cornerRadius: 0.04), SIMD3<Float>(0.25, 1.13, 0))
-            part(.generateSphere(radius: 0.11), SIMD3<Float>(0, 1.62, 0))
-            let tag = ModelEntity(mesh: .generateText("5 ft 9 in", extrusionDepth: 0.002, font: .systemFont(ofSize: 0.06)),
-                                  materials: [UnlitMaterial(color: .white)])
-            tag.position = SIMD3<Float>(-0.14, 1.8, 0)
-            p.addChild(tag)
-            return p
-        }
-
-        /// A staff gauge: a white board marked every half foot, numbered every foot, tall enough
-        /// to stand a foot over the water.
-        private static func makeRuler(feet: Int) -> Entity {
-            let r = Entity()
-            let ftM = Float(1 / Geo.ftPerM)
-            let h = Float(feet) * ftM
-            let board = ModelEntity(mesh: .generateBox(size: SIMD3<Float>(0.06, h, 0.012)), materials: [UnlitMaterial(color: .white)])
-            board.position = SIMD3<Float>(0, h / 2, 0)
-            r.addChild(board)
-            for k in 1...(feet * 2) {
-                let y = Float(k) * ftM / 2, whole = k % 2 == 0
-                let tick = ModelEntity(mesh: .generateBox(size: SIMD3<Float>(whole ? 0.06 : 0.03, 0.008, 0.014)), materials: [UnlitMaterial(color: .black)])
-                tick.position = SIMD3<Float>(whole ? 0 : -0.015, y, 0.001)
-                r.addChild(tick)
-                if whole {
-                    let t = ModelEntity(mesh: .generateText("\(k / 2) ft", extrusionDepth: 0.002, font: .boldSystemFont(ofSize: 0.05)),
-                                        materials: [UnlitMaterial(color: .white)])
-                    t.position = SIMD3<Float>(0.045, y - 0.02, 0)
-                    r.addChild(t)
-                }
-            }
-            return r
-        }
 
         /// Project each tag onto the screen: a point 10 m out along its bearing, dipped below the
         /// horizon by its true angle from eye height, so near drains sit low and far gauges near the horizon.
@@ -234,8 +246,10 @@ struct WaterARView: UIViewRepresentable {
 
         /// Until the ground is found, raycast a spot ahead of your feet twice a second.
         func startAutoGround() {
+            timer?.invalidate()
             timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] t in
                 guard let self, let view = self.view else { return }
+                if self.streetOn { return }
                 if self.groundAnchor != nil { t.invalidate(); return }
                 let p = CGPoint(x: view.bounds.midX, y: view.bounds.height * 0.75)
                 if let hit = view.raycast(from: p, allowing: .estimatedPlane, alignment: .horizontal).first {
@@ -278,7 +292,7 @@ struct WaterARView: UIViewRepresentable {
             let feet = max(3, Int((Double(d) * Geo.ftPerM).rounded(.up)) + 1)
             if ruler?.name != "ruler-\(feet)" {
                 ruler?.removeFromParent()
-                let r = Self.makeRuler(feet: feet); r.name = "ruler-\(feet)"
+                let r = WaterLook.ruler(feet: feet); r.name = "ruler-\(feet)"
                 a.addChild(r); ruler = r
             }
             label?.removeFromParent(); label = nil
@@ -309,6 +323,7 @@ struct WaterARView: UIViewRepresentable {
             let p = g.location(in: view)
             switch mode {
             case .water:
+                if streetOn { return }
                 if let hit = view.raycast(from: p, allowing: .estimatedPlane, alignment: .horizontal).first {
                     placeGround(hit.worldTransform.columns.3)
                 }
@@ -337,3 +352,4 @@ struct WaterARView: UIViewRepresentable {
         }
     }
 }
+#endif
