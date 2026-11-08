@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreLocation
+import Charts
 
 /// The camera view: the water line at your feet for each scenario, plus three sensor tools that
 /// turn "the street floods" into "does it reach my door": LiDAR step measure, barometer floor
@@ -14,6 +15,9 @@ struct ARTab: View {
     @AppStorage("arRange") private var rangeT = ARRange.defaultT     // slider position, 0...1
     @AppStorage(Layer.storageKey) private var hiddenRaw = Layer.defaultOff         // layers turned off, shared with the Map and 3D views
     @State private var screen: [String: CGPoint] = [:]
+    /// The hour shown, for a scenario that plays out over time; playing steps it forward.
+    @State private var hour: Int?
+    @State private var playing = false
     @State private var picked: POI?
     @State private var showList = false
     @State private var topEdge: CGFloat = 200
@@ -45,7 +49,7 @@ struct ARTab: View {
 
     var body: some View {
         ZStack {
-            WaterARView(mode: mode, depthFt: scenario?.depthFt, placements: placements,
+            WaterARView(mode: mode, depthFt: shownDepthFt, playing: playing, placements: placements,
                         onGround: { found in groundFound = found },
                         onMeasure: { ft in stepFt = max(0, ft); mode = .water },
                         onProject: { screen = $0 })
@@ -61,7 +65,12 @@ struct ARTab: View {
                 panel.onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { panelEdge = $0 }
             }
         }
-        .onAppear { compass.start() }
+        .onAppear { compass.start(); resetHour() }
+        .onChange(of: model.arScenarioID) { _, _ in playing = false; resetHour() }
+        .onReceive(Timer.publish(every: 0.4, on: .main, in: .common).autoconnect()) { _ in
+            guard playing, let t = scenario?.timeline, let h = hour else { return }
+            if h + 1 < t.points.count { hour = h + 1 } else { playing = false }
+        }
         .onDisappear { compass.stop(); floor.stop() }
         .sheet(isPresented: $showFloor) { floorSheet.presentationDetents([.medium]) }
         .sheet(item: $picked) { p in POIDetail(poi: p, report: report).presentationDetents([.medium, .large]) }
@@ -162,6 +171,7 @@ struct ARTab: View {
                         .background(.red.opacity(0.85), in: Capsule()).foregroundStyle(.white)
                 }
                 Text(headline).font(.headline.monospacedDigit()).multilineTextAlignment(.center)
+                if let t = scenario?.timeline { player(t) }
                 if let s = scenario { Text(s.detail).font(.caption).foregroundStyle(.secondary) }
                 Picker("Scenario", selection: Binding(get: { model.arScenarioID ?? "" }, set: { model.arScenarioID = $0 })) {
                     ForEach(r.scenarios) { s in Text("\(s.label) \(s.provenance.mark)").tag(s.id) }
@@ -186,9 +196,70 @@ struct ARTab: View {
         .padding()
     }
 
+    /// The depth drawn: the hour on the timeline, or the scenario's own depth.
+    private var shownDepthFt: Double? {
+        guard let s = scenario else { return nil }
+        if let t = s.timeline, let h = hour, t.points.indices.contains(h) {
+            let ft = t.points[h].ft
+            return ft >= 0.05 ? ft : nil
+        }
+        return s.depthFt
+    }
+
+    /// Start a timeline at the present hour.
+    private func resetHour() {
+        guard let t = scenario?.timeline else { hour = nil; return }
+        hour = t.whatIf != nil ? 0 : t.points.lastIndex { $0.date <= Date() } ?? 0
+    }
+
+    /// Play, pause and scrub through the hours: measured rain first, then the forecast.
+    private func player(_ t: WaterTimeline) -> some View {
+        let i = min(hour ?? 0, t.points.count - 1)
+        let p = t.points[i]
+        let top = max(0.5, (t.points.map(\.ft).max() ?? 0) * 1.2)
+        return VStack(spacing: 4) {
+            Chart {
+                ForEach(t.points) { q in
+                    AreaMark(x: .value("Hour", q.date), y: .value("Water", q.ft))
+                        .foregroundStyle(Color(red: 0.55, green: 0.48, blue: 0.34).opacity(0.7)).interpolationMethod(.monotone)
+                }
+                RuleMark(x: .value("Shown", p.date)).foregroundStyle(.white).lineStyle(StrokeStyle(lineWidth: 2))
+                PointMark(x: .value("Shown", p.date), y: .value("Water", p.ft)).foregroundStyle(.white)
+            }
+            .chartYScale(domain: 0...top)
+            .chartXAxis(.hidden)
+            .chartYAxis { AxisMarks(position: .leading, values: [0, top / 1.2]) { v in
+                AxisValueLabel { Text(String(format: "%.1f ft", v.as(Double.self) ?? 0)).font(.system(size: 9)) }
+            } }
+            .frame(height: 52)
+            .accessibilityHidden(true)
+            HStack(spacing: 10) {
+                Button {
+                    if !playing, i + 1 >= t.points.count { hour = 0 }
+                    playing.toggle()
+                } label: {
+                    Image(systemName: playing ? "pause.circle.fill" : "play.circle.fill").font(.title)
+                }
+                .accessibilityLabel(playing ? "Pause" : "Play the next 3 days")
+                Slider(value: Binding(get: { Double(i) }, set: { hour = Int($0.rounded()); playing = false }),
+                       in: 0...Double(max(1, t.points.count - 1)), step: 1)
+            }
+            HStack {
+                Text(t.when(p)).bold()
+                Spacer()
+                Text(String(format: "%.2f in rain that hour · %@", p.rainIn, t.whatIf != nil ? "NOAA Atlas 14" : p.measured ? "measured" : "forecast"))
+            }
+            .font(.caption.monospacedDigit())
+        }
+    }
+
     private var headline: String {
         guard groundFound else { return "Point at the ground a few steps ahead" }
         guard let s = scenario else { return "" }
+        if s.timeline != nil {
+            guard let d = shownDepthFt else { return "Dry where you stand" }
+            return String(format: "%.1f ft deep where you stand", d)
+        }
         guard let d = s.depthFt else { return "\(s.label): the water doesn't reach this spot" }
         return String(format: "%@: %.1f ft deep where you stand", s.label, d)
     }

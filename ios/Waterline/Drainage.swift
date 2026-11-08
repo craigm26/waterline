@@ -64,8 +64,19 @@ struct RainSeries {
         async let freq = RainFrequency.load(c)
         let rain = try? await RainOutlook.load(c)
         var out = RainSeries(observedIn: nil, station: nil, forecastIn: rain?.hourlyNext24In ?? [], forecast72In: rain?.hourlyNext72In ?? [], frequency: await freq)
-        guard let u = rain?.observationStations.flatMap(URL.init(string:)),
-              let list: Stations = try? await Net.json(u, accept: "application/geo+json") else { return out }
+        if let o = await observed(rain?.observationStations) {
+            out.station = o.station
+            let byHour = o.hoursAgo
+            out.observedIn = byHour.indices.filter { byHour[$0] != nil }.map { byHour[$0]! }
+        }
+        return out
+    }
+
+    /// Rain measured in each of the last 6 hours at the nearest NWS station that reported it:
+    /// index 0 is the hour just past, nil where the station sent no reading for that hour.
+    static func observed(_ stations: String?) async -> (station: String, hoursAgo: [Double?])? {
+        guard let u = stations.flatMap(URL.init(string:)),
+              let list: Stations = try? await Net.json(u, accept: "application/geo+json") else { return nil }
         for s in list.features.prefix(3) {
             guard let url = URL(string: "https://api.weather.gov/stations/\(s.properties.stationIdentifier)/observations?limit=40"),
                   let o: Obs = try? await Net.json(url, accept: "application/geo+json") else { continue }
@@ -77,13 +88,9 @@ struct RainSeries {
                       let mm = row.properties.precipitationLastHour?.value else { continue }
                 byHour[Int(now.timeIntervalSince(t) / 3600), default: 0] = max(byHour[Int(now.timeIntervalSince(t) / 3600)] ?? 0, mm / 25.4)
             }
-            if !byHour.isEmpty {
-                out.observedIn = byHour.keys.sorted().map { byHour[$0]! }
-                out.station = s.properties.name
-                break
-            }
+            if !byHour.isEmpty { return (s.properties.name, (0..<6).map { byHour[$0] }) }
         }
-        return out
+        return nil
     }
 }
 
@@ -202,11 +209,15 @@ struct RainEstimate {
     /// NOAA Atlas 14's 24-hour 100- and 1000-year storms, drains working.
     var day100: (inches: Double, ft: Double)?
     var day1000: (inches: Double, ft: Double)?
-    /// The next 3 days of forecast rain, adding up: water standing here after each 12 hours, drains working.
-    var timeline: [(hours: Int, rainIn: Double, ft: Double)] = []
+    /// Water standing here hour by hour, from the measured rain of the last 6 hours through the
+    /// next 3 days of forecast, drains working.
+    var water: WaterTimeline?
+    /// The same for NOAA Atlas 14's 100- and 1000-year 24-hour storms, starting now.
+    var waterDay100: WaterTimeline?
+    var waterDay1000: WaterTimeline?
     let ponds: [DrainageMap.Pond]
 
-    static func make(_ c: CLLocationCoordinate2D, forecast: [Double], forecast72: [Double] = [], frequency: RainFrequency?) -> RainEstimate? {
+    static func make(_ c: CLLocationCoordinate2D, forecast: [Double], forecast72: [Double] = [], observed: [Double?] = [], frequency: RainFrequency?, now: Date = Date()) -> RainEstimate? {
         guard let f = DrainageField.near(c) else { return nil }
         let work = DrainageMap.build(f, hours: forecast, drainsWorking: true)
         let block = DrainageMap.build(f, hours: forecast, drainsWorking: false)
@@ -217,13 +228,85 @@ struct RainEstimate {
         for (y, key) in [(100, \RainEstimate.day100), (1000, \RainEstimate.day1000)] {
             if let h = frequency?.dayStorm(years: y) { e[keyPath: key] = (h.reduce(0, +), DrainageMap.build(f, hours: h, drainsWorking: true).depthFt(c)) }
         }
-        if forecast72.reduce(0, +) >= 0.05 {
-            e.timeline = stride(from: 12, through: min(72, forecast72.count), by: 12).map { n in
-                let h = Array(forecast72.prefix(n))
-                return (n, h.reduce(0, +), DrainageMap.build(f, hours: h, drainsWorking: true).depthFt(c))
-            }
-        }
+        if !forecast72.isEmpty { e.water = WaterTimeline.make(f, at: c, observed: observed, forecast: forecast72, now: now) }
+        if let h = frequency?.dayStorm(years: 100) { e.waterDay100 = WaterTimeline.whatIf("100-year day", f, at: c, hours: h, now: now) }
+        if let h = frequency?.dayStorm(years: 1000) { e.waterDay1000 = WaterTimeline.whatIf("1000-year day", f, at: c, hours: h, now: now) }
         return e
+    }
+}
+
+/// Water at one spot over time: rain that has fallen and rain forecast to fall, run over the
+/// ground hour by hour.
+///
+/// The bowl model fills dips from a volume of runoff. To follow that volume through time, rain
+/// adds runoff each hour (80% of it) and working drains take 0.5 in an hour back out, also in the
+/// dry hours after a shower, so the water goes down again once the rain eases. Measured rain
+/// and the forecast are official; the depth is Waterline's estimate.
+struct WaterTimeline: Hashable {
+    struct Point: Identifiable, Hashable {
+        let date: Date
+        let rainIn: Double
+        let ft: Double
+        let measured: Bool
+        var id: Date { date }
+    }
+    let points: [Point]
+    let now: Date
+    /// nil for the forecast; otherwise the what-if storm's name. A what-if starts at hour 0, now.
+    var whatIf: String? = nil
+
+    /// "Tue 3 AM" for the forecast, "hour 14" for a what-if storm.
+    func when(_ p: Point) -> String {
+        guard whatIf != nil else { return SpotReport.day.string(from: p.date) }
+        return "hour \(Int((p.date.timeIntervalSince(now) / 3600).rounded()))"
+    }
+
+    var current: Point? { points.last { $0.date <= now } }
+    var peak: Point? {
+        let ahead = points.filter { $0.date >= now }
+        guard let top = ahead.max(by: { $0.ft < $1.ft }), top.ft >= 0.05 else { return nil }
+        return top
+    }
+    var measuredIn: Double { points.filter(\.measured).reduce(0) { $0 + $1.rainIn } }
+    var forecastIn: Double { points.filter { !$0.measured }.reduce(0) { $0 + $1.rainIn } }
+    var isDry: Bool { points.allSatisfy { $0.ft < 0.05 } }
+
+    static func make(_ f: DrainageField, at c: CLLocationCoordinate2D, observed: [Double?], forecast: [Double], now: Date) -> WaterTimeline {
+        let hour = 3600.0
+        let start = Calendar.current.dateInterval(of: .hour, for: now)?.start ?? now
+        var rows: [(Date, Double, Bool)] = []
+        for (k, v) in observed.enumerated().reversed() { rows.append((start.addingTimeInterval(-Double(k + 1) * hour), v ?? 0, true)) }
+        for (k, v) in forecast.enumerated() { rows.append((start.addingTimeInterval(Double(k) * hour), v, false)) }
+        var runoffIn = 0.0
+        var memo: [Int: Double] = [:]
+        let points = rows.map { (date, rain, measured) -> Point in
+            runoffIn = max(0, runoffIn + rain * DrainageAssumptions.runoff - DrainageAssumptions.drainInPerHour)
+            let key = Int((runoffIn * 200).rounded())          // 0.005 in steps
+            let ft: Double
+            if let m = memo[key] { ft = m } else {
+                let r = f.model.run(runoffM: Double(key) / 200 * 0.0254)
+                ft = key == 0 ? 0 : DrainageMap(patches: [], paths: [], ponds: [], rainIn: 0, result: r, field: f).depthFt(c)
+                memo[key] = ft
+            }
+            return Point(date: date, rainIn: rain, ft: ft, measured: measured)
+        }
+        return WaterTimeline(points: points, now: now)
+    }
+
+    /// A design storm starting now, then a dry day so the drains can be seen catching up. The
+    /// hours are arranged by the alternating-block method: the heaviest hour in the middle of the
+    /// day, the next heaviest on either side of it, so the storm builds and eases like a real one.
+    static func whatIf(_ name: String, _ f: DrainageField, at c: CLLocationCoordinate2D, hours: [Double], now: Date) -> WaterTimeline {
+        let start = Calendar.current.dateInterval(of: .hour, for: now)?.start ?? now
+        var shaped = [Double](repeating: 0, count: hours.count)
+        let mid = hours.count / 2
+        for (k, v) in hours.sorted(by: >).enumerated() {
+            let i = mid + (k % 2 == 0 ? k / 2 : -(k + 1) / 2)
+            if shaped.indices.contains(i) { shaped[i] = v }
+        }
+        var t = make(f, at: c, observed: [], forecast: shaped + Array(repeating: 0, count: 24), now: start)
+        t.whatIf = name
+        return t
     }
 }
 

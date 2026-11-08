@@ -22,6 +22,8 @@ struct WaterScenario: Identifiable, Hashable {
     let depthFt: Double?
     let provenance: Provenance
     let isStressTest: Bool
+    /// For a scenario that plays out over time: the depth hour by hour.
+    var timeline: WaterTimeline?
 }
 
 /// Everything Waterline knows about one spot. Built by `SpotReport.build(at:)`.
@@ -36,6 +38,8 @@ struct SpotReport {
     var tide: TideOutlook?
     var rain: RainOutlook?
     var rainEstimate: RainEstimate?
+    /// The NWS station whose rain gauge supplied the last 6 hours.
+    var rainStation: String?
     /// NOAA Atlas 14 storm depths at this spot.
     var frequency: RainFrequency?
     /// NOAA sea level rise scenarios at the tide station.
@@ -219,6 +223,12 @@ struct SpotReport {
         var out: [WaterScenario] = []
         if let e = rainEstimate {
             func d(_ ft: Double) -> Double? { ft >= 0.05 ? ft : nil }
+            if let w = e.water {
+                let peak = w.peak
+                out.append(.init(id: "forecast", label: "Now through the next 3 days",
+                                 detail: String(format: "%.2f in measured in the last 6 h, %.2f in forecast · Waterline estimate, drains working. Press play to watch it.", w.measuredIn, w.forecastIn),
+                                 depthFt: peak.map(\.ft), provenance: .derived, isStressTest: false, timeline: w))
+            }
             let rain = String(format: "%.2f in forecast", e.forecastIn)
             out.append(.init(id: "rain-work", label: "Next 24 h rain, drains working", detail: "\(rain) · Waterline estimate, drains assumed to take 0.5 in/h",
                              depthFt: d(e.workingFt), provenance: .derived, isStressTest: false))
@@ -230,11 +240,11 @@ struct SpotReport {
             }
             if let y = e.day100 {
                 out.append(.init(id: "rain-day100", label: "100-year storm, 24 hours", detail: String(format: "%.1f in, NOAA Atlas 14 · Waterline estimate, drains working", y.inches),
-                                 depthFt: d(y.ft), provenance: .derived, isStressTest: false))
+                                 depthFt: e.waterDay100.map { $0.peak?.ft } ?? d(y.ft), provenance: .derived, isStressTest: false, timeline: e.waterDay100))
             }
             if let y = e.day1000 {
                 out.append(.init(id: "rain-day1000", label: "Monster storm: 1000-year, 24 hours", detail: String(format: "%.1f in, NOAA Atlas 14 · Waterline estimate, drains working. A what-if, not a forecast.", y.inches),
-                                 depthFt: d(y.ft), provenance: .assumed, isStressTest: true))
+                                 depthFt: e.waterDay1000.map { $0.peak?.ft } ?? d(y.ft), provenance: .assumed, isStressTest: true, timeline: e.waterDay1000))
             }
             if let y = e.year100 {
                 out.append(.init(id: "rain-100", label: "100-year storm, heaviest hour", detail: String(format: "%.2f in, NOAA Atlas 14 · Waterline estimate, drains working", y.inches),
@@ -317,9 +327,9 @@ struct SpotReport {
                                 note: "NWS forecast for the next 3 days, \(r.chance24Pct)% chance in the next 24 h"))
         }
         if let e = rainEstimate {
-            if let top = e.timeline.max(by: { $0.ft < $1.ft }), top.ft >= 0.05 {
+            if let top = e.water?.peak {
                 o.rows.append(.init(label: "Rain water here", value: String(format: "%.1f ft", top.ft), prov: .derived,
-                                    note: String(format: "Waterline estimate after %d h (%.2f in), drains working. It assumes nothing drains away between showers.", top.hours, top.rainIn)))
+                                    note: "Waterline estimate at its deepest, \(Self.day.string(from: top.date)), drains working"))
                 if top.ft >= 0.25 { hits.append(String(format: "rain could stand %.1f ft deep here", top.ft)) }
             } else {
                 o.rows.append(.init(label: "Rain water here", value: "None", prov: .derived, note: "Waterline estimate from the forecast, drains working"))
@@ -389,7 +399,10 @@ struct SpotReport {
         if let hours = r.rain?.hourlyNext24In {
             let f = r.frequency
             let h72 = r.rain?.hourlyNext72In ?? []
-            r.rainEstimate = await Task.detached(priority: .userInitiated) { RainEstimate.make(c, forecast: hours, forecast72: h72, frequency: f) }.value
+            let obs = await RainSeries.observed(r.rain?.observationStations)
+            r.rainStation = obs?.station
+            let past = obs?.hoursAgo ?? []
+            r.rainEstimate = await Task.detached(priority: .userInitiated) { RainEstimate.make(c, forecast: hours, forecast72: h72, observed: past, frequency: f) }.value
         }
         r.placeLabel = await label
         r.gauges = await gauges
