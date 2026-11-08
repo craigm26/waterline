@@ -97,6 +97,11 @@ struct TerrainSceneView: View {
     @State private var levelFt = 0.0
     @State private var range = 0.0...1.0
     @State private var sorted: [Float] = []
+    @State private var mode: Mode = .rain
+
+    /// Two ways to look at water on this ground: rain from a storm settling into the dips, or one
+    /// flat level across the whole block (a bathtub view, for a river or tide height).
+    enum Mode: String, CaseIterable, Identifiable { case rain = "Rain", level = "Flat level"; var id: String { rawValue } }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -110,40 +115,119 @@ struct TerrainSceneView: View {
                 }
             }
             .frame(maxHeight: .infinity)
-            .background(Color.black)
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(String(format: "Water %.1f ft NAVD88", levelFt)).font(.headline.monospacedDigit())
-                    Spacer()
-                    if scene != nil { Text(wetShare).font(.subheadline.monospacedDigit()) }
-                }
-                if scene != nil { Slider(value: $levelFt, in: range, step: 0.1) }
-                if !presets.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(presets.indices, id: \.self) { i in
-                                Button(presets[i].0) { levelFt = min(max(presets[i].1, range.lowerBound), range.upperBound) }.buttonStyle(.bordered).font(.caption)
-                            }
-                        }
-                    }
-                }
-                if scene != nil, !Layer.off(layersOff).contains(.rainWater) {
-                    StormControls(note: noGrid ? "Rain water needs this place's ground grid: download Ground and bowls, 10 m, in Offline data." : rainMap.map { String(format: "%.2f in of rain · Waterline estimate, assumed runoff and drains", $0.rainIn) })
-                }
-                Text("USGS 3DEP bare ground, about 1 m, streamed live. Buildings and trees are removed. The slider is a bathtub level: it ignores levees, drains and where water can actually get in. Rain water (Layers) is Waterline's estimate of where rain stands. Tap a marker for its sheet.")
-                    .font(.caption2).foregroundStyle(.secondary)
-            }
-            .padding()
+            .background(Color(red: 0.12, green: 0.15, blue: 0.2))
+            panel.padding()
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbar { LayerMenu(only: [.rainWater, .rivers, .tide, .streetSensors, .floodZones, .levees, .pumps, .drains, .reports, .lowSpots, .higherGround]) }
         .sheet(item: $picked) { p in POIDetail(poi: p, report: report).presentationDetents([.medium, .large]) }
-        .task { await load(); await refreshWater(); drawLayers() }
+        .task {
+            if mode == .rain { showRainLayer() }
+            await load(); await refreshWater(); drawLayers()
+        }
+        .onChange(of: mode) { _, m in
+            water?.isHidden = m == .rain
+            if m == .rain { showRainLayer() }
+            drawLayers()
+        }
         .onChange(of: layersOff) { _, _ in Task { await refreshWater(); drawLayers() } }
         .onChange(of: storm) { _, _ in Task { await refreshWater(); drawLayers() } }
         .onChange(of: drainsWorking) { _, _ in Task { await refreshWater(); drawLayers() } }
         .onChange(of: levelFt) { _, v in water?.position.y = Float(v / Geo.ftPerM) }
+    }
+
+    private func showRainLayer() {
+        var off = Layer.off(layersOff)
+        if off.contains(.rainWater) { off.remove(.rainWater); layersOff = Layer.raw(off) }
+    }
+
+    @ViewBuilder private var panel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Picker("View", selection: $mode) { ForEach(Mode.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented)
+            if mode == .rain { rainPanel } else { levelPanel }
+        }
+    }
+
+    @ViewBuilder private var rainPanel: some View {
+        HStack {
+            Picker("Storm", selection: $storm) { ForEach(StormCase.allCases) { Text($0.rawValue).tag($0) } }
+                .pickerStyle(.menu).labelsHidden().fixedSize().padding(.leading, -10)
+            Spacer(minLength: 8)
+            Text("Drains work").font(.subheadline).lineLimit(1)
+            Toggle("Drains work", isOn: $drainsWorking).labelsHidden()
+        }
+        if Layer.off(layersOff).contains(.rainWater) {
+            Button("Show rain water") { showRainLayer() }.font(.subheadline)
+        } else if noGrid {
+            Text("Rain water needs this place's ground grid. Download Ground and bowls, 10 m, in Offline data.")
+                .font(.subheadline).foregroundStyle(.secondary)
+        } else if let m = rainMap {
+            let here = m.depthFt(coordinate), top = deepestFt(m)
+            HStack(spacing: 18) {
+                stat(here < 0.05 ? "Dry" : String(format: "%.1f ft", here), "at your spot")
+                stat(top < 0.05 ? "Dry" : String(format: "%.1f ft", top), "deepest on this block")
+                stat(String(format: "%.1f in", m.rainIn), "of rain")
+            }
+            if top >= 0.05 { depthKey } else if [.last6, .next24, .next72].contains(storm) {
+                Button { storm = .day100 } label: { Label("No standing water from this rain. See a 100-year day", systemImage: "cloud.heavyrain") }
+                    .font(.subheadline)
+            }
+            Text("\(storm.rainSource.0.prefix(1).uppercased() + storm.rainSource.0.dropFirst()) \(storm.rainSource.1.mark). Water depth is Waterline's estimate ○: 80% of rain runs off\(drainsWorking ? ", drains take 0.5 in an hour" : ", drains blocked") ▨.")
+                .font(.caption2).foregroundStyle(.secondary)
+        } else {
+            HStack { ProgressView(); Text("Running the rain over this block…").font(.subheadline).foregroundStyle(.secondary) }
+        }
+    }
+
+    @ViewBuilder private var levelPanel: some View {
+        HStack {
+            Text(String(format: "Water at %.1f ft", levelFt)).font(.headline.monospacedDigit())
+            Spacer()
+            if scene != nil { Text(wetShare).font(.subheadline.monospacedDigit()) }
+        }
+        if scene != nil { Slider(value: $levelFt, in: range, step: 0.1) }
+        if !presets.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack {
+                    ForEach(presets.indices, id: \.self) { i in
+                        Button(presets[i].0) { levelFt = min(max(presets[i].1, range.lowerBound), range.upperBound) }.buttonStyle(.bordered).font(.caption)
+                    }
+                }
+            }
+        }
+        Text("Heights in ft NAVD88. One flat level across the block: it ignores levees, drains and where water can actually get in.")
+            .font(.caption2).foregroundStyle(.secondary)
+    }
+
+    private func stat(_ value: String, _ label: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(value).font(.title3.bold().monospacedDigit())
+            Text(label).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var depthKey: some View {
+        HStack(spacing: 10) {
+            ForEach([("under 0.5 ft", Color(red: 0.35, green: 0.65, blue: 1)), ("0.5 to 1.5", Color(red: 0.15, green: 0.45, blue: 0.95)), ("over 1.5", Color(red: 0.05, green: 0.25, blue: 0.8))], id: \.0) { k in
+                HStack(spacing: 4) { RoundedRectangle(cornerRadius: 2).fill(k.1).frame(width: 14, height: 10); Text(k.0) }
+            }
+            Spacer()
+            HStack(spacing: 4) { Circle().fill(.white).overlay(Circle().stroke(.blue, lineWidth: 2)).frame(width: 10, height: 10); Text("you") }
+        }
+        .font(.caption2).foregroundStyle(.secondary)
+    }
+
+    /// The deepest computed water inside the square the 3D view shows.
+    private func deepestFt(_ m: DrainageMap) -> Double {
+        guard let f = frame else { return 0 }
+        let w = m.field.window
+        var best: Float = 0
+        for i in 0..<m.result.depthM.count where m.result.depthM[i] > best {
+            if f.contains(w.coordinate(row: Double(i / w.cols) + 0.5, col: Double(i % w.cols) + 0.5)) { best = m.result.depthM[i] }
+        }
+        return Double(best) * Geo.ftPerM
     }
 
     private var frame: GeoFrame? { patch.map { GeoFrame(center: coordinate, halfM: Double($0.side) * $0.spacingM / 2) } }
@@ -161,6 +245,7 @@ struct TerrainSceneView: View {
     private func refreshWater() async {
         guard !Layer.off(layersOff).contains(.rainWater) else { rainMap = nil; return }
         let c = coordinate, s = storm, w = drainsWorking
+        rainMap = nil
         let rain = await RainSeries.load(c)
         let hours = rain.hours(s)
         rainMap = await Task.detached(priority: .userInitiated) { DrainageField.near(c).map { DrainageMap.build($0, hours: hours, drainsWorking: w) } }.value
@@ -171,7 +256,9 @@ struct TerrainSceneView: View {
         guard let s = scene, let f = frame else { return }
         s.rootNode.childNodes.filter { $0.name == SceneLayers.rootName }.forEach { $0.removeFromParentNode() }
         let places = Places.covering(coordinate)
-        s.rootNode.addChildNode(SceneLayers.build(frame: f, ground: ground, off: Layer.off(layersOff), pois: report?.pois ?? [], places: places, water: rainMap))
+        let root = SceneLayers.build(frame: f, ground: ground, off: Layer.off(layersOff), pois: report?.pois ?? [], places: places, water: mode == .rain ? rainMap : nil)
+        if let g = ground(0, 0) { root.addChildNode(SceneLayers.you(at: SCNVector3(0, g, 0))) }
+        s.rootNode.addChildNode(root)
     }
 
     private var wetShare: String {
@@ -192,9 +279,18 @@ struct TerrainSceneView: View {
         range = (lowFt.rounded(.down) - 1)...max(midFt.rounded(.up) + 15, lowFt + 5)
         levelFt = lowFt.rounded(.down)
         built.water.position.y = Float(levelFt / Geo.ftPerM)
+        built.water.isHidden = mode == .rain
         water = built.water
         scene = built.scene
         patch = p
+    }
+
+    nonisolated private static var sky: UIImage {
+        UIGraphicsImageRenderer(size: CGSize(width: 4, height: 256)).image { ctx in
+            let colors = [UIColor(red: 0.42, green: 0.55, blue: 0.68, alpha: 1).cgColor, UIColor(red: 0.12, green: 0.15, blue: 0.2, alpha: 1).cgColor] as CFArray
+            let g = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1])!
+            ctx.cgContext.drawLinearGradient(g, start: CGPoint(x: 0, y: 256), end: .zero, options: [])
+        }
     }
 
     nonisolated private static func build(_ p: TerrainPatch) -> (scene: SCNScene, water: SCNNode, sorted: [Float]) {
@@ -244,8 +340,10 @@ struct TerrainSceneView: View {
         water.eulerAngles.x = -.pi / 2
         scn.rootNode.addChildNode(water)
         let cam = SCNNode(); cam.camera = SCNCamera(); cam.camera?.zFar = 5000
-        cam.position = SCNVector3(0, fill + half * 1.1, half * 1.5)
-        cam.look(at: SCNVector3(0, fill, 0))
+        cam.camera?.fieldOfView = 50
+        cam.position = SCNVector3(0, fill + half * 0.95, half * 1.05)
+        cam.look(at: SCNVector3(0, fill, -half * 0.1))
+        scn.background.contents = Self.sky
         scn.rootNode.addChildNode(cam)
         return (scn, water, g)
     }

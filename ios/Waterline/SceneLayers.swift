@@ -103,6 +103,26 @@ enum SceneLayers {
         return n
     }
 
+    /// The spot being checked: a white post with a blue ring, taller than the markers.
+    static func you(at p: SCNVector3) -> SCNNode {
+        let n = SCNNode(); n.name = "you"
+        let stalk = SCNCylinder(radius: 0.7, height: 26)
+        stalk.firstMaterial?.diffuse.contents = UIColor.white
+        stalk.firstMaterial?.lightingModel = .constant
+        let s = SCNNode(geometry: stalk); s.position = SCNVector3(0, 13, 0)
+        let ring = SCNTorus(ringRadius: 5, pipeRadius: 1.1)
+        ring.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        ring.firstMaterial?.lightingModel = .constant
+        let r = SCNNode(geometry: ring); r.position = SCNVector3(0, 0.8, 0)
+        let ball = SCNSphere(radius: 4.5)
+        ball.firstMaterial?.diffuse.contents = UIColor.white
+        ball.firstMaterial?.lightingModel = .constant
+        let b = SCNNode(geometry: ball); b.position = SCNVector3(0, 30, 0)
+        n.addChildNode(s); n.addChildNode(r); n.addChildNode(b)
+        n.position = p
+        return n
+    }
+
     private static func dot(at p: SCNVector3, color: UIColor) -> SCNNode {
         let s = SCNSphere(radius: 0.7)
         s.firstMaterial?.diffuse.contents = color.withAlphaComponent(0.8)
@@ -183,7 +203,8 @@ struct SceneHost: UIViewRepresentable {
         v.scene = scene
         v.allowsCameraControl = true
         v.autoenablesDefaultLighting = true
-        v.backgroundColor = .black
+        v.backgroundColor = UIColor(red: 0.12, green: 0.15, blue: 0.2, alpha: 1)
+        v.antialiasingMode = .multisampling4X
         v.addGestureRecognizer(UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tap(_:))))
         return v
     }

@@ -117,9 +117,11 @@ struct SpotReport {
 
     // MARK: words
 
-    /// One line per hazard, most important first.
+    /// One line per hazard, most important first. Lines that say a hazard doesn't reach here go
+    /// last, so the first few lines a person reads are the ones that matter at this spot.
     var findings: [String] {
-        var out: [String] = []
+        var out: [String] = [], calm: Set<String> = []
+        func quiet(_ line: String) { out.append(line); calm.insert(line) }
         if let m = coastalMarginFt, let w = worstWaterMLLW, let top = tide?.highest {
             let when = Self.day.string(from: top.time)
             if m < 0 {
@@ -130,7 +132,7 @@ struct SpotReport {
             } else if m < 6 {
                 out.append(String(format: "%.1f ft above the highest tide this month (%@). A strong storm surge adds about 2 ft.", m, when))
             } else {
-                out.append(String(format: "%.0f ft above the highest tide this month: the Bay isn't a risk here.", m))
+                quiet(String(format: "%.0f ft above the highest tide this month: the Bay isn't a risk here.", m))
             }
             if connectivityKnown, bowlFt >= 0.5, let g = groundMLLW, w > g {
                 out.append(String(format: "Your ground is below that tide, but higher ground around you keeps the Bay out until it reaches %.1f ft.", g + bowlFt))
@@ -140,7 +142,7 @@ struct SpotReport {
         }
         if let rise = slr?.ft(by: 2050), let m = coastalMarginFt {
             let left = m - rise
-            out.append(String(format: "NOAA's intermediate scenario adds %.1f ft of sea level by 2050 at %@. This month's highest tide would then %@.",
+            (left > 3 ? quiet : { out.append($0) })(String(format: "NOAA's intermediate scenario adds %.1f ft of sea level by 2050 at %@. This month's highest tide would then %@.",
                               rise, tide?.stationName ?? "the station",
                               left < 0 ? "reach this spot" : String(format: "stay %.1f ft below it", left)))
         }
@@ -149,13 +151,13 @@ struct SpotReport {
             if d > 0 {
                 out.append(String(format: "At major flood stage, the %@ stands %.1f ft (NAVD88) at the gauge %.0f km away: %.1f ft above the ground here. Levees and banks keep it out; if one failed nearby, water could approach that depth. The river surface rises upstream, so treat this as a floor.", name, rv.majorNAVD88, rv.km, d))
             } else {
-                out.append(String(format: "You're %.1f ft above the %@ at major flood stage, measured at the gauge %.0f km away (the river runs higher upstream).", -d, name, rv.km))
+                quiet(String(format: "You're %.1f ft above the %@ at major flood stage, measured at the gauge %.0f km away (the river runs higher upstream).", -d, name, rv.km))
             }
         }
         if let g = gauges.first(where: { $0.severity >= 1 }) {
             out.append("\(g.name) is at \(g.categoryLabel.lowercased()) now (\(g.observed.map { String(format: "%.1f ft", $0) } ?? "no reading")).")
         }
-        if let f = fema { out.append("FEMA: \(f.plain).") }
+        if let f = fema { (f.zone.hasPrefix("X") ? quiet : { out.append($0) })("FEMA \(f.plain).") }
         if let m = caMaps, !m.isEmpty { out.append(m.plain) }
         if let s = surge?.plain { out.append(s) }
         if bowlFt >= 0.5 {
@@ -182,11 +184,11 @@ struct SpotReport {
             out.append(line)
         }
         if let r = rain {
-            out.append(r.next72In >= 0.05
-                ? String(format: "NWS forecast: %.2f in of rain in the next 3 days (%d%% chance in the next 24 h).", r.next72In, r.chance24Pct)
-                : "NWS forecast: no meaningful rain in the next 3 days.")
+            if r.next72In >= 0.05 {
+                out.append(String(format: "NWS forecast: %.2f in of rain in the next 3 days (%d%% chance in the next 24 h).", r.next72In, r.chance24Pct))
+            } else { quiet("NWS forecast: no meaningful rain in the next 3 days.") }
         }
-        return out
+        return out.filter { !calm.contains($0) } + out.filter { calm.contains($0) }
     }
 
     /// Things a person here can actually do.

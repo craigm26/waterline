@@ -6,6 +6,7 @@ struct HereView: View {
     @EnvironmentObject var model: AppModel
     @ObservedObject private var packs = PackStore.shared
     @State private var showInfo = false
+    @State private var allFindings = false
 
     var body: some View {
         NavigationStack {
@@ -22,13 +23,13 @@ struct HereView: View {
                     } else if let r = model.report {
                         summary(r)
                         nextDays(r)
+                        seeIt(r)
+                        lidarLink(r)
                         regionOffer(r)
                         coast(r)
                         river(r)
                         rain(r)
                         if !r.actions.isEmpty { todo(r) }
-                        seeIt(r)
-                        lidarLink(r)
                         ForEach(r.problems, id: \.self) { Text($0).font(.caption).foregroundStyle(.orange) }
                         footer
                     } else {
@@ -69,8 +70,13 @@ struct HereView: View {
         let tint: Color = r.level == .high ? .red : r.level == .watch ? .orange : .green
         return Card(tint: tint) {
             Text(r.title).font(.title3.bold())
-            ForEach(r.findings, id: \.self) { f in
+            let shown = allFindings ? r.findings : Array(r.findings.prefix(4))
+            ForEach(shown, id: \.self) { f in
                 Label { Text(f) } icon: { Image(systemName: "circle.fill").font(.system(size: 6)).foregroundStyle(tint) }
+                    .font(.subheadline)
+            }
+            if r.findings.count > 4 {
+                Button(allFindings ? "Show fewer" : "Show \(r.findings.count - 4) more") { withAnimation { allFindings.toggle() } }
                     .font(.subheadline)
             }
         }
@@ -229,12 +235,12 @@ struct HereView: View {
             }
             .buttonStyle(.bordered)
         }
-        NavigationLink {
+        let ground = NavigationLink {
             TerrainSceneView(title: r.placeLabel ?? "This block", coordinate: r.coordinate, presets: terrainPresets(r), report: r)
         } label: {
-            Label("See this block's ground in 3D", systemImage: "mountain.2").frame(maxWidth: .infinity)
+            Label("See the rain on this block in 3D", systemImage: "mountain.2").frame(maxWidth: .infinity)
         }
-        .buttonStyle(.bordered)
+        if WaterlineApp.hasAR { ground.buttonStyle(.bordered) } else { ground.buttonStyle(.borderedProminent) }
         if r.inSF, PackStore.installedVersion("sf-ground-1m") == nil {
             NavigationLink { DataPacksView() } label: {
                 Label("Download 1 m lidar for offline use (45 MB)", systemImage: "arrow.down.circle").frame(maxWidth: .infinity)

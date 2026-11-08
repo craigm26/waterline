@@ -11,6 +11,7 @@ struct CityMapView: View {
         span: MKCoordinateSpan(latitudeDelta: 0.12, longitudeDelta: 0.12))))
     @State private var center = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
     @State private var spanDeg = 0.12
+    @State private var framedSpot = false
 
     @State private var places: Places? = Places.shared
     @StateObject private var drainage = DrainageStore.shared
@@ -36,6 +37,17 @@ struct CityMapView: View {
         abs(p[1] - center.latitude) < spanDeg && abs(p[0] - center.longitude) < spanDeg * 1.5
     }
     /// Detail layers only when zoomed in enough to read them.
+    /// Open on the spot being checked, a few blocks across, not the whole city. Once only, so
+    /// the map stays where the person moved it.
+    private func frameSpot(_ c: CLLocationCoordinate2D?) {
+        guard !framedSpot, let c else { return }
+        framedSpot = true
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(400))
+            withAnimation { camera = .region(MKCoordinateRegion(center: c, span: MKCoordinateSpan(latitudeDelta: 0.014, longitudeDelta: 0.014))) }
+        }
+    }
+
     private var detail: Bool { spanDeg < 0.03 }
     private var nearDrains: [NearDrain] {
         guard detail, on(.drains), let p = places else { return [] }
@@ -121,7 +133,9 @@ struct CityMapView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) { bottomCard }
-            .task { await refreshLayers() }
+            .task { frameSpot(model.pinned ?? model.report?.coordinate ?? model.gps); await refreshLayers() }
+            .onReceive(model.$report) { r in frameSpot(r?.coordinate) }
+            .onReceive(model.$gps) { frameSpot($0) }
             .navigationTitle("Map")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

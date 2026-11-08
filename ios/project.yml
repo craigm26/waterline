@@ -9,7 +9,7 @@ settings:
     SWIFT_VERSION: "5.0"
     DEVELOPMENT_TEAM: WYGG3JXWMG
     MARKETING_VERSION: "1.2"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: 2
 targets:
   Waterline:
     type: application
