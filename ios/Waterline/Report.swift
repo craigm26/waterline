@@ -49,6 +49,7 @@ struct SpotReport {
     /// NOAA sea level rise scenarios at the tide station.
     var slr: SeaLevelRise?
     var coast: CoastStack?
+    var floodDays: FloodDaysOutlook?
     var enso: ENSO?
     /// USGS, state and local water sensors near the spot (no flood stages; context only).
     var sensors: [Sensor] = []
@@ -266,6 +267,11 @@ struct SpotReport {
                 out.append(.init(id: "rain-day100", label: "100-year storm, 24 hours", detail: String(format: "%.1f in, NOAA Atlas 14 · Waterline estimate, drains working", y.inches),
                                  depthFt: e.waterDay100.map { $0.peak?.ft } ?? d(y.ft), provenance: .derived, isStressTest: false, timeline: e.waterDay100))
             }
+            if let k = e.waterDay100King, k.lockedHours > 0 {
+                out.append(.init(id: "rain-day100-king", label: "100-year storm on the king tide",
+                                 detail: String(format: "NOAA Atlas 14's 100-year day with its heaviest hour on this year's king tide. Drains here can't empty for %d hours (assumed ▨: tide within %.0f ft of the ground). A what-if, not a forecast.", k.lockedHours, TideLock.pipeFt),
+                                 depthFt: k.peak?.ft, provenance: .assumed, isStressTest: true, timeline: k))
+            }
             if let y = e.day1000 {
                 out.append(.init(id: "rain-day1000", label: "Monster storm: 1000-year, 24 hours", detail: String(format: "%.1f in, NOAA Atlas 14 · Waterline estimate, drains working. A what-if, not a forecast.", y.inches),
                                  depthFt: e.waterDay1000.map { $0.peak?.ft } ?? d(y.ft), provenance: .assumed, isStressTest: true, timeline: e.waterDay1000))
@@ -463,7 +469,22 @@ struct SpotReport {
             let obs = await RainSeries.observed(r.rain?.observationStations)
             r.rainStation = obs?.station
             let past = obs?.hoursAgo ?? []
-            r.rainEstimate = await Task.detached(priority: .userInitiated) { RainEstimate.make(c, forecast: hours, forecast72: h72, observed: past, frequency: f) }.value
+            // Drains near the shore can't empty on a high tide: the hourly tide for the forecast,
+            // and for the day around this year's king tide.
+            var lock: TideLock?, kingLock: TideLock?
+            if let t = r.tide, let g = r.groundMLLW {
+                let now = Date()
+                async let hourly = HourlyTide.load(t.stationID, from: now.addingTimeInterval(-6 * 3600), hours: 80)
+                async let king = CoastStack.kingTide(t.stationID)
+                lock = TideLock(groundMLLW: g, anomalyFt: r.anomaly, tide: await hourly)
+                if let k = await king {
+                    let kt = await HourlyTide.load(t.stationID, from: k.time.addingTimeInterval(-14 * 3600), hours: 52)
+                    let stormPeak = (Calendar.current.dateInterval(of: .hour, for: now)?.start ?? now).addingTimeInterval(12 * 3600)
+                    kingLock = TideLock(groundMLLW: g, anomalyFt: r.anomaly, tide: kt, shift: k.time.timeIntervalSince(stormPeak))
+                }
+            }
+            let l = lock, kl = kingLock
+            r.rainEstimate = await Task.detached(priority: .userInitiated) { RainEstimate.make(c, forecast: hours, forecast72: h72, observed: past, frequency: f, lock: l, kingLock: kl) }.value
         }
         r.placeLabel = await label
         r.gauges = await gauges
@@ -476,6 +497,7 @@ struct SpotReport {
         let tideNow = r.tide
         async let coast: CoastStack? = tideNow == nil ? nil : CoastStack.load(tideNow!)
         async let enso = ENSO.load()
+        async let floodDays: FloodDaysOutlook? = tideNow == nil ? nil : FloodDaysOutlook.load(tideNow!.stationID)
         r.river = await RiverFloodLevels.load(r.gauges, near: c)
         if let rv = r.river, let d = await GaugeDetail.load(rv.gauge.id), let top = d.topCrest {
             r.riverRecord = (top.stage + rv.datum, top.time, d.olderHigher)
@@ -491,6 +513,7 @@ struct SpotReport {
         r.slr = await slr
         r.coast = await coast
         r.enso = await enso
+        r.floodDays = await floodDays
         // Higher ground: dry for this month's highest tide + anomaly + the station's record storm
         // push (2 ft where there's no record), and above the
         // nearby river at major flood stage, whichever is higher.

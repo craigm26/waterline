@@ -13,7 +13,12 @@ struct WaterGauge: View {
 
     private var timeline: WaterTimeline { timelines[min(pick, timelines.count - 1)] }
     private var scenarioID: String {
-        switch timeline.whatIf { case nil: return "forecast"; case "100-year day": return "rain-day100"; default: return "rain-day1000" }
+        switch timeline.whatIf {
+        case nil: return "forecast"
+        case "100-year day": return "rain-day100"
+        case "100-year day on the king tide": return "rain-day100-king"
+        default: return "rain-day1000"
+        }
     }
 
     private var now: WaterTimeline.Point? { timeline.current }
@@ -25,7 +30,7 @@ struct WaterGauge: View {
         VStack(alignment: .leading, spacing: 8) {
             if timelines.count > 1 {
                 Picker("Rain", selection: $pick) {
-                    ForEach(timelines.indices, id: \.self) { i in Text(timelines[i].whatIf.map { $0.replacingOccurrences(of: "-year", with: "-yr") } ?? "Forecast").tag(i) }
+                    ForEach(timelines.indices, id: \.self) { i in Text(Self.short(timelines[i].whatIf)).tag(i) }
                 }
                 .pickerStyle(.segmented)
             }
@@ -60,6 +65,15 @@ struct WaterGauge: View {
         }
     }
 
+    static func short(_ w: String?) -> String {
+        switch w {
+        case nil: return "Forecast"
+        case "100-year day": return "100-yr"
+        case "100-year day on the king tide": return "+ king tide"
+        default: return "1000-yr"
+        }
+    }
+
     private func depth(_ ft: Double) -> String { ft < 0.05 ? "Dry" : String(format: "%.1f ft", ft) }
 
     private func stat(_ v: String, _ label: String) -> some View {
@@ -82,6 +96,10 @@ struct WaterGauge: View {
 
     private var waterChart: some View {
         Chart {
+            ForEach(timeline.points.filter(\.tideLocked)) { p in
+                RectangleMark(xStart: .value("From", p.date), xEnd: .value("To", p.date.addingTimeInterval(3600)), yStart: .value("Bottom", 0), yEnd: .value("Top", topFt))
+                    .foregroundStyle(Color.gray.opacity(0.18))
+            }
             ForEach(timeline.points) { p in
                 AreaMark(x: .value("Hour", p.date), y: .value("Water", p.ft))
                     .foregroundStyle(LinearGradient(colors: [.blue.opacity(0.7), .blue.opacity(0.25)], startPoint: .top, endPoint: .bottom))
@@ -116,12 +134,16 @@ struct WaterGauge: View {
         .accessibilityLabel(peak.map { String(format: "Water here peaks at %.1f feet", $0.ft) } ?? "No standing water here in the next 3 days")
     }
 
+    private var lockNote: String {
+        timeline.lockedHours == 0 ? "" : String(format: " Grey hours: the tide stands within %.0f ft of this ground, so drains here are assumed ▨ not to empty.", TideLock.pipeFt)
+    }
+
     private var caption: String {
         if let w = timeline.whatIf {
-            return "Rain ●: NOAA Atlas 14's \(w) storm for this spot, hour by hour, starting now, then a dry day. Water ○: Waterline's estimate on the lidar ground here. Assumed ▨: 80% of rain runs off and working drains take 0.5 in an hour, also after the rain eases."
+            return "Rain ●: NOAA Atlas 14's \(w) storm for this spot, hour by hour, starting now\(w.contains("king") ? ", its heaviest hour on this year's king tide" : ""), then a dry day. Water ○: Waterline's estimate on the lidar ground here. Assumed ▨: 80% of rain runs off and working drains take 0.5 in an hour, also after the rain eases.\(lockNote)"
         }
         let measured = station.map { "the last 6 hours as measured at \($0) (dark bars)" } ?? "no NWS station nearby reported the last 6 hours, so they show as dry"
-        return "Rain ●: \(measured), then the NWS forecast. Water ○: Waterline's estimate on the lidar ground here. Assumed ▨: 80% of rain runs off and working drains take 0.5 in an hour, also after the rain eases."
+        return "Rain ●: \(measured), then the NWS forecast. Water ○: Waterline's estimate on the lidar ground here. Assumed ▨: 80% of rain runs off and working drains take 0.5 in an hour, also after the rain eases.\(lockNote)"
     }
 }
 

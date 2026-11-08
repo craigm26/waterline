@@ -89,7 +89,7 @@ struct HereView: View {
             Text("Next 3 days here").font(.headline)
             Text(f.headline).font(.subheadline.bold())
             if let e = r.rainEstimate, let w = e.water {
-                WaterGauge(timelines: [w] + [e.waterDay100, e.waterDay1000].compactMap { $0 }, station: r.rainStation,
+                WaterGauge(timelines: [w] + [e.waterDay100, (e.waterDay100King?.lockedHours ?? 0) > 0 ? e.waterDay100King : nil, e.waterDay1000].compactMap { $0 }, station: r.rainStation,
                            onWatch: WaterlineApp.hasAR && !model.usingPin ? { id in model.arScenarioID = id; model.tab = .ar } : nil)
             }
             ForEach(f.rows, id: \.label) { row in
@@ -129,6 +129,13 @@ struct HereView: View {
                     CoastStackChart(stages: layers, reachFt: reach)
                     ForEach(layers, id: \.self) { l in
                         Row(label: l.label, value: l.depthFt.map { String(format: "%.1f ft deep here", $0) } ?? String(format: "%.1f ft below", reach - l.levelFt), prov: l.prov, note: l.detail)
+                    }
+                    if let o = r.floodDays {
+                        Row(label: "High tide flood days ahead", value: o.low == o.high ? "\(o.high)" : "\(o.low) to \(o.high)", prov: .official,
+                            note: "NOAA outlook, \(o.span), counting El Niño and the trend" + (o.top.map { ". Most on record: \($0.days) in \($0.year)-\(($0.year + 1) % 100)" } ?? ""))
+                    }
+                    if let s = r.surge?.plain {
+                        Row(label: "Hurricane storm surge", value: "NHC", prov: .official, note: s + " NHC's maps already assume high tide, so they aren't stacked on it here.")
                     }
                     if let e = r.enso {
                         Row(label: "El Niño index (ONI)", value: String(format: "%+.1f", e.oni), prov: .official,
@@ -330,6 +337,7 @@ struct InfoView: View {
                     Link("NOAA sea level rise scenarios (2022 report)", destination: SeaLevelRise.page)
                     Link("NOAA monthly mean sea level and trends", destination: CoastStack.monthlyPage)
                     Link("NOAA CPC El Niño index (ONI)", destination: ENSO.page)
+                    Link("NOAA high tide flooding outlook", destination: FloodDaysOutlook.page)
                     Link("NOAA NHC storm surge hazard maps", destination: SurgeHazard.page)
                     Link("FEMA National Flood Hazard Layer", destination: URL(string: "https://www.fema.gov/flood-maps/national-flood-hazard-layer")!)
                     Link("USACE National Levee Database", destination: URL(string: "https://levees.sec.usace.army.mil/")!)

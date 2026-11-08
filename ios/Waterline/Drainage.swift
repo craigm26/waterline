@@ -215,9 +215,12 @@ struct RainEstimate {
     /// The same for NOAA Atlas 14's 100- and 1000-year 24-hour storms, starting now.
     var waterDay100: WaterTimeline?
     var waterDay1000: WaterTimeline?
+    /// The 100-year day with its heaviest hour on this year's king tide.
+    var waterDay100King: WaterTimeline?
     let ponds: [DrainageMap.Pond]
 
-    static func make(_ c: CLLocationCoordinate2D, forecast: [Double], forecast72: [Double] = [], observed: [Double?] = [], frequency: RainFrequency?, now: Date = Date()) -> RainEstimate? {
+    static func make(_ c: CLLocationCoordinate2D, forecast: [Double], forecast72: [Double] = [], observed: [Double?] = [], frequency: RainFrequency?, now: Date = Date(),
+                     lock: TideLock? = nil, kingLock: TideLock? = nil) -> RainEstimate? {
         guard let f = DrainageField.near(c) else { return nil }
         let work = DrainageMap.build(f, hours: forecast, drainsWorking: true)
         let block = DrainageMap.build(f, hours: forecast, drainsWorking: false)
@@ -228,9 +231,10 @@ struct RainEstimate {
         for (y, key) in [(100, \RainEstimate.day100), (1000, \RainEstimate.day1000)] {
             if let h = frequency?.dayStorm(years: y) { e[keyPath: key] = (h.reduce(0, +), DrainageMap.build(f, hours: h, drainsWorking: true).depthFt(c)) }
         }
-        if !forecast72.isEmpty { e.water = WaterTimeline.make(f, at: c, observed: observed, forecast: forecast72, now: now) }
-        if let h = frequency?.dayStorm(years: 100) { e.waterDay100 = WaterTimeline.whatIf("100-year day", f, at: c, hours: h, now: now) }
-        if let h = frequency?.dayStorm(years: 1000) { e.waterDay1000 = WaterTimeline.whatIf("1000-year day", f, at: c, hours: h, now: now) }
+        if !forecast72.isEmpty { e.water = WaterTimeline.make(f, at: c, observed: observed, forecast: forecast72, now: now, lock: lock) }
+        if let h = frequency?.dayStorm(years: 100), let k = kingLock { e.waterDay100King = WaterTimeline.whatIf("100-year day on the king tide", f, at: c, hours: h, now: now, lock: k) }
+        if let h = frequency?.dayStorm(years: 100) { e.waterDay100 = WaterTimeline.whatIf("100-year day", f, at: c, hours: h, now: now, lock: lock) }
+        if let h = frequency?.dayStorm(years: 1000) { e.waterDay1000 = WaterTimeline.whatIf("1000-year day", f, at: c, hours: h, now: now, lock: lock) }
         return e
     }
 }
@@ -248,6 +252,8 @@ struct WaterTimeline: Hashable {
         let rainIn: Double
         let ft: Double
         let measured: Bool
+        /// The tide stood high enough that drains here couldn't empty (an assumption, see `TideLock`).
+        var tideLocked = false
         var id: Date { date }
     }
     let points: [Point]
@@ -270,8 +276,9 @@ struct WaterTimeline: Hashable {
     var measuredIn: Double { points.filter(\.measured).reduce(0) { $0 + $1.rainIn } }
     var forecastIn: Double { points.filter { !$0.measured }.reduce(0) { $0 + $1.rainIn } }
     var isDry: Bool { points.allSatisfy { $0.ft < 0.05 } }
+    var lockedHours: Int { points.filter(\.tideLocked).count }
 
-    static func make(_ f: DrainageField, at c: CLLocationCoordinate2D, observed: [Double?], forecast: [Double], now: Date) -> WaterTimeline {
+    static func make(_ f: DrainageField, at c: CLLocationCoordinate2D, observed: [Double?], forecast: [Double], now: Date, lock: TideLock? = nil) -> WaterTimeline {
         let hour = 3600.0
         let start = Calendar.current.dateInterval(of: .hour, for: now)?.start ?? now
         var rows: [(Date, Double, Bool)] = []
@@ -280,7 +287,8 @@ struct WaterTimeline: Hashable {
         var runoffIn = 0.0
         var memo: [Int: Double] = [:]
         let points = rows.map { (date, rain, measured) -> Point in
-            runoffIn = max(0, runoffIn + rain * DrainageAssumptions.runoff - DrainageAssumptions.drainInPerHour)
+            let locked = lock?.locked(at: date) ?? false
+            runoffIn = max(0, runoffIn + rain * DrainageAssumptions.runoff - (locked ? 0 : DrainageAssumptions.drainInPerHour))
             let key = Int((runoffIn * 200).rounded())          // 0.005 in steps
             let ft: Double
             if let m = memo[key] { ft = m } else {
@@ -288,7 +296,7 @@ struct WaterTimeline: Hashable {
                 ft = key == 0 ? 0 : DrainageMap(patches: [], paths: [], ponds: [], rainIn: 0, result: r, field: f).depthFt(c)
                 memo[key] = ft
             }
-            return Point(date: date, rainIn: rain, ft: ft, measured: measured)
+            return Point(date: date, rainIn: rain, ft: ft, measured: measured, tideLocked: locked)
         }
         return WaterTimeline(points: points, now: now)
     }
@@ -296,7 +304,7 @@ struct WaterTimeline: Hashable {
     /// A design storm starting now, then a dry day so the drains can be seen catching up. The
     /// hours are arranged by the alternating-block method: the heaviest hour in the middle of the
     /// day, the next heaviest on either side of it, so the storm builds and eases like a real one.
-    static func whatIf(_ name: String, _ f: DrainageField, at c: CLLocationCoordinate2D, hours: [Double], now: Date) -> WaterTimeline {
+    static func whatIf(_ name: String, _ f: DrainageField, at c: CLLocationCoordinate2D, hours: [Double], now: Date, lock: TideLock? = nil) -> WaterTimeline {
         let start = Calendar.current.dateInterval(of: .hour, for: now)?.start ?? now
         var shaped = [Double](repeating: 0, count: hours.count)
         let mid = hours.count / 2
@@ -304,10 +312,29 @@ struct WaterTimeline: Hashable {
             let i = mid + (k % 2 == 0 ? k / 2 : -(k + 1) / 2)
             if shaped.indices.contains(i) { shaped[i] = v }
         }
-        var t = make(f, at: c, observed: [], forecast: shaped + Array(repeating: 0, count: 24), now: start)
+        var t = make(f, at: c, observed: [], forecast: shaped + Array(repeating: 0, count: 24), now: start, lock: lock)
         t.whatIf = name
         return t
     }
+}
+
+/// When the tide stands high, storm drains near the shore can't empty: their outfalls are under
+/// water or their tide gates are shut, and rain backs up in the street. Waterline doesn't know
+/// the pipes, so it assumes ▨ that drains at a spot stop while the tide (plus the sea's measured
+/// anomaly) stands within `pipeFt` of the ground there.
+struct TideLock: Hashable {
+    static let pipeFt = 3.0
+    let groundMLLW: Double
+    let anomalyFt: Double
+    /// Predicted tide by the hour, ft MLLW. `shift` moves a what-if storm onto a real tide.
+    let tide: [Date: Double]
+    var shift: TimeInterval = 0
+
+    func level(at d: Date) -> Double? {
+        let h = Calendar.current.dateInterval(of: .hour, for: d.addingTimeInterval(shift))?.start ?? d
+        return tide[h].map { $0 + anomalyFt }
+    }
+    func locked(at d: Date) -> Bool { (level(at: d) ?? -.infinity) >= groundMLLW - Self.pipeFt }
 }
 
 @MainActor

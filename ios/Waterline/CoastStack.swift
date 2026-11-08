@@ -163,3 +163,47 @@ struct ENSO: Hashable {
         return ENSO(season: "\(last[0]) \(last[1])", oni: v)
     }
 }
+
+/// NOAA's high tide flooding outlook for the meteorological year (May to April) at a station:
+/// how many days the tide is expected to pass the NOAA minor flood level. It accounts for El Niño
+/// and the station's trend. With the days counted in each past year, for scale.
+struct FloodDaysOutlook: Hashable {
+    let metYear: Int          // May of this year to April of the next
+    let low: Int, high: Int
+    let method: String
+    let top: Top?
+    struct Top: Hashable { let year: Int; let days: Int }
+    var span: String { "May \(metYear) to April \(metYear + 1)" }
+    static let page = URL(string: "https://tidesandcurrents.noaa.gov/high-tide-flooding/annual-outlook.html")!
+
+    private struct O: Decodable { struct R: Decodable { let metYear: Int; let highConf: Int?; let lowConf: Int?; let projectMethod: String? }; let MetYearAnnualOutlook: [R]? }
+    private struct H: Decodable { struct R: Decodable { let metYear: Int; let minCount: Int?; let modCount: Int?; let majCount: Int? }; let MetYearAnnualFloodCount: [R]? }
+
+    static func load(_ id: String) async -> FloodDaysOutlook? {
+        let base = "https://api.tidesandcurrents.noaa.gov/dpapi/prod/webapi/htf"
+        async let o: O? = try? Net.cachedJSON(URL(string: "\(base)/htf_met_year_annual_outlook.json?station=\(id)")!, cacheName: "htfo-\(id).json", maxAge: 7 * 86400)
+        async let h: H? = try? Net.cachedJSON(URL(string: "\(base)/htf_met_year_annual.json?station=\(id)")!, cacheName: "htfh-\(id).json", maxAge: 30 * 86400)
+        guard let last = await o?.MetYearAnnualOutlook?.max(by: { $0.metYear < $1.metYear }),
+              let lo = last.lowConf, let hi = last.highConf else { return nil }
+        // Minor flood days, the count the outlook forecasts.
+        let best = (await h?.MetYearAnnualFloodCount ?? []).map { Top(year: $0.metYear, days: $0.minCount ?? 0) }
+            .max { $0.days < $1.days }
+        return FloodDaysOutlook(metYear: last.metYear, low: lo, high: hi, method: last.projectMethod ?? "", top: best.flatMap { $0.days > 0 ? $0 : nil })
+    }
+}
+
+/// The tide predicted hour by hour, ft MLLW (GMT hours, so they line up with Dates).
+enum HourlyTide {
+    private struct P: Decodable { struct R: Decodable { let t: String; let v: String }; let predictions: [R]? }
+    private static let ymd: DateFormatter = { let f = DateFormatter(); f.dateFormat = "yyyyMMdd"; f.timeZone = TimeZone(identifier: "UTC"); f.locale = Locale(identifier: "en_US_POSIX"); return f }()
+    private static let stamp: DateFormatter = { let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd HH:mm"; f.timeZone = TimeZone(identifier: "UTC"); f.locale = Locale(identifier: "en_US_POSIX"); return f }()
+
+    /// Predictions from `from` for `hours` hours, keyed by the hour.
+    static func load(_ id: String, from: Date, hours: Int) async -> [Date: Double] {
+        let u = URL(string: "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?units=english&format=json&application=waterline-ios&product=predictions&datum=MLLW&time_zone=gmt&interval=h&station=\(id)&begin_date=\(ymd.string(from: from.addingTimeInterval(-86400)))&range=\(hours + 48)")!
+        guard let p: P = try? await Net.json(u) else { return [:] }
+        var out: [Date: Double] = [:]
+        for r in p.predictions ?? [] { if let t = stamp.date(from: r.t), let v = Double(r.v) { out[t] = v } }
+        return out
+    }
+}
