@@ -18,7 +18,7 @@ The copy pushed to App Store Connect for app 6827234684 (`com.craigmerry.waterli
 
 ## Promotional text
 
-A very strong El Niño is forecast for this winter. See what a king tide, a 100-year storm or a failed drain would mean for the exact spot you stand on.
+NOAA says a strong to very strong El Niño is likely this winter. See what a king tide, a 100-year storm or a failed drain would mean for the exact spot you stand on.
 
 ## Keywords
 
