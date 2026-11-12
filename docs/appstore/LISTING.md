@@ -4,7 +4,7 @@ The copy pushed to App Store Connect for app 6827234684 (`com.craigmerry.waterli
 
 | Field | Value |
 |---|---|
-| Name | Waterline: Flood Forecasting |
+| Name | Waterline: Flood Screening |
 | Subtitle | Flood risk where you stand |
 | Primary category | Weather |
 | Secondary category | Reference |
