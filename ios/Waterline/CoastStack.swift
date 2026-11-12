@@ -128,39 +128,100 @@ struct CoastStack: Hashable {
     }
 }
 
-/// NOAA CPC's Oceanic Niño Index: the latest 3-month sea surface temperature anomaly in the
-/// central Pacific. +0.5 °C or more is El Niño, +1.5 strong; -0.5 or less is La Niña.
+/// NOAA CPC's relative Oceanic Niño Index (RONI): the latest 3-month sea surface temperature
+/// anomaly in the central Pacific, measured against the rest of the tropics. It is the index
+/// CPC's El Niño outlook is stated in. +0.5 °C or more is El Niño, +1.0 moderate, +1.5 strong,
+/// +2.0 very strong; -0.5 or less is La Niña. With the highest value in the file (since 1950)
+/// and CPC's strength outlook for the seasons ahead.
 struct ENSO: Hashable {
     let season: String     // "ASO 2026"
-    let oni: Double
-    static let page = URL(string: "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php")!
-    private static let source = URL(string: "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt")!
+    let index: Double
+    var record: Record?
+    var outlook: [Outlook] = []
+    struct Record: Hashable { let season: String; let index: Double }
+    /// CPC's chances, in percent, for one 3-month season.
+    struct Outlook: Hashable {
+        let code: String   // "DJF"
+        let elNino: Int, strong: Int, veryStrong: Int   // +0.5 or more, +1.5 or more, +2.0 or more
+        var months: String { ENSO.months[code] ?? code }
+    }
+    static let page = URL(string: "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/roni/")!
+    static let outlookPage = URL(string: "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/roni/strengths/")!
+    private static let source = URL(string: "https://www.cpc.ncep.noaa.gov/data/indices/RONI.ascii.txt")!
+    fileprivate static let months = ["DJF": "December to February", "JFM": "January to March", "FMA": "February to April",
+        "MAM": "March to May", "AMJ": "April to June", "MJJ": "May to July", "JJA": "June to August", "JAS": "July to September",
+        "ASO": "August to October", "SON": "September to November", "OND": "October to December", "NDJ": "November to January"]
 
     var phase: String {
-        switch oni {
-        case 1.5...: return "a strong El Niño"
-        case 0.5..<1.5: return "an El Niño"
+        switch index {
+        case 2.0...: return "a very strong El Niño"
+        case 1.5..<2.0: return "a strong El Niño"
+        case 1.0..<1.5: return "a moderate El Niño"
+        case 0.5..<1.0: return "a weak El Niño"
         case ...(-0.5): return "a La Niña"
         default: return "neither El Niño nor La Niña"
         }
     }
-    var isElNino: Bool { oni >= 0.5 }
+    var isElNino: Bool { index >= 0.5 }
+    /// The season to quote: the northern winter (December to February) while CPC still lists it,
+    /// otherwise the nearest season. Only when El Niño is the likely outcome.
+    var ahead: Outlook? {
+        guard let o = outlook.first(where: { $0.code == "DJF" }) ?? outlook.first, o.elNino >= 50 else { return nil }
+        return o
+    }
+    /// "79% chance of a very strong El Niño (+2.0 °C or more) in December to February"
+    var aheadLine: String? {
+        guard let o = ahead else { return nil }
+        let (pct, what) = o.veryStrong >= 50 ? (o.veryStrong, "a very strong El Niño (+2.0 °C or more)")
+            : o.strong >= 50 ? (o.strong, "a strong El Niño or more (+1.5 °C or more)") : (o.elNino, "El Niño (+0.5 °C or more)")
+        return "\(pct)% chance of \(what) in \(o.months)"
+    }
+
+    private static func text(_ url: URL, cache: String, maxAge: TimeInterval) async -> String? {
+        let file = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent(cache)
+        if let a = try? FileManager.default.attributesOfItem(atPath: file.path), let d = a[.modificationDate] as? Date,
+           Date().timeIntervalSince(d) < maxAge, let t = try? String(contentsOf: file, encoding: .utf8) { return t }
+        var r = URLRequest(url: url, timeoutInterval: 20)
+        r.setValue(Net.userAgent, forHTTPHeaderField: "User-Agent")
+        if let (d, resp) = try? await URLSession.shared.data(for: r), (resp as? HTTPURLResponse)?.statusCode == 200,
+           let t = String(data: d, encoding: .utf8) {
+            try? d.write(to: file)
+            return t
+        }
+        return try? String(contentsOf: file, encoding: .utf8)   // offline: an old copy beats nothing
+    }
 
     static func load() async -> ENSO? {
-        let file = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("oni.txt")
-        var text: String?
-        if let a = try? FileManager.default.attributesOfItem(atPath: file.path), let d = a[.modificationDate] as? Date,
-           Date().timeIntervalSince(d) < 86400 * 3 { text = try? String(contentsOf: file, encoding: .utf8) }
-        if text == nil {
-            var r = URLRequest(url: source, timeoutInterval: 20)
-            r.setValue(Net.userAgent, forHTTPHeaderField: "User-Agent")
-            if let (d, resp) = try? await URLSession.shared.data(for: r), (resp as? HTTPURLResponse)?.statusCode == 200 {
-                text = String(data: d, encoding: .utf8); try? d.write(to: file)
-            }
+        async let table = text(outlookPage, cache: "roni-strengths.html", maxAge: 86400)
+        guard let rows = await text(source, cache: "roni.txt", maxAge: 86400 * 3).map(parseIndex), let last = rows.last else { return nil }
+        var e = ENSO(season: last.season, index: last.index)
+        e.record = rows.max { $0.index < $1.index }
+        e.outlook = await table.map(parseOutlook) ?? []
+        return e
+    }
+
+    /// Lines of "ASO  2026  1.97" under a header.
+    static func parseIndex(_ text: String) -> [Record] {
+        text.split(separator: "\n").compactMap { line in
+            let f = line.split(separator: " ", omittingEmptySubsequences: true)
+            guard f.count >= 3, let v = Double(f[f.count - 1]), Int(f[1]) != nil else { return nil }
+            return Record(season: "\(f[0]) \(f[1])", index: v)
         }
-        guard let last = text?.split(separator: "\n").last?.split(separator: " ", omittingEmptySubsequences: true),
-              last.count >= 4, let v = Double(last[3]) else { return nil }
-        return ENSO(season: "\(last[0]) \(last[1])", oni: v)
+    }
+
+    /// CPC's strength table: one row per season, nine percentage columns from "-2.0 or less" to
+    /// "+2.0 or more". A row that doesn't add up to about 100 is dropped, so a changed page shows
+    /// nothing, not a wrong number.
+    static func parseOutlook(_ html: String) -> [Outlook] {
+        guard let row = try? NSRegularExpression(pattern: "<th scope=\"row\">\\s*<abbr>\\s*([A-Z]{3})\\b.*?</th>((?:\\s*<td>\\s*\\d+\\s*</td>){9})", options: [.dotMatchesLineSeparators]),
+              let cell = try? NSRegularExpression(pattern: "<td>\\s*(\\d+)\\s*</td>") else { return [] }
+        let ns = html as NSString
+        return row.matches(in: html, range: NSRange(location: 0, length: ns.length)).compactMap { m in
+            let cells = ns.substring(with: m.range(at: 2)) as NSString
+            let p = cell.matches(in: cells as String, range: NSRange(location: 0, length: cells.length)).compactMap { Int(cells.substring(with: $0.range(at: 1))) }
+            guard p.count == 9, (97...103).contains(p.reduce(0, +)) else { return nil }
+            return Outlook(code: ns.substring(with: m.range(at: 1)), elNino: p[5...].reduce(0, +), strong: p[7] + p[8], veryStrong: p[8])
+        }
     }
 }
 

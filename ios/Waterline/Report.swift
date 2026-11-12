@@ -165,7 +165,9 @@ struct SpotReport {
             let enso = self.enso
             var line: String
             if c.pacific, let e = enso, e.isElNino {
-                line = String(format: "NOAA's El Niño index is +%.1f (%@): %@. The sea at %@ ran %+.1f ft above normal in %@", e.oni, e.season, e.phase, t.stationName, now.ft, now.label)
+                line = String(format: "NOAA's El Niño index is +%.2f (%@): %@", e.index, e.season, e.phase)
+                if let a = e.aheadLine { line += ", and NOAA gives a \(a)" }
+                line += String(format: ". The sea at %@ ran %+.1f ft above normal in %@", t.stationName, now.ft, now.label)
             } else {
                 line = String(format: "The sea at %@ ran %+.1f ft against normal in %@", t.stationName, now.ft, now.label)
             }
@@ -184,7 +186,9 @@ struct SpotReport {
             }
         }
         if let g = gauges.first(where: { $0.severity >= 1 }) {
-            out.append("\(g.name) is at \(g.categoryLabel.lowercased()) now (\(g.observed.map { String(format: "%.1f ft", $0) } ?? "no reading")).")
+            // A flooding gauge leads only when it's close; farther off it's context, with its distance.
+            let km = Geo.distance(coordinate, g.coordinate) / 1000
+            (km < 15 ? { out.append($0) } : quiet)(String(format: "%@, %.0f mi away, is at %@ now (%@).", g.name, max(1, km / 1.609), g.categoryLabel.lowercased(), g.observed.map { String(format: "%.1f ft", $0) } ?? "no reading"))
         }
         if let f = fema { (f.zone.hasPrefix("X") ? quiet : { out.append($0) })("FEMA \(f.plain).") }
         if let m = caMaps, !m.isEmpty { out.append(m.plain) }

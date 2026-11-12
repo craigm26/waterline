@@ -88,3 +88,23 @@ Rebuild on the Mac, not the Pi:
 ```bash
 ssh $SSHOPTS $MAC 'cd ~/waterline-build && .venv/bin/python -u scripts/build_region_packs.py scenes dem ground manifest'
 ```
+
+## Simulator screenshots
+
+XCUITest doesn't run on the headless Mac, so Debug builds read launch settings instead:
+
+| Setting | Effect |
+|---|---|
+| `WL_PIN=37.7636,-122.4148` | pins that spot, as a tap on the Map would |
+| `WL_TAB=map` | opens on the Map tab |
+| `WL_SCROLL=coast` (or `enso`, `river`, `rain`) | scrolls the Here tab to that card once the report loads |
+| `WL_3D=1` | opens the 3D ground for the spot |
+| `-storm "100-yr day"` (launch argument) | picks the storm in the 3D view and Map |
+
+```bash
+D=B996B700-BDFB-4C09-90AB-E9CBFE09837B   # iPhone 17 Pro Max: 1320 x 2868, the App Store 6.9 inch size
+xcrun simctl privacy $D grant location com.craigmerry.waterline
+xcrun simctl status_bar $D override --time "9:41" --batteryState charged --batteryLevel 100
+SIMCTL_CHILD_WL_PIN=37.7636,-122.4148 SIMCTL_CHILD_WL_SCROLL=coast xcrun simctl launch $D com.craigmerry.waterline
+sleep 45 && xcrun simctl io $D screenshot coast.png
+```

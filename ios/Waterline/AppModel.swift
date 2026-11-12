@@ -34,6 +34,14 @@ final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     func start() {
+        #if DEBUG
+        // Simulator screenshots: WL_PIN="37.7636,-122.4148" WL_TAB=map|ar. See ios/README.md.
+        let env = ProcessInfo.processInfo.environment
+        if let t = env["WL_TAB"] { tab = t == "map" ? .map : t == "ar" ? .ar : .here }
+        if let p = env["WL_PIN"]?.split(separator: ",").compactMap({ Double($0) }), p.count == 2, pinned == nil {
+            pin(.init(latitude: p[0], longitude: p[1]))
+        }
+        #endif
         switch manager.authorizationStatus {
         case .notDetermined: manager.requestWhenInUseAuthorization()
         case .denied, .restricted: locationDenied = true

@@ -7,9 +7,13 @@ struct HereView: View {
     @ObservedObject private var packs = PackStore.shared
     @State private var showInfo = false
     @State private var allFindings = false
+    #if DEBUG
+    @State private var debug3D = false
+    #endif
 
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     whereBar
@@ -26,9 +30,9 @@ struct HereView: View {
                         seeIt(r)
                         lidarLink(r)
                         regionOffer(r)
-                        coast(r)
-                        river(r)
-                        rain(r)
+                        coast(r).id("coast")
+                        river(r).id("river")
+                        rain(r).id("rain")
                         if !r.actions.isEmpty { todo(r) }
                         ForEach(r.problems, id: \.self) { Text($0).font(.caption).foregroundStyle(.orange) }
                         footer
@@ -37,6 +41,22 @@ struct HereView: View {
                     }
                 }
                 .padding()
+            }
+            #if DEBUG
+            // Simulator screenshots: WL_SCROLL=coast|river|rain opens the Here tab on that card.
+            .onChange(of: model.report?.coast) {
+                guard let to = ProcessInfo.processInfo.environment["WL_SCROLL"] else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) { proxy.scrollTo(to, anchor: to == "enso" ? .center : .top) }
+            }
+            .navigationDestination(isPresented: $debug3D) {
+                if let r = model.report {
+                    TerrainSceneView(title: r.placeLabel ?? "This block", coordinate: r.coordinate, presets: terrainPresets(r), report: r)
+                }
+            }
+            .onChange(of: model.report != nil) {
+                if ProcessInfo.processInfo.environment["WL_3D"] != nil { debug3D = true }
+            }
+            #endif
             }
             .refreshable { model.refresh(force: true) }
             .task { await PackStore.shared.load() }
@@ -138,8 +158,13 @@ struct HereView: View {
                         Row(label: "Hurricane storm surge", value: "NHC", prov: .official, note: s + " NHC's maps already assume high tide, so they aren't stacked on it here.")
                     }
                     if let e = r.enso {
-                        Row(label: "El Niño index (ONI)", value: String(format: "%+.1f", e.oni), prov: .official,
-                            note: "NOAA CPC, \(e.season): \(e.phase). On the Pacific coast El Niño lifts the sea for months.")
+                        Row(label: "El Niño index (RONI)", value: String(format: "%+.2f", e.index), prov: .official,
+                            note: "NOAA CPC, \(e.season): \(e.phase)." + (e.record.map { String(format: " Highest since 1950: %+.2f (%@).", $0.index, $0.season) } ?? "") + " On the Pacific coast El Niño lifts the sea for months.")
+                            .id("enso")
+                        if let o = e.ahead, let line = e.aheadLine {
+                            Row(label: "El Niño ahead", value: "\(o.veryStrong >= 50 ? o.veryStrong : o.strong >= 50 ? o.strong : o.elNino)%", prov: .official,
+                                note: "NOAA CPC outlook, updated monthly: \(line)." + (o.veryStrong >= 50 || o.strong < 50 ? "" : " \(o.veryStrong)% very strong.") + " Strong events raise the odds of El Niño weather; they don't guarantee it.")
+                        }
                     }
                     if let c = r.coast, !c.monthTop.isEmpty {
                         Row(label: "Highest months since \(c.firstYearLabel)", value: c.monthTop.map { String(format: "%+.1f", $0.ft) }.joined(separator: ", "), prov: .derived,
@@ -336,7 +361,8 @@ struct InfoView: View {
                     Link("NOAA Atlas 14 rainfall frequency", destination: RainFrequency.page)
                     Link("NOAA sea level rise scenarios (2022 report)", destination: SeaLevelRise.page)
                     Link("NOAA monthly mean sea level and trends", destination: CoastStack.monthlyPage)
-                    Link("NOAA CPC El Niño index (ONI)", destination: ENSO.page)
+                    Link("NOAA CPC El Niño index (RONI)", destination: ENSO.page)
+                    Link("NOAA CPC El Niño strength outlook", destination: ENSO.outlookPage)
                     Link("NOAA high tide flooding outlook", destination: FloodDaysOutlook.page)
                     Link("NOAA NHC storm surge hazard maps", destination: SurgeHazard.page)
                     Link("FEMA National Flood Hazard Layer", destination: URL(string: "https://www.fema.gov/flood-maps/national-flood-hazard-layer")!)
