@@ -24,6 +24,10 @@ struct POIDetailBody: View {
     @State private var nldName: String?
     @State private var nld: [POI.Fact] = []
     @State private var loading = false
+    @State private var clearedAt: Date?
+    @State private var problem: DrainCare.Problem = .leaves
+    @State private var showDraft = false
+    @Environment(\.openURL) private var openURL
 
     private var from: CLLocationCoordinate2D? { report?.coordinate }
     /// This gauge when your risk reading uses it.
@@ -118,12 +122,52 @@ struct POIDetailBody: View {
         }
     }
 
+    /// What a neighbour can do about a drain: clear the top of the grate, say so, report a blocked one.
     @ViewBuilder private var adopt: some View {
-        if poi.kind == .drain || poi.kind == .ponding, let a = PackStore.shared.adopt(at: poi.coordinate), let u = a.url {
-            Section("Keep it clear") {
-                Link("\(a.name ?? "Adopt a drain")\(a.operator.map { ", \($0)" } ?? "")", destination: u)
-                Text(a.detail).font(.caption).foregroundStyle(.secondary)
-                Text("Stay out of traffic, wear gloves, and clear only the top of the grate. Never lift a cover.").font(.caption2).foregroundStyle(.secondary)
+        if poi.kind == .drain || poi.kind == .ponding {
+            let a = PackStore.shared.adopt(at: poi.coordinate)
+            let sink = DrainCare.report(at: poi.coordinate)
+            Section {
+                if poi.kind == .drain, !poi.id.isEmpty {
+                    let id = String(poi.id.dropFirst(2))
+                    Button {
+                        DrainCare.markCleared(id, clearedAt == nil)
+                        clearedAt = DrainCare.cleared(id)
+                    } label: {
+                        Label(clearedAt.map { "Cleared \(DrainCare.ago($0)) · tap to undo" } ?? "I cleared this grate",
+                              systemImage: clearedAt == nil ? "checkmark.circle" : "checkmark.circle.fill")
+                    }
+                    .onAppear { clearedAt = DrainCare.cleared(id) }
+                }
+                if let w = DrainCare.pondNear(poi.coordinate, report) {
+                    Label(String(format: "Check this one first: with the next 24 h of rain (%.2f in, NWS) and drains blocked, Waterline estimates %.1f ft of water standing %@ from this grate.",
+                                 w.rainIn, w.pond.maxFt, Geo.walk(w.metres)), systemImage: "exclamationmark.triangle.fill")
+                        .font(.subheadline).foregroundStyle(.orange)
+                }
+                Text("From the curb, rake or sweep leaves and trash off the top of the grate and bag them. Wear gloves. Only when the street is calm: not in traffic, not in moving water.")
+                    .font(.subheadline)
+                Text("Never lift a grate or cover, and never reach into standing water: you can't see what's under it, and a drain can pull hard.")
+                    .font(.caption).foregroundStyle(.secondary)
+                if let r = sink {
+                    DisclosureGroup("Report a blocked drain", isExpanded: $showDraft) {
+                        Picker("What you see", selection: $problem) {
+                            ForEach(DrainCare.Problem.allCases) { Text($0.rawValue).tag($0) }
+                        }
+                        let text = DrainCare.draft(poi, problem: problem, near: report?.placeLabel, cleared: clearedAt != nil)
+                        Text(text).font(.caption.monospaced()).textSelection(.enabled)
+                        Button {
+                            UIPasteboard.general.string = text
+                            openURL(r.url)
+                        } label: { Label("Copy this and open \(r.name.components(separatedBy: ":").first ?? r.name)", systemImage: "doc.on.clipboard") }
+                        Text("Nothing is sent from Waterline. Paste it into the report and add a photo there. \(r.detail)").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                if let a, let u = a.url {
+                    Link("\(a.name ?? "Adopt a drain")\(a.operator.map { ", \($0)" } ?? "")", destination: u)
+                    Text(a.detail).font(.caption).foregroundStyle(.secondary)
+                }
+            } header: { Text("Help keep it clear") } footer: {
+                if poi.kind == .drain { Text("\"Cleared\" is saved on this phone only. Nothing is sent.") }
             }
         }
     }

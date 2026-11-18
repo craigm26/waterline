@@ -417,7 +417,7 @@ def manifest(regions):
             if p["id"] == f"region-{rid}":
                 p["group"], p["label"] = rid, "Ground and bowls, 10 m"
         items = dem_items(r)
-        groups.append({"id": rid, "name": r["name"], "state": r["state"], "bbox": r["bbox"], "hazards": r["hazards"], "why": r["why"], "caveat": r.get("caveat"), "live": city.get(rid),
+        groups.append({"id": rid, "name": r["name"], "state": r["state"], "bbox": r.get("group_bbox", r["bbox"]), "hazards": r["hazards"], "why": r["why"], "caveat": r.get("caveat"), "live": city.get(rid),
                        "usgs_1m": {"url": USGS_DOWNLOADER, "tiles": len(items), "bytes": sum(i["bytes"] for i in items)}})
         stems = [s["stem"] for s in scene_list(r) if (OUT / f"{s['stem']}.bin").exists()]
         lay = json.loads((OUT / f"{rid}_layers.json").read_text())

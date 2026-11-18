@@ -33,6 +33,8 @@ struct ARTab: View {
     @State private var showList = false
     @State private var topEdge: CGFloat = 200
     @State private var panelEdge: CGFloat = 500
+    /// "Drains near me": only the grates within a walk, each with a halo pipe.
+    @State private var drainsOnly = false
     @AppStorage("stepFt") private var stepFt: Double = 0     // doorstep / curb above the street
     @AppStorage("floorFt") private var floorFt: Double = 0   // floor above the street (barometer)
 
@@ -50,12 +52,26 @@ struct ARTab: View {
     /// Tags that pass both filters, most important first (flooding gauges, then near things).
     private var visiblePOIs: [(POI, Double)] {
         let off = hidden
-        return inRange.filter { !off.contains($0.0.group.rawValue) }
-            .sorted { ($0.0.severity, -$0.1) > ($1.0.severity, -$1.1) }
+        if drainsOnly {
+            return inRange.filter { $0.0.kind == .drain && $0.1 <= WaterARView.Coordinator.haloMaxM }.sorted { $0.1 < $1.1 }
+        }
+        // flooding first, then the drains you could walk to, then the rest by severity and distance
+        func rank(_ x: (POI, Double)) -> (Int, Int, Double) {
+            (x.0.severity >= 2 ? 2 : (x.0.kind == .drain && x.1 <= WaterARView.Coordinator.haloMaxM ? 1 : 0), x.0.severity, -x.1)
+        }
+        return inRange.filter { !off.contains($0.0.group.rawValue) }.sorted { rank($0) > rank($1) }
     }
     private var placements: [WaterARView.Placement] {
         guard let r = report else { return [] }
-        return visiblePOIs.map { .init(id: $0.0.id, bearing: Geo.bearing(from: r.coordinate, to: $0.0.coordinate), metres: $0.1) }
+        return visiblePOIs.map { p, m in
+            .init(id: p.id, bearing: Geo.bearing(from: r.coordinate, to: p.coordinate), metres: m,
+                  halo: p.kind == .drain && m <= WaterARView.Coordinator.haloMaxM ? haloStyle(p) : nil)
+        }
+    }
+
+    private func haloStyle(_ p: POI) -> WaterARView.Halo {
+        if DrainCare.cleared(String(p.id.dropFirst(2))) != nil { return .cleared }
+        return p.adoption == .adopted ? .adopted : .open
     }
 
     var body: some View {
@@ -104,9 +120,18 @@ struct ARTab: View {
             HStack(spacing: 8) {
                 Text("Within \(Geo.walk(rangeM))").font(.caption.bold().monospacedDigit()).frame(width: 92, alignment: .leading)
                 Slider(value: $rangeT, in: 0...1).accessibilityLabel("Distance")
+                Button { drainsOnly.toggle() } label: { Image(systemName: drainsOnly ? "circle.grid.cross.fill" : "circle.grid.cross").font(.caption.bold()) }
+                    .buttonStyle(.bordered).tint(drainsOnly ? .cyan : nil)
+                    .accessibilityLabel(drainsOnly ? "Show everything" : "Drains near me")
                 Button { showList = true } label: { Label("\(shown)", systemImage: "list.bullet").font(.caption.bold().monospacedDigit()) }
                     .buttonStyle(.bordered).accessibilityLabel("List \(shown) places")
             }
+            if drainsOnly {
+                let n = near.filter { $0.0.kind == .drain && $0.1 <= WaterARView.Coordinator.haloMaxM }.count
+                Text(n == 0 ? "No storm drains on file within 500 ft" :
+                     "\(n) drains within 500 ft · cyan open to adopt, green adopted, white you cleared · placed by GPS, look for the grate at the curb")
+                    .font(.caption2).frame(maxWidth: .infinity, alignment: .leading)
+            } else {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
                     ForEach(Layer.allCases) { g in
@@ -114,6 +139,7 @@ struct ARTab: View {
                         if n > 0 { chip(g, count: n, on: !off.contains(g.rawValue)) }
                     }
                 }
+            }
             }
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
@@ -171,7 +197,7 @@ struct ARTab: View {
                     PointerChip(label: "Higher ground", from: r.coordinate, to: hg.coordinate, heading: compass.heading)
                 }
                 if let d = r.drains.first(where: { !$0.0.deep_pit }) {
-                    PointerChip(label: "Drain #\(d.0.rank)", from: r.coordinate, to: d.0.coordinate, heading: compass.heading)
+                    PointerChip(label: d.0.ranked ? "Drain #\(d.0.rank)" : "Nearest drain", from: r.coordinate, to: d.0.coordinate, heading: compass.heading)
                 }
             }
             .padding(.top, 8)

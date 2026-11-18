@@ -19,7 +19,12 @@ struct WaterARView: UIViewRepresentable {
     enum Mode { case water, measure }
 
     /// A tag to place by true bearing (degrees from north) and ground distance (m).
-    struct Placement: Equatable { let id: String; let bearing: Double; let metres: Double }
+    struct Placement: Equatable {
+        let id: String; let bearing: Double; let metres: Double
+        /// A storm drain close enough to walk to gets a halo pipe standing on it.
+        var halo: Halo? = nil
+    }
+    enum Halo: Equatable { case open, adopted, cleared }
 
     var mode: Mode
     var depthFt: Double?
@@ -71,6 +76,7 @@ struct WaterARView: UIViewRepresentable {
         co.onMeasure = onMeasure
         co.onProject = onProject
         co.placements = placements
+        co.syncHalos()
         co.playing = playing
         co.onGeoStatus = onGeoStatus
         co.setGeo(street: street, field: geo)
@@ -110,6 +116,9 @@ struct WaterARView: UIViewRepresentable {
         private var clock: Float = 0
         private var measureA: SIMD3<Float>?
         private var measureAnchors: [AnchorEntity] = []
+        /// Halo pipes over nearby drains, by placement id, with the height they were built at.
+        private var halos: [String: (anchor: AnchorEntity, top: Float, halo: Halo)] = [:]
+        private var haloDepthM: Float = -1
 
         override init() {
             waterMaterial = WaterLook.material()
@@ -131,6 +140,7 @@ struct WaterARView: UIViewRepresentable {
             streetOn = street
             geoField = f
             if street, !wasGeo {
+                clearHalos()     // world positions don't survive the tracking reset
                 groundAnchor?.isEnabled = false
                 let c = ARGeoTrackingConfiguration()
                 c.planeDetection = [.horizontal]
@@ -145,6 +155,7 @@ struct WaterARView: UIViewRepresentable {
                 if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) { c.sceneReconstruction = .mesh }
                 view.session.run(c, options: [.resetTracking, .removeExistingAnchors])
                 groundAnchor = nil
+                clearHalos()
                 startAutoGround()
                 return
             }
@@ -207,6 +218,64 @@ struct WaterARView: UIViewRepresentable {
             let p = WaterLook.person(); p.position = SIMD3<Float>(0.75, 0, 0); e.addChild(p)
         }
 
+        // MARK: drain halos
+
+        static let haloMaxM = 150.0
+
+        /// Stand a halo pipe on every nearby drain: placed once by bearing and distance from where
+        /// the camera is (GPS and compass, so good to about 10 m), on the ground found, or 1.4 m below
+        /// the camera before then. Rebuilt when the drains, their state or the water depth change.
+        func syncHalos() {
+            guard let view, !streetOn, let cam = view.session.currentFrame?.camera.transform else { return }
+            let wanted = Dictionary(placements.compactMap { p in p.halo.map { (p.id, (p, $0)) } }, uniquingKeysWith: { a, _ in a })
+            let depth = max(0, depthM ?? 0)
+            if abs(depth - haloDepthM) > 0.15 { clearHalos(); haloDepthM = depth }
+            for (id, h) in halos where wanted[id] == nil || wanted[id]!.1 != h.halo {
+                h.anchor.removeFromParent(); halos[id] = nil
+            }
+            let groundY = groundAnchor.map { $0.position(relativeTo: nil).y } ?? (cam.columns.3.y - 1.4)
+            for (id, (p, kind)) in wanted where halos[id] == nil {
+                let th = p.bearing * .pi / 180
+                let at = SIMD3<Float>(cam.columns.3.x + Float(sin(th) * p.metres), groundY, cam.columns.3.z - Float(cos(th) * p.metres))
+                let top = max(3, depth + 1.5)
+                let a = AnchorEntity(world: at)
+                a.addChild(Self.pipe(kind, height: top, metres: Float(p.metres)))
+                view.scene.addAnchor(a)
+                halos[id] = (a, top, kind)
+            }
+        }
+
+        private func clearHalos() {
+            halos.values.forEach { $0.anchor.removeFromParent() }
+            halos.removeAll()
+        }
+
+        /// A see-through glowing tube with a solid core, a ring on the ground and a bright cap, wider
+        /// when far so a grate 100 m off is still a visible stroke.
+        private static func pipe(_ kind: Halo, height: Float, metres: Float) -> Entity {
+            let tint: UIColor = kind == .adopted ? .systemGreen : kind == .cleared ? .white : .systemCyan
+            let r = 0.3 * max(1, metres / 30)
+            let e = Entity()
+            var glass = UnlitMaterial(color: tint.withAlphaComponent(0.3))
+            glass.blending = .transparent(opacity: .init(floatLiteral: 0.3))
+            let tube = ModelEntity(mesh: tubeMesh(height, r), materials: [glass])
+            tube.position.y = height / 2
+            let core = ModelEntity(mesh: tubeMesh(height, r * 0.12), materials: [UnlitMaterial(color: tint)])
+            core.position.y = height / 2
+            let ring = ModelEntity(mesh: tubeMesh(0.03, r * 1.5), materials: [UnlitMaterial(color: tint)])
+            ring.position.y = 0.02
+            let cap = ModelEntity(mesh: .generateSphere(radius: r * 0.55), materials: [UnlitMaterial(color: tint)])
+            cap.position.y = height
+            [tube, core, ring, cap].forEach { e.addChild($0) }
+            return e
+        }
+
+        /// A cylinder on iOS 18, a square column before it.
+        private static func tubeMesh(_ height: Float, _ r: Float) -> MeshResource {
+            if #available(iOS 18.0, *) { return .generateCylinder(height: height, radius: r) }
+            return .generateBox(width: r * 1.8, height: height, depth: r * 1.8, cornerRadius: r * 0.5)
+        }
+
         // MARK: water look
 
         /// Drift the surface a little every frame.
@@ -233,6 +302,12 @@ struct WaterARView: UIViewRepresentable {
             let fwd = -SIMD3<Float>(t.columns.2.x, t.columns.2.y, t.columns.2.z)
             var out: [String: CGPoint] = [:]
             for p in placements {
+                if let h = halos[p.id] {
+                    let top = h.anchor.position(relativeTo: nil) + SIMD3<Float>(0, h.top + 0.4, 0)
+                    if simd_dot(simd_normalize(top - cam), fwd) > 0.3, let pt = view.project(top),
+                       view.bounds.insetBy(dx: -40, dy: -40).contains(pt) { out[p.id] = pt }
+                    continue
+                }
                 let th = Float(p.bearing * .pi / 180)
                 let el = Float(max(-0.26, -atan(1.4 / max(p.metres, 1))))
                 let dir = SIMD3<Float>(sin(th) * cos(el), sin(el), -cos(th) * cos(el))
@@ -274,6 +349,7 @@ struct WaterARView: UIViewRepresentable {
             water.position = .zero
             startRipple()
             apply(rise: true)
+            clearHalos(); syncHalos()
             onGround(true)
         }
 
@@ -282,6 +358,7 @@ struct WaterARView: UIViewRepresentable {
             guard m != depthM else { return }
             depthM = m
             apply(rise: !playing)
+            syncHalos()
         }
 
         /// Move the water to the depth: slowly when it's a new scenario, quickly while a timeline
@@ -319,6 +396,7 @@ struct WaterARView: UIViewRepresentable {
         }
 
         @objc func tap(_ g: UITapGestureRecognizer) {
+            defer { syncHalos() }
             guard let view else { return }
             let p = g.location(in: view)
             switch mode {

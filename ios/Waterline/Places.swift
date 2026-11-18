@@ -8,6 +8,8 @@ import CoreLocation
 struct Places: Codable {
     struct Drain: Codable, Identifiable {
         let rank: Int, id: String, lon: Double, lat: Double, sump_m: Double, flood311: Int, hood: String, deep_pit: Bool
+        /// SFPUC inlet type code from sf_inlets.json (cb, in, di, ...); nil elsewhere.
+        var type: String? = nil
         var coordinate: CLLocationCoordinate2D { .init(latitude: lat, longitude: lon) }
         /// SF's drains are ranked citywide; other cities' are listed unranked.
         var ranked: Bool { rank < 900_000 }
@@ -41,9 +43,35 @@ struct Places: Codable {
 
     static let shared: Places? = {
         guard let url = Bundle.main.url(forResource: "places", withExtension: "json"),
-              let data = try? Data(contentsOf: url) else { return nil }
-        return try? JSONDecoder().decode(Places.self, from: data)
+              let data = try? Data(contentsOf: url),
+              var p = try? JSONDecoder().decode(Places.self, from: data) else { return nil }
+        p.drains += sfInlets(skipping: Set(p.drains.map(\.id)))
+        return p
     }()
+
+    /// Every SF street inlet (scripts/build_sf_inlets.py, SFPUC on DataSF, public domain), unranked,
+    /// so the grate at your corner shows even when it isn't one of the ranked 500.
+    private static func sfInlets(skipping ranked: Set<String>) -> [Drain] {
+        struct File: Decodable { let inlets: [[Inlet]] }
+        enum Inlet: Decodable {
+            case n(Double), s(String)
+            init(from d: Decoder) throws {
+                let c = try d.singleValueContainer()
+                if let v = try? c.decode(Double.self) { self = .n(v) } else { self = .s(try c.decode(String.self)) }
+            }
+            var num: Double? { if case .n(let v) = self { return v }; return nil }
+            var str: String? { if case .s(let v) = self { return v }; return nil }
+        }
+        guard let url = Bundle.main.url(forResource: "sf_inlets", withExtension: "json"),
+              let data = try? Data(contentsOf: url), let f = try? JSONDecoder().decode(File.self, from: data) else { return [] }
+        var out: [Drain] = []
+        out.reserveCapacity(f.inlets.count)
+        for (i, r) in f.inlets.enumerated() where r.count >= 4 {
+            guard let lon = r[0].num, let lat = r[1].num, let id = r[2].str, !ranked.contains(id) else { continue }
+            out.append(Drain(rank: 900_000 + i, id: id.isEmpty ? "sf-\(i)" : id, lon: lon, lat: lat, sump_m: 0, flood311: 0, hood: "", deep_pit: false, type: r[3].str))
+        }
+        return out
+    }
 
     private static var packs: [Places]?
     private static let lock = NSLock()
@@ -82,7 +110,10 @@ struct Places: Codable {
     }
 
     func drains(near c: CLLocationCoordinate2D, within m: Double, limit: Int) -> [(Drain, Double)] {
-        drains.lazy.map { ($0, Geo.distance(c, $0.coordinate)) }.filter { $0.1 <= m }
+        // SF has about 24k inlets: a cheap box test first, then the real distance
+        let dLat = m / 111_132, dLon = m / (111_320 * cos(c.latitude * .pi / 180))
+        return drains.filter { abs($0.lat - c.latitude) <= dLat && abs($0.lon - c.longitude) <= dLon }
+            .map { ($0, Geo.distance(c, $0.coordinate)) }.filter { $0.1 <= m }
             .sorted { $0.1 < $1.1 }.prefix(limit).map { $0 }
     }
 

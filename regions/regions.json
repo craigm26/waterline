@@ -24,7 +24,14 @@
     "name": "Old Sacramento waterfront",
     "lon": -121.5065,
     "lat": 38.5816
-   }
+   },
+   "group_bbox": [
+    -121.64,
+    38.23,
+    -121.19,
+    38.74
+   ],
+   "group_bbox_why": "Sacramento County's drain layer reaches east to Carmichael, Fair Oaks and Citrus Heights; the live feeds and drain program use this box, the 10 m packs keep bbox."
   },
   {
    "id": "new-orleans",

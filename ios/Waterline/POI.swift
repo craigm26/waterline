@@ -26,6 +26,8 @@ struct POI: Identifiable, Hashable {
     var source: Source? = nil
     var scene: LidarScene? = nil
     var sensor: Sensor? = nil
+    /// A drain's state on Adopt a Drain SF, read live; nil where there's no program feed.
+    var adoption: AdoptADrainSF.State? = nil
 
     static func == (a: POI, b: POI) -> Bool { a.id == b.id }
     func hash(into h: inout Hasher) { h.combine(id) }
@@ -84,8 +86,11 @@ enum ARRange {
 
 extension POI {
     static func drain(_ d: Places.Drain) -> POI {
+        let cleared = DrainCare.cleared(d.id).map { "you cleared it " + DrainCare.ago($0) }
+        let adoption = AdoptADrainSF.state(at: d.coordinate)
+        let adoptText = adoption.map { $0 == .adopted ? "adopted" : "open to adopt" }
         var p = POI(id: "d-\(d.id)", kind: .drain, title: d.label,
-                    value: d.deep_pit ? "deep pit: report it" : d.ranked ? "\(d.flood311) past reports nearby" : "city drain map",
+                    value: cleared ?? (d.deep_pit ? "deep pit: report it" : [adoptText, d.ranked ? "\(d.flood311) past reports" : nil].compactMap { $0 }.joined(separator: " · ").nonEmpty ?? "keep the grate clear"),
                     coordinate: d.coordinate, severity: d.ranked && d.rank <= 100 ? 1 : 0, gauge: nil)
         if d.ranked {
             p.what = d.deep_pit ? "A storm drain at the bottom of a deep pit, usually an underpass or stairwell." : "A storm drain inlet on San Francisco's drain map."
@@ -97,10 +102,20 @@ extension POI {
             p.facts.append(.init(label: "Asset ID", value: d.id, provenance: .official))
             if d.deep_pit { p.notes = ["Don't climb in. Report it to 311."] }
             p.source = .init(name: "SFPUC drain inlets, SF 311 and city lidar")
+        } else if let t = d.type {
+            p.what = "A \(DrainCare.typeName(t)) on SFPUC's inlet map."
+            p.why = "It's one of the closest drains to this spot. Water on this block has to get into a grate like this one, so a grate under leaves floods the street around it."
+            p.facts = [.init(label: "Type", value: DrainCare.typeName(t).capitalized, provenance: .official),
+                       .init(label: "Asset ID", value: d.id, provenance: .official)]
+            p.source = .init(name: "SFPUC stormwater inlets, DataSF (public domain)", url: URL(string: "https://data.sfgov.org/d/jtgq-b7c5"))
         } else {
             p.what = "A storm drain inlet from the local open data feed."
             p.why = "It's one of the closest drains to this spot. The feed gives only its location, so it has no rank or flood history."
             p.source = .init(name: "Local open data, read live and never copied")
+        }
+        p.adoption = adoption
+        if let adoption {
+            p.facts.append(.init(label: "Adopt a Drain SF", value: adoption == .adopted ? "Adopted by a neighbor" : "Nobody has adopted it yet", provenance: .official))
         }
         return p
     }
@@ -245,7 +260,11 @@ extension POI {
 extension SpotReport {
     /// The tags that come from a place's layers.
     static func layerPOIs(_ p: Places, at c: CLLocationCoordinate2D) -> [POI] {
-        var out = p.drains(near: c, within: 1_500, limit: 25).map { POI.drain($0.0) }
+        // the nearest grates, then the city's worst ranked ones farther out (SF lists every inlet)
+        let near = p.drains(near: c, within: 1_500, limit: 30)
+        let ids = Set(near.map(\.0.id))
+        let worst = p.drains(near: c, within: 1_500, limit: 400).filter { $0.0.ranked && $0.0.rank <= 100 && !ids.contains($0.0.id) }
+        var out = (near + worst).map { POI.drain($0.0) }
         out += p.hotspots.filter { Geo.distance(c, $0.coordinate) < ARRange.maxM }.map { POI.lowSpot($0, in: p) }
         out += p.leveesNear(c, within: ARRange.maxM, limit: 30).enumerated().map { POI.levee(id: "v-\($0.offset)", wall: $0.element.kind == "floodwall", at: $0.element.at) }
         for (i, u) in (p.pumps ?? []).enumerated() where Geo.distance(c, u.coordinate) < ARRange.maxM { out.append(.pump(u, index: i)) }
@@ -306,4 +325,8 @@ struct POIDot: View {
             .accessibilityLabel(poi.title)
             .accessibilityAddTraits(.isButton)
     }
+}
+
+extension String {
+    var nonEmpty: String? { isEmpty ? nil : self }
 }
