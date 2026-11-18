@@ -158,7 +158,7 @@ struct POIDetailBody: View {
                         Button {
                             UIPasteboard.general.string = text
                             openURL(r.url)
-                        } label: { Label("Copy this and open \(r.name.components(separatedBy: ":").first ?? r.name)", systemImage: "doc.on.clipboard") }
+                        } label: { Label("Copy this and open the report page", systemImage: "doc.on.clipboard") }
                         Text("Nothing is sent from Waterline. Paste it into the report and add a photo there. \(r.detail)").font(.caption).foregroundStyle(.secondary)
                     }
                 }

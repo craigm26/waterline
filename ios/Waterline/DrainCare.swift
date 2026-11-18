@@ -27,11 +27,11 @@ enum DrainCare {
 
     struct Report { let name: String; let url: URL; let detail: String }
 
-    /// Where a blocked grate gets reported, by place. Checked Nov 18, 2026.
+    /// Where a blocked grate gets reported, by place. Checked Nov 18, 2026 (SF's page is the one SFPUC points to).
     static func report(at c: CLLocationCoordinate2D) -> Report? {
         if Places.inSF(c) {
-            return .init(name: "SF311: report a blocked storm drain", url: URL(string: "https://sf311.org")!,
-                         detail: "Or call 311. Say \"clogged catch basin\" and the cross streets.")
+            return .init(name: "SF: report flooding or a blocked drain", url: URL(string: "https://www.sf.gov/report-flooding-water-leaks-sewer-backup-or-odor-issues")!,
+                         detail: "Or call 311 (415-701-2311 from outside SF). Say \"clogged catch basin\" and the cross streets.")
         }
         // Sacramento County: the County drain layer covers the unincorporated area (Carmichael, Fair Oaks, Arden Arcade...)
         if (38.02...38.74).contains(c.latitude) && (-121.87...(-121.02)).contains(c.longitude) {
