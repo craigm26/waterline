@@ -339,6 +339,7 @@ details summary { cursor: pointer; color: var(--fg); font-weight: 600; }
 
     <nav class="tabs" role="tablist" aria-label="Waterline views">
       <button type="button" class="tab-btn active" data-tab="dash" role="tab">Dashboard</button>
+      <button type="button" class="tab-btn" data-tab="intel" role="tab">Intelligence</button>
       <button type="button" class="tab-btn" data-tab="cams" role="tab">Live Cameras</button>
       <button type="button" class="tab-btn" data-tab="map" role="tab">Interactive Map</button>
       <button type="button" class="tab-btn" data-tab="prep" role="tab">Prep &amp; Brief</button>
@@ -431,6 +432,88 @@ details summary { cursor: pointer; color: var(--fg); font-weight: 600; }
     </div>
   </section>
 
+  <!-- TAB 1B: INTELLIGENCE (UNDER/OVER-STREET CROSS-SECTION + DERIVED DATASETS) -->
+  <section id="view-intel" class="view">
+    <div class="dash-split" style="margin-bottom:18px">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2 class="card-title" id="xsecTitle">Under-Street &amp; Over-Street Cross-Section</h2>
+            <p class="card-sub" id="xsecSub">Live USGS 3DEP LiDAR elevation + NOAA tide-lock horizon + nearest physical depth gauge</p>
+          </div>
+          <span class="badge calm" id="xsecBadge">GRAVITY DRAINING</span>
+        </div>
+        <svg id="xsecSvg" viewBox="0 0 820 330" style="width:100%;height:auto;display:block;border-radius:10px;background:#060c14;border:1px solid var(--border)" role="img" aria-label="Under-street and over-street vertical cross-section"></svg>
+        <div class="legend" style="margin-top:10px">
+          <span><i style="background:#38a1ff"></i>Over-street ponding (LiDAR bowl)</span>
+          <span><i style="background:#2dd4bf"></i>Under-street gravity drainage</span>
+          <span><i style="background:#f87171"></i>Tide-locked outfall (&lt; 3 ft head)</span>
+          <span><i style="background:#a855f7"></i>Live USGS depth gauge</span>
+        </div>
+      </div>
+
+      <div class="card" style="display:grid;gap:14px;align-content:start">
+        <div class="card-head" style="margin-bottom:0">
+          <div>
+            <h2 class="card-title">3-Signal Triangulation</h2>
+            <p class="card-sub">LiDAR + Physical Depth Gauge + Live Camera</p>
+          </div>
+          <button type="button" class="btn-sm primary" id="exportIntelBtn">Export JSON</button>
+        </div>
+        <div class="kpi-grid" style="grid-template-columns:1fr 1fr;margin-bottom:0;gap:10px">
+          <div class="kpi" style="padding:12px">
+            <div class="kpi-top"><span>LiDAR Ground</span><span class="prov off">3DEP</span></div>
+            <div class="kpi-val" style="font-size:1.35rem" id="ixGround">—</div>
+            <div class="kpi-note">ft NAVD88 (bare earth)</div>
+          </div>
+          <div class="kpi" style="padding:12px">
+            <div class="kpi-top"><span>Tide Head</span><span class="prov der">Under-St</span></div>
+            <div class="kpi-val" style="font-size:1.35rem" id="ixHead">—</div>
+            <div class="kpi-note" id="ixHeadNote">ground minus peak tide</div>
+          </div>
+          <div class="kpi" style="padding:12px">
+            <div class="kpi-top"><span>Depth Gauge</span><span class="prov off">USGS IV</span></div>
+            <div class="kpi-val" style="font-size:1.35rem" id="ixGauge">—</div>
+            <div class="kpi-note" id="ixGaugeNote">nearest live gauge</div>
+          </div>
+          <div class="kpi" style="padding:12px">
+            <div class="kpi-top"><span>Classification</span><span class="prov der">Derived</span></div>
+            <div class="kpi-val" style="font-size:1.05rem;line-height:1.25" id="ixClass">—</div>
+            <div class="kpi-note" id="ixClassNote">over-street vs under-street</div>
+          </div>
+        </div>
+        <div id="ixCamBox" style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface-2)">
+          <div style="padding:10px 12px;font-size:.8rem;color:var(--muted)">Loading paired verification camera…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2 class="card-title">Derived Flood Intelligence Matrix (LiDAR × Depth Gauges × Live Cameras)</h2>
+          <p class="card-sub">Every ranked street low spot paired automatically with its vertical class (over-street bowl vs under-street pit), nearest live USGS depth gauge, and nearest live camera. Click any row to inspect its vertical slice.</p>
+        </div>
+        <span class="live-pill" id="gaugeCountPill"><span class="live-dot" style="background:#a855f7;box-shadow:0 0 8px #a855f7"></span><span id="gaugeCountText">Loading USGS gauges…</span></span>
+      </div>
+      <div class="table-scroll" style="max-height:420px">
+        <table id="intelTable">
+          <thead>
+            <tr>
+              <th class="r">#</th>
+              <th>Location</th>
+              <th>Vertical Class</th>
+              <th class="r">LiDAR Depth</th>
+              <th>Nearest Live Gauge</th>
+              <th>Nearest Live Camera</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- TAB 2: LIVE CAMERAS -->
   <section id="view-cams" class="view">
     <div class="toolbar">
@@ -467,6 +550,7 @@ details summary { cursor: pointer; color: var(--fg); font-weight: 600; }
       <div class="map-hud-top">
         <div class="map-hud-group" id="layers">
           <label class="layer-chip on"><input type="checkbox" data-l="cam" checked><span class="layer-dot" style="background:#2dd4bf"></span>Cameras</label>
+          <label class="layer-chip on"><input type="checkbox" data-l="gauge" checked><span class="layer-dot" style="background:#a855f7"></span>Depth Gauges</label>
           <label class="layer-chip on"><input type="checkbox" data-l="hot" checked><span class="layer-dot" style="background:#fbbf24"></span>Low Spots</label>
           <label class="layer-chip on"><input type="checkbox" data-l="drain" checked><span class="layer-dot" style="background:#38a1ff"></span>Top 500 Drains</label>
           <label class="layer-chip"><input type="checkbox" data-l="f311"><span class="layer-dot" style="background:#f87171"></span>311 Floods</label>
@@ -503,7 +587,8 @@ details summary { cursor: pointer; color: var(--fg); font-weight: 600; }
 
       <div class="map-hud-bottom" id="mapHudBottom">
         <strong id="mapHudSpot">San Francisco</strong>
-        <span>Tap any marker for live camera preview or drain depth</span>
+        <span id="mapHudInfo">Click anywhere on the map to read live USGS 3DEP LiDAR elevation &amp; under-street tide-lock</span>
+        <button type="button" class="btn-sm primary" id="mapInspectBtn" style="padding:3px 9px;font-size:.72rem">Vertical Slice →</button>
       </div>
     </div>
   </section>
@@ -977,6 +1062,12 @@ function initMap() {
   layers.hot = L.layerGroup(CITY.hotspots.map((h) => L.circleMarker([h.lat, h.lon], {
     radius: 6 + Math.sqrt(h.area_m2) / 45, color: "#fbbf24", weight: 2.5, fillColor: "#fbbf24", fillOpacity: 0.18
   }).bindPopup(`<b>Low spot #${h.rank}${h.name ? ": " + esc(h.name) : ""}</b><br>${esc(h.neighborhood)}<br>Depth ${h.max_depth_m.toFixed(2)} m · ${h.flood311_150m} past 311 reports`))).addTo(map);
+  map.on("click", (e) => {
+    const { lat, lng } = e.latlng;
+    if (clickMarker) map.removeLayer(clickMarker);
+    clickMarker = L.circleMarker([lat, lng], { radius: 9, color: "#38a1ff", weight: 3, fillColor: "#38a1ff", fillOpacity: 0.25 }).addTo(map);
+    inspectVerticalSlice({ name: `Pinned (${lat.toFixed(4)}, ${lng.toFixed(4)})`, lat, lon: lng, bowlM: 0 });
+  });
   document.querySelectorAll("#layers input").forEach((cb) => cb.addEventListener("change", () => {
     cb.closest(".layer-chip")?.classList.toggle("on", cb.checked);
     toggleLayer(cb.dataset.l, cb.checked);
@@ -1016,7 +1107,13 @@ function updateCameraMapLayer(cams) {
 function renderCity() {
   $("hotTable").tBodies[0].innerHTML = CITY.hotspots.map((h) => `<tr data-lat="${h.lat}" data-lon="${h.lon}"><td class="r">${h.rank}</td><td>${esc(h.name || h.neighborhood)}</td><td class="r">${h.max_depth_m.toFixed(2)}</td><td class="r">${h.flood311_150m}</td></tr>`).join("");
   $("zoneTable").tBodies[0].innerHTML = CITY.zones.map(([n, c]) => `<tr data-hood="${esc(n)}"><td>${esc(n)}</td><td class="r">${c}</td></tr>`).join("");
-  $("hotTable").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-lat]"); if (tr && map) map.flyTo([+tr.dataset.lat, +tr.dataset.lon], 16); });
+  $("hotTable").addEventListener("click", (e) => {
+    const tr = e.target.closest("tr[data-lat]");
+    if (!tr) return;
+    if (map) map.flyTo([+tr.dataset.lat, +tr.dataset.lon], 16);
+    const h = CITY.hotspots.find((x) => String(x.lat) === tr.dataset.lat && String(x.lon) === tr.dataset.lon);
+    if (h) inspectVerticalSlice({ name: h.name || h.neighborhood, lat: h.lat, lon: h.lon, bowlM: h.max_depth_m, flood311: h.flood311_150m, inZone: h.in_sfpuc_100yr });
+  });
   $("camTable").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-lat]"); if (tr && map) map.flyTo([+tr.dataset.lat, +tr.dataset.lon], 14); });
   $("zoneTable").addEventListener("click", (e) => {
     const tr = e.target.closest("tr[data-hood]"); if (!tr || !map) return;
@@ -1025,6 +1122,234 @@ function renderCity() {
     if (pts.length) map.fitBounds(pts, { padding: [40, 40], maxZoom: 16 });
   });
 }
+
+// ---------- Under/Over-Street Sensor Fusion Intelligence (LiDAR + Live Depth Gauges + Live Cameras) ----------
+let liveGauges = [];
+let inspectedSlice = null;
+let clickMarker = null;
+
+async function fetchLiveDepthGauges() {
+  try {
+    const url = "https://waterservices.usgs.gov/nwis/iv/?format=json&bBox=-122.65,37.25,-121.20,38.80&parameterCd=00065&siteStatus=active";
+    const d = await getJSON(url);
+    const ts = d?.value?.timeSeries || [];
+    liveGauges = ts.map((s) => {
+      const si = s.sourceInfo || {};
+      const geo = si.geoLocation?.geogLocation || {};
+      const vals = s.values?.[0]?.value || [];
+      const last = vals[vals.length - 1];
+      const ft = last ? parseFloat(last.value) : NaN;
+      if (!Number.isFinite(geo.latitude) || !Number.isFinite(geo.longitude) || !Number.isFinite(ft) || ft < -50) return null;
+      return {
+        id: si.siteCode?.[0]?.value || si.siteName,
+        name: si.siteName || "USGS Depth Gauge",
+        lat: geo.latitude, lon: geo.longitude,
+        ft, dt: last.dateTime || "",
+      };
+    }).filter(Boolean);
+    $("gaugeCountText").textContent = `${liveGauges.length} live USGS depth gauges`;
+    updateGaugeMapLayer();
+    renderIntelMatrix();
+  } catch (e) {
+    console.warn("USGS NWIS depth gauge fetch failed", e);
+    $("gaugeCountText").textContent = "USGS depth gauges unavailable";
+  }
+}
+
+function updateGaugeMapLayer() {
+  if (!map || !liveGauges.length) return;
+  if (layers.gauge) map.removeLayer(layers.gauge);
+  layers.gauge = L.layerGroup(liveGauges.map((g) => L.circleMarker([g.lat, g.lon], {
+    radius: 6.5, color: "#070d14", weight: 2, fillColor: "#a855f7", fillOpacity: 0.95
+  }).bindPopup(`<div style="width:220px"><div style="font-size:.7rem;color:#c084fc;font-family:monospace;font-weight:700">USGS LIVE DEPTH GAUGE</div><div style="font-weight:700;font-size:.88rem;margin:3px 0">${esc(g.name)}</div><div style="font-size:1.25rem;font-weight:800;color:#fff">${g.ft.toFixed(2)} ft</div><div style="font-size:.72rem;color:#8ea5be">${g.dt ? new Date(g.dt).toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "short", timeStyle: "short" }) : ""}</div><button type="button" class="btn-sm primary" style="margin-top:8px" onclick="window.__inspectCoords(${g.lat},${g.lon},'${esc(g.name).replace(/'/g, "")}')">Open Vertical Slice →</button></div>`)));
+  const cb = document.querySelector('#layers input[data-l="gauge"]');
+  if (!cb || cb.checked) layers.gauge.addTo(map);
+}
+
+async function fetchLidarElevationFt(lat, lon) {
+  try {
+    const url = `https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/identify?geometry=${lon.toFixed(5)},${lat.toFixed(5)}&geometryType=esriGeometryPoint&returnGeometry=false&returnCatalogItems=false&f=json`;
+    const r = await getJSON(url);
+    const m = parseFloat(r.value);
+    return Number.isFinite(m) ? +(m * 3.28084).toFixed(1) : null;
+  } catch { return null; }
+}
+
+function nearestGauge(lat, lon) {
+  if (!liveGauges.length) return null;
+  let best = null, bestMi = Infinity;
+  for (const g of liveGauges) {
+    const mi = haversineMi(lat, lon, g.lat, g.lon);
+    if (mi < bestMi) { bestMi = mi; best = { ...g, mi }; }
+  }
+  return best;
+}
+
+function nearestCamera(lat, lon) {
+  const pool = [...(usgsCache || []), ...(camCache[activeDist] || [])];
+  if (!pool.length) return null;
+  let best = null, bestMi = Infinity;
+  for (const c of pool) {
+    const mi = haversineMi(lat, lon, c.lat, c.lon);
+    if (mi < bestMi) { bestMi = mi; best = { ...c, mi }; }
+  }
+  return best;
+}
+
+async function inspectVerticalSlice(target) {
+  const groundFt = await fetchLidarElevationFt(target.lat, target.lon);
+  const peakTideFt = F?.days?.length ? Math.max(...F.days.slice(0, 7).map((d) => d.high.with_anomaly_ft)) : 7.0;
+  const groundMllw = groundFt !== null ? +(groundFt - 0.06).toFixed(1) : null;
+  const headFt = groundMllw !== null ? +(groundMllw - peakTideFt).toFixed(1) : null;
+  const tideLocked = headFt !== null && headFt < 3.0;
+  const bowlFt = target.bowlM ? +(target.bowlM * 3.28084).toFixed(1) : 0;
+  const isDeepPit = (target.bowlM || 0) > 2.0;
+  const gauge = nearestGauge(target.lat, target.lon);
+  const cam = nearestCamera(target.lat, target.lon);
+
+  inspectedSlice = { ...target, groundFt, groundMllw, peakTideFt, headFt, tideLocked, bowlFt, isDeepPit, gauge, cam };
+
+  $("xsecTitle").textContent = `${target.name} · Vertical Cross-Section`;
+  $("xsecSub").textContent = `${target.lat.toFixed(4)}, ${target.lon.toFixed(4)} · Bare-earth USGS 3DEP LiDAR vs NOAA tide & nearest depth gauge`;
+  $("xsecBadge").className = `badge ${tideLocked || isDeepPit ? "act" : bowlFt > 1.5 ? "watch" : "calm"}`;
+  $("xsecBadge").textContent = tideLocked ? "TIDE-LOCKED UNDER-STREET" : isDeepPit ? "UNDER-STREET PIT / UNDERPASS" : bowlFt > 1.5 ? "OVER-STREET BOWL" : "GRAVITY DRAINING";
+
+  $("ixGround").textContent = groundFt !== null ? `${groundFt.toFixed(1)} ft` : "n/a";
+  $("ixHead").textContent = headFt !== null ? `${headFt >= 0 ? "+" : ""}${headFt.toFixed(1)} ft` : "n/a";
+  $("ixHeadNote").textContent = tideLocked ? "Outfall submerged (< 3 ft head)" : `Above ${peakTideFt.toFixed(1)} ft peak tide`;
+  $("ixGauge").textContent = gauge ? `${gauge.ft.toFixed(2)} ft` : "—";
+  $("ixGaugeNote").textContent = gauge ? `${gauge.name.slice(0, 26)} (${gauge.mi.toFixed(1)} mi)` : "No active USGS gauge";
+  $("ixClass").textContent = isDeepPit ? "Under-street pit" : tideLocked ? "Tide-locked outfall" : bowlFt > 0 ? "Over-street bowl" : "Open drainage";
+  $("ixClassNote").textContent = isDeepPit ? `Bowl ${bowlFt.toFixed(1)} ft deep (pump needed)` : bowlFt > 0 ? `Max bowl ${bowlFt.toFixed(1)} ft before spill` : "Click any low spot or map point";
+
+  if (cam) {
+    $("ixCamBox").innerHTML = `<div style="display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center">
+      <img src="${esc(cam.img)}?t=${camTick}" alt="${esc(cam.name)}" style="width:150px;height:96px;object-fit:cover;display:block">
+      <div style="padding:8px 10px 8px 0">
+        <div style="font-size:.68rem;font-family:monospace;color:var(--teal);font-weight:700">NEAREST CAMERA · ${cam.mi.toFixed(1)} MI</div>
+        <div style="font-weight:700;font-size:.84rem;margin:2px 0">${esc(cam.name)}</div>
+        <div style="font-size:.74rem;color:var(--muted)">${esc(cam.source)}${cam.stream ? ` · <a href="${esc(cam.stream)}" target="_blank" rel="noopener">Live stream →</a>` : ""}</div>
+      </div>
+    </div>`;
+  }
+
+  // Update Map bottom HUD pill too
+  if ($("mapHudSpot")) $("mapHudSpot").textContent = target.name;
+  if ($("mapHudInfo")) {
+    $("mapHudInfo").textContent = `LiDAR ${groundFt !== null ? groundFt.toFixed(1) + " ft" : "—"} · Tide head ${headFt !== null ? (headFt >= 0 ? "+" : "") + headFt.toFixed(1) + " ft" : "—"}${tideLocked ? " (TIDE-LOCKED)" : ""}${gauge ? ` · Gauge ${gauge.ft.toFixed(2)} ft (${gauge.mi.toFixed(1)} mi)` : ""}`;
+  }
+
+  drawCrossSection(inspectedSlice);
+}
+
+function drawCrossSection(s) {
+  const streetY = 178;
+  const pondH = Math.min(76, Math.max(s.bowlFt > 0 ? 18 : 0, s.bowlFt * 12));
+  const pipeColor = s.tideLocked ? "#f87171" : "#2dd4bf";
+  const pipeStatus = s.tideLocked ? "TIDE-LOCKED — GRAVITY DRAINAGE BLOCKED" : "GRAVITY DRAINING — CLEAR OUTFALL HEAD";
+  const tideY = s.headFt === null ? 268 : Math.max(streetY - 12, Math.min(295, streetY + 18 + s.headFt * 8));
+
+  $("xsecSvg").innerHTML = `
+    <defs>
+      <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a1626"/><stop offset="100%" stop-color="#102338"/></linearGradient>
+      <linearGradient id="soilG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#141e2b"/><stop offset="100%" stop-color="#090f17"/></linearGradient>
+    </defs>
+    <!-- Over street sky & ground -->
+    <rect x="0" y="0" width="820" height="${streetY}" fill="url(#skyG)"/>
+    <rect x="0" y="${streetY}" width="820" height="${330 - streetY}" fill="url(#soilG)"/>
+    <!-- Zone labels -->
+    <text x="18" y="26" fill="#38a1ff" font-size="11" font-weight="700">OVER-STREET (SURFACE &amp; LIDAR BOWL)</text>
+    <text x="18" y="${streetY + 22}" fill="#8ea5be" font-size="11" font-weight="700">UNDER-STREET (STORM PIPE, OUTFALL &amp; TIDE-LOCK HORIZON)</text>
+    <!-- Building & curb left -->
+    <rect x="20" y="64" width="120" height="${streetY - 64}" fill="#1a2c42" stroke="#2d4766"/>
+    <rect x="140" y="${streetY - 12}" width="46" height="12" fill="#2b425c"/>
+    <!-- 5'9" human scale silhouette -->
+    <circle cx="163" cy="${streetY - 66}" r="7" fill="#cbd5e1"/>
+    <line x1="163" y1="${streetY - 59}" x2="163" y2="${streetY - 32}" stroke="#cbd5e1" stroke-width="3"/>
+    <line x1="163" y1="${streetY - 32}" x2="156" y2="${streetY - 12}" stroke="#cbd5e1" stroke-width="2.5"/>
+    <line x1="163" y1="${streetY - 32}" x2="170" y2="${streetY - 12}" stroke="#cbd5e1" stroke-width="2.5"/>
+    <text x="150" y="${streetY - 78}" fill="#94a3b8" font-size="10">5'9"</text>
+    <!-- Over-street ponding water if bowl > 0 -->
+    ${pondH > 0 ? `<rect x="186" y="${streetY - pondH}" width="380" height="${pondH}" fill="#38a1ff" fill-opacity="0.34" stroke="#38a1ff" stroke-width="1.5"/>
+    <text x="376" y="${streetY - pondH - 8}" text-anchor="middle" fill="#7fc4ff" font-size="12" font-weight="700">LiDAR Bowl: ${s.bowlFt.toFixed(1)} ft max ponding</text>` : `<text x="376" y="${streetY - 22}" text-anchor="middle" fill="#5fc48a" font-size="12">No deep street bowl flagged here</text>`}
+    <!-- Street surface line -->
+    <line x1="0" y1="${streetY}" x2="820" y2="${streetY}" stroke="#cbd5e1" stroke-width="2.5"/>
+    <text x="802" y="${streetY - 8}" text-anchor="end" fill="#f0f5fa" font-size="11" font-weight="700">STREET GRADE · ${s.groundFt !== null ? s.groundFt.toFixed(1) + " ft NAVD88" : "LiDAR"}</text>
+    <!-- Storm drain grate + vertical catch basin + under-street pipe -->
+    <rect x="358" y="${streetY - 3}" width="36" height="6" fill="#fbbf24"/>
+    <rect x="366" y="${streetY + 3}" width="20" height="58" fill="#1e293b" stroke="${pipeColor}" stroke-width="2"/>
+    <rect x="386" y="${streetY + 42}" width="240" height="19" fill="#1e293b" stroke="${pipeColor}" stroke-width="2"/>
+    <text x="506" y="${streetY + 78}" text-anchor="middle" fill="${pipeColor}" font-size="11" font-weight="700">${pipeStatus}</text>
+    <!-- Bay / River outfall water level -->
+    <rect x="626" y="${tideY}" width="194" height="${330 - tideY}" fill="${s.tideLocked ? "#f87171" : "#2dd4bf"}" fill-opacity="0.28"/>
+    <line x1="626" y1="${tideY}" x2="820" y2="${tideY}" stroke="${s.tideLocked ? "#f87171" : "#2dd4bf"}" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="723" y="${tideY - 8}" text-anchor="middle" fill="${s.tideLocked ? "#fca5a5" : "#5eead4"}" font-size="11" font-weight="700">Peak Tide ${s.peakTideFt.toFixed(1)} ft</text>
+    <!-- Nearest USGS live depth gauge pill -->
+    ${s.gauge ? `<rect x="20" y="274" width="330" height="38" rx="8" fill="#1e1530" stroke="#a855f7"/>
+    <text x="34" y="297" fill="#e9d5ff" font-size="11" font-weight="700">USGS Gauge: ${s.gauge.ft.toFixed(2)} ft · ${esc(s.gauge.name.slice(0, 22))}</text>` : ""}
+  `;
+}
+
+function renderIntelMatrix() {
+  if (!CITY) return;
+  const tb = $("intelTable")?.tBodies[0];
+  if (!tb) return;
+  const rows = CITY.hotspots.slice(0, 30).map((h) => {
+    const isPit = h.max_depth_m > CITY.deep_pit_m;
+    const g = nearestGauge(h.lat, h.lon);
+    const c = nearestCamera(h.lat, h.lon);
+    return { h, isPit, g, c };
+  });
+  tb.innerHTML = rows.map(({ h, isPit, g, c }) => `
+    <tr data-lat="${h.lat}" data-lon="${h.lon}" data-bowl="${h.max_depth_m}" data-name="${esc(h.name || h.neighborhood)}">
+      <td class="r">${h.rank}</td>
+      <td><strong>${esc(h.name || h.neighborhood)}</strong><div style="font-size:.7rem;color:var(--muted)">${esc(h.neighborhood)} · ${h.flood311_150m} 311 reports</div></td>
+      <td><span class="badge ${isPit ? "act" : "watch"}" style="font-size:.64rem">${isPit ? "Under-St Pit" : "Over-St Bowl"}</span></td>
+      <td class="r mono">${(h.max_depth_m * 3.28084).toFixed(1)} ft</td>
+      <td>${g ? `<strong style="color:#c084fc">${g.ft.toFixed(2)} ft</strong> <span style="font-size:.72rem;color:var(--muted)">(${g.mi.toFixed(1)} mi)</span>` : "—"}</td>
+      <td>${c ? `<span style="color:var(--teal)">${esc(c.name.slice(0, 28))}</span> <span style="font-size:.72rem;color:var(--muted)">(${c.mi.toFixed(1)} mi)</span>` : "—"}</td>
+    </tr>`).join("");
+}
+
+$("intelTable").addEventListener("click", (e) => {
+  const tr = e.target.closest("tr[data-lat]");
+  if (!tr) return;
+  inspectVerticalSlice({ name: tr.dataset.name, lat: +tr.dataset.lat, lon: +tr.dataset.lon, bowlM: +tr.dataset.bowl });
+  $("xsecSvg").scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+$("mapInspectBtn").addEventListener("click", () => {
+  switchTab("intel");
+  if (!inspectedSlice) inspectVerticalSlice({ name: activeSpot.name, lat: activeSpot.lat, lon: activeSpot.lon, bowlM: 0 });
+});
+
+$("exportIntelBtn").addEventListener("click", () => {
+  const payload = {
+    schema: "waterline.derived-intelligence.v1",
+    generated_at: new Date().toISOString(),
+    focus: activeSpot,
+    inspected_vertical_slice: inspectedSlice,
+    live_usgs_depth_gauges_count: liveGauges.length,
+    live_cameras_count: (usgsCache || []).length + Object.values(camCache).reduce((s, a) => s + a.length, 0),
+    top_corridors: (CITY?.hotspots || []).slice(0, 25).map((h) => ({
+      rank: h.rank, name: h.name || h.neighborhood, neighborhood: h.neighborhood,
+      lat: h.lat, lon: h.lon, lidar_bowl_ft: +(h.max_depth_m * 3.28084).toFixed(2),
+      vertical_class: h.max_depth_m > CITY.deep_pit_m ? "under_street_pit" : "over_street_bowl",
+      nearest_depth_gauge: nearestGauge(h.lat, h.lon),
+      nearest_camera: nearestCamera(h.lat, h.lon),
+    })),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "waterline-derived-intelligence.json";
+  a.click();
+});
+
+window.__inspectCoords = (lat, lon, name) => {
+  switchTab("intel");
+  inspectVerticalSlice({ name, lat, lon, bowlM: 0 });
+};
 
 // ---------- Prep & Brief ----------
 function renderPrep() {
@@ -1076,6 +1401,8 @@ document.querySelectorAll("#spotBar .chip[data-spot]").forEach((b) => b.addEvent
   b.classList.add("active");
   if (map) map.flyTo([spot.lat, spot.lon], spot.zoom);
   await Promise.all([loadForecast(false), selectDistrict(spot.dist)]);
+  renderIntelMatrix();
+  inspectVerticalSlice({ name: spot.name, lat: spot.lat, lon: spot.lon, bowlM: 0 });
 }));
 
 $("geoBtn").addEventListener("click", () => {
@@ -1119,7 +1446,9 @@ setInterval(() => { if ($("camAutoRefresh").checked) { camTick = Math.floor(Date
 (async () => {
   CITY = await getJSON("data/city.json");
   initMap(); renderCity();
-  await Promise.all([loadForecast(false), selectDistrict(4)]);
+  await Promise.all([loadForecast(false), selectDistrict(4), fetchLiveDepthGauges()]);
+  renderIntelMatrix();
+  inspectVerticalSlice({ name: activeSpot.name, lat: activeSpot.lat, lon: activeSpot.lon, bowlM: CITY.hotspots[0]?.max_depth_m || 0 });
 })();
 </script>
 </body>
