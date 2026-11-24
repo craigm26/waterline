@@ -36,6 +36,11 @@ struct HereView: View {
                     } else if let r = model.report {
                         dashboardKPIs(r)
                         summary(r)
+                        VerticalSliceCard(
+                            report: r,
+                            nearestCamera: cameraStore.nearestCameras(to: r.coordinate, limit: 1).first,
+                            onTapCamera: { selectedCamera = $0 }
+                        )
                         liveCameraStrip(r)
                         nextDays(r)
                         seeIt(r)

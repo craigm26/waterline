@@ -24,12 +24,29 @@ struct CityMapView: View {
     private func on(_ l: Layer) -> Bool { !Layer.off(layersOff).contains(l) }
     @State private var picked: POI?
     @State private var pickedCamera: CaltransCamera?
+    @State private var mapStyleIndex = 0
+
+    private var currentMapStyle: MapStyle {
+        switch mapStyleIndex {
+        case 1: return .hybrid(elevation: .realistic)
+        case 2: return .imagery(elevation: .realistic)
+        default: return .standard(elevation: .realistic)
+        }
+    }
+
+    private var mapStyleLabel: String {
+        switch mapStyleIndex {
+        case 1: return "Hybrid"
+        case 2: return "Satellite"
+        default: return "Standard"
+        }
+    }
 
     private var visibleCameras: [CaltransCamera] {
-        guard on(.cameras), spanDeg < 0.35 else { return [] }
-        return Array(cameraStore.nearestCameras(to: center, limit: 30).filter {
+        guard on(.cameras), spanDeg < 0.65 else { return [] }
+        return Array(cameraStore.nearestCameras(to: center, limit: 80).filter {
             abs($0.latitude - center.latitude) < spanDeg && abs($0.longitude - center.longitude) < spanDeg * 1.5
-        }.prefix(18))
+        }.prefix(45))
     }
     /// Rings and levees in view, capped so a coastal city's thousands of polygons don't stall the map.
     private var visibleRings: [[[Double]]] {
@@ -140,6 +157,7 @@ struct CityMapView: View {
                         Marker("Checking here", systemImage: "mappin", coordinate: p).tint(.red)
                     }
                 }
+                .mapStyle(currentMapStyle)
                 .mapControls {
                     MapUserLocationButton()
                     MapCompass()
@@ -171,7 +189,14 @@ struct CityMapView: View {
             .navigationTitle("Map")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                LayerMenu(only: [.cameras, .rainWater, .rivers, .tide, .streetSensors, .floodZones, .levees, .pumps, .drains, .reports, .lowSpots])
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        mapStyleIndex = (mapStyleIndex + 1) % 3
+                    } label: {
+                        Label(mapStyleLabel, systemImage: "map.fill")
+                    }
+                    LayerMenu(only: [.cameras, .rainWater, .rivers, .tide, .streetSensors, .floodZones, .levees, .pumps, .drains, .reports, .lowSpots])
+                }
             }
             .onChange(of: layersOff) { _, _ in Task { await refreshDrainage() } }
             .onChange(of: storm) { _, _ in Task { await refreshDrainage() } }

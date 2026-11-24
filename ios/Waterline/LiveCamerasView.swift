@@ -9,6 +9,7 @@ struct LiveCamerasView: View {
         case all = "All nearby"
         case usgs = "USGS Rivers"
         case caltrans = "Caltrans CA"
+        case alertCA = "AlertCA"
         case nyc = "NYC DOT"
         var id: String { rawValue }
     }
@@ -42,6 +43,8 @@ struct LiveCamerasView: View {
             base = store.usgsCameras
         case .caltrans:
             base = store.camerasByDistrict[selectedDistrict] ?? []
+        case .alertCA:
+            base = store.alertCACameras
         case .nyc:
             base = store.nycCameras
         }
@@ -123,6 +126,7 @@ struct LiveCamerasView: View {
                     case .all: await store.ensureLoaded(near: origin)
                     case .usgs: await store.loadUSGS()
                     case .caltrans: await store.load(district: selectedDistrict)
+                    case .alertCA: await store.loadAlertCA()
                     case .nyc: await store.loadNYCDOT()
                     }
                 }

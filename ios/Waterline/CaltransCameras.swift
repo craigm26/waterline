@@ -5,6 +5,7 @@ import SwiftUI
 enum CameraSource: String, CaseIterable, Identifiable, Hashable {
     case usgs = "USGS River"
     case caltrans = "Caltrans"
+    case alertCA = "AlertCA"
     case nycDot = "NYC DOT"
 
     var id: String { rawValue }
@@ -31,14 +32,14 @@ struct CaltransCamera: Identifiable, Hashable {
     }
 
     var isWaterCorridor: Bool {
-        if source == .usgs { return true }
+        if source == .usgs || source == .alertCA { return true }
         let s = (name + " " + route).lowercased()
         let tokens = [
             "bridge", "river", "creek", "bay", "causeway", "coast", "beach",
             "embarcadero", "marina", "harbor", "pier", "slough", "delta",
             "levee", "channel", "pocket", "natomas", "dumbarton", "san mateo",
-            "golden gate", "bayshore", "tunnel", "underpass", "fdr", "west side",
-            "brooklyn", "manhattan", "hudson", "east river", "101", "80", "5"
+            "golden gate", "bayshore", "tunnel", "underpass", "alemany", "cesar chavez",
+            "fdr", "west side", "brooklyn", "manhattan", "hudson", "east river", "101", "280", "80", "5"
         ]
         return tokens.contains(where: { s.contains($0) })
     }
@@ -126,15 +127,18 @@ final class CaltransCameraStore: ObservableObject {
 
     @Published var camerasByDistrict: [CaltransDistrict: [CaltransCamera]] = [:]
     @Published var usgsCameras: [CaltransCamera] = []
+    @Published var alertCACameras: [CaltransCamera] = []
     @Published var nycCameras: [CaltransCamera] = []
     @Published var loadingDistricts: Set<CaltransDistrict> = []
     @Published var loadingUSGS = false
+    @Published var loadingAlertCA = false
     @Published var loadingNYC = false
     @Published var lastError: String?
     @Published var refreshTick: Int = Int(Date().timeIntervalSince1970)
 
     private var fetchedAt: [CaltransDistrict: Date] = [:]
     private var usgsFetchedAt: Date?
+    private var alertCAFetchedAt: Date?
     private var nycFetchedAt: Date?
 
     func bumpSnapshots() {
@@ -142,7 +146,44 @@ final class CaltransCameraStore: ObservableObject {
     }
 
     var allLoadedCameras: [CaltransCamera] {
-        usgsCameras + nycCameras + camerasByDistrict.values.flatMap { $0 }
+        usgsCameras + alertCACameras + nycCameras + camerasByDistrict.values.flatMap { $0 }
+    }
+
+    func loadAlertCA(force: Bool = false) async {
+        if !force, let ts = alertCAFetchedAt, Date().timeIntervalSince(ts) < 900, !alertCACameras.isEmpty { return }
+        guard !loadingAlertCA else { return }
+        loadingAlertCA = true
+        defer { loadingAlertCA = false }
+
+        do {
+            var req = URLRequest(url: URL(string: "https://cameras.alertcalifornia.org/public-camera-data/all_cameras-v3.json")!)
+            req.timeoutInterval = 18
+            let (data, resp) = try await URLSession.shared.data(for: req)
+            guard (resp as? HTTPURLResponse)?.statusCode == 200 else { return }
+            let env = try JSONDecoder().decode(AlertCAEnvelope.self, from: data)
+            alertCACameras = env.features.compactMap { f in
+                guard let id = f.properties.id, !id.isEmpty,
+                      let coords = f.geometry?.coordinates, coords.count >= 2,
+                      let imgURL = URL(string: "https://cameras.alertcalifornia.org/public-camera-data/\(id)/latest-frame.jpg") else { return nil }
+                return CaltransCamera(
+                    id: "alertca-\(id)",
+                    source: .alertCA,
+                    district: 0,
+                    name: f.properties.name ?? id,
+                    route: f.properties.region ?? "Panoramic",
+                    direction: "",
+                    county: f.properties.county ?? "CA",
+                    latitude: coords[1],
+                    longitude: coords[0],
+                    imageURL: imgURL,
+                    streamURL: URL(string: "https://ops.alertcalifornia.org/cam-console/\(id)"),
+                    inService: true
+                )
+            }
+            alertCAFetchedAt = Date()
+        } catch {
+            // Non-fatal
+        }
     }
 
     func loadUSGS(force: Bool = false) async {
@@ -282,7 +323,8 @@ final class CaltransCameraStore: ObservableObject {
         async let u: Void = loadUSGS()
         if let dist = CaltransDistrict.nearest(to: coord) {
             async let c: Void = load(district: dist)
-            _ = await (u, c)
+            async let a: Void = loadAlertCA()
+            _ = await (u, c, a)
         } else if coord.latitude > 40.4 && coord.latitude < 41.0 && coord.longitude > -74.4 && coord.longitude < -73.6 {
             async let n: Void = loadNYCDOT()
             _ = await (u, n)
@@ -293,6 +335,26 @@ final class CaltransCameraStore: ObservableObject {
 }
 
 // MARK: - Feed JSON schemas
+
+private struct AlertCAEnvelope: Decodable {
+    let features: [AlertCAFeature]
+}
+
+private struct AlertCAFeature: Decodable {
+    let geometry: AlertCAGeometry?
+    let properties: AlertCAProps
+}
+
+private struct AlertCAGeometry: Decodable {
+    let coordinates: [Double]
+}
+
+private struct AlertCAProps: Decodable {
+    let id: String?
+    let name: String?
+    let region: String?
+    let county: String?
+}
 
 private struct USGSMediaCamera: Decodable {
     let camId: String?
