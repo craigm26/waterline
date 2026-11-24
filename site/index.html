@@ -216,20 +216,80 @@ svg text { font-family: var(--mono); }
 .btn-sm:hover { border-color: var(--blue); text-decoration: none; }
 .btn-sm.primary { background: var(--blue-soft); border-color: rgba(56,161,255,0.45); color: var(--blue); }
 
-/* Map View */
-.map-layout { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
-@media (max-width: 1024px) { .map-layout { grid-template-columns: 1fr; } }
-#map { height: 620px; border-radius: var(--radius); border: 1px solid var(--border); background: #0a1420; z-index: 1; }
-#map .leaflet-tile-pane { filter: invert(92%) hue-rotate(180deg) brightness(95%) contrast(92%); }
-@media (max-width: 700px) { #map { height: 440px; } }
-.layer-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.table-scroll { max-height: 515px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--border); }
-th { position: sticky; top: 0; background: var(--surface-2); font: 600 0.7rem var(--mono); text-transform: uppercase; color: var(--muted); }
+/* Map View — Full-bleed Operations Canvas with Floating Glass HUD */
+.wrap.map-full { max-width: 100%; padding: 10px 14px 18px; }
+.map-stage {
+  position: relative; width: 100%; height: calc(100vh - 134px); min-height: 620px;
+  border-radius: 16px; overflow: hidden; border: 1px solid var(--border-strong);
+  background: #08121d; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+#map { width: 100%; height: 100%; z-index: 1; background: #08121d; }
+#map.style-night .leaflet-tile-pane { filter: invert(100%) hue-rotate(195deg) saturate(130%) brightness(86%) contrast(95%); }
+#map.style-day .leaflet-tile-pane { filter: saturate(108%) contrast(102%); }
+.leaflet-popup-content-wrapper {
+  background: rgba(11, 21, 34, 0.95) !important; color: var(--fg) !important;
+  border: 1px solid var(--border-strong); border-radius: 12px !important;
+  backdrop-filter: blur(14px); box-shadow: 0 12px 32px rgba(0,0,0,0.55) !important;
+}
+.leaflet-popup-tip { background: rgba(11, 21, 34, 0.95) !important; }
+.leaflet-popup-close-button { color: var(--muted) !important; font-size: 18px !important; padding: 6px 8px !important; }
+.leaflet-control-zoom { border: 1px solid var(--border-strong) !important; border-radius: 10px !important; overflow: hidden; }
+.leaflet-control-zoom a { background: rgba(11, 21, 34, 0.88) !important; color: var(--fg) !important; border-color: var(--border) !important; }
+.leaflet-control-zoom a:hover { background: var(--surface-hover) !important; color: var(--blue) !important; }
+
+.map-hud-top {
+  position: absolute; top: 14px; left: 56px; right: 14px; z-index: 500;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; pointer-events: none; flex-wrap: wrap;
+}
+.map-hud-group {
+  display: flex; flex-wrap: wrap; gap: 6px; pointer-events: auto;
+  background: rgba(9, 17, 27, 0.82); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-strong); padding: 6px 8px; border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.layer-chip {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 600;
+  color: var(--fg); background: rgba(255,255,255,0.04); border: 1px solid transparent;
+  padding: 5px 11px; border-radius: 999px; cursor: pointer; transition: .15s; user-select: none;
+}
+.layer-chip:hover { background: rgba(255,255,255,0.09); }
+.layer-chip input { display: none; }
+.layer-chip.on { background: rgba(56,161,255,0.16); border-color: rgba(56,161,255,0.45); color: #fff; }
+.layer-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.map-drawer {
+  position: absolute; top: 70px; right: 14px; bottom: 14px; width: 340px; max-width: calc(100% - 28px);
+  z-index: 500; display: flex; flex-direction: column; gap: 10px; padding: 14px;
+  background: rgba(9, 17, 27, 0.88); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border-strong); border-radius: 14px;
+  box-shadow: 0 18px 44px rgba(0,0,0,0.55); transition: transform .22s ease, opacity .2s ease;
+}
+.map-drawer.collapsed { transform: translateX(calc(100% + 24px)); opacity: 0; pointer-events: none; }
+.map-drawer input[type="search"] {
+  width: 100%; background: rgba(4, 10, 18, 0.8); border: 1px solid var(--border);
+  border-radius: 999px; padding: 7px 12px; font-size: 0.8rem; color: var(--fg); outline: none;
+}
+.map-drawer input[type="search"]:focus { border-color: var(--blue); }
+.table-scroll { flex: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: rgba(7, 13, 20, 0.55); }
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th, td { padding: 8px 9px; text-align: left; border-bottom: 1px solid var(--border); }
+th { position: sticky; top: 0; background: var(--surface-2); font: 600 0.68rem var(--mono); text-transform: uppercase; color: var(--muted); }
 td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
 tbody tr { cursor: pointer; transition: background .1s; }
 tbody tr:hover { background: var(--surface-hover); }
+
+.map-hud-bottom {
+  position: absolute; left: 14px; bottom: 14px; z-index: 500; pointer-events: auto;
+  background: rgba(9, 17, 27, 0.84); backdrop-filter: blur(14px);
+  border: 1px solid var(--border-strong); border-radius: 12px; padding: 8px 13px;
+  font-size: 0.76rem; color: var(--muted); display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.map-hud-bottom strong { color: var(--fg); }
+@media (max-width: 760px) {
+  .map-stage { height: calc(100vh - 170px); min-height: 500px; border-radius: 12px; }
+  .map-hud-top { left: 10px; right: 10px; top: 10px; }
+  .map-drawer { width: calc(100% - 20px); right: 10px; top: auto; height: 52%; }
+}
 
 /* Prep & Brief */
 .prep-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
@@ -399,31 +459,51 @@ details summary { cursor: pointer; color: var(--fg); font-weight: 600; }
     <div class="cam-grid" id="camGrid"></div>
   </section>
 
-  <!-- TAB 3: INTERACTIVE MAP -->
+  <!-- TAB 3: INTERACTIVE MAP (FULL-SCREEN OPERATIONS CANVAS) -->
   <section id="view-map" class="view">
-    <div class="layer-pills" id="layers">
-      <label class="pill-toggle"><input type="checkbox" data-l="cam" checked> Live Cameras (USGS + Caltrans)</label>
-      <label class="pill-toggle"><input type="checkbox" data-l="hot" checked> 50 Street Low Spots</label>
-      <label class="pill-toggle"><input type="checkbox" data-l="drain" checked> Top 500 Drains</label>
-      <label class="pill-toggle"><input type="checkbox" data-l="f311"> Past 311 Flood Reports</label>
-      <label class="pill-toggle"><input type="checkbox" data-l="zone"> SFPUC 100-yr Flood Zone</label>
-    </div>
-    <div class="map-layout">
-      <div id="map" role="region" aria-label="Interactive flood screening and live camera map"></div>
-      <div class="card" style="padding:14px">
-        <div class="card-head" style="margin-bottom:10px">
-          <div style="display:flex;gap:6px">
-            <button type="button" class="chip active" data-side="hot">Low Spots (50)</button>
-            <button type="button" class="chip" data-side="zone">Crew Zones</button>
+    <div class="map-stage" id="mapStage">
+      <div id="map" class="style-night" role="region" aria-label="Full-screen interactive flood screening and live camera map"></div>
+
+      <div class="map-hud-top">
+        <div class="map-hud-group" id="layers">
+          <label class="layer-chip on"><input type="checkbox" data-l="cam" checked><span class="layer-dot" style="background:#2dd4bf"></span>Cameras</label>
+          <label class="layer-chip on"><input type="checkbox" data-l="hot" checked><span class="layer-dot" style="background:#fbbf24"></span>Low Spots</label>
+          <label class="layer-chip on"><input type="checkbox" data-l="drain" checked><span class="layer-dot" style="background:#38a1ff"></span>Top 500 Drains</label>
+          <label class="layer-chip"><input type="checkbox" data-l="f311"><span class="layer-dot" style="background:#f87171"></span>311 Floods</label>
+          <label class="layer-chip"><input type="checkbox" data-l="zone"><span class="layer-dot" style="background:#818cf8"></span>100-yr Zone</label>
+        </div>
+
+        <div class="map-hud-group">
+          <button type="button" class="layer-chip on" id="mapThemeBtn">Night</button>
+          <button type="button" class="layer-chip on" id="drawerToggleBtn">Places &amp; Zones</button>
+          <button type="button" class="layer-chip" id="fullscreenBtn">Fullscreen</button>
+        </div>
+      </div>
+
+      <aside class="map-drawer" id="mapDrawer">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <div style="display:flex;gap:5px">
+            <button type="button" class="chip active" data-side="hot">Low Spots</button>
+            <button type="button" class="chip" data-side="zone">Zones</button>
+            <button type="button" class="chip" data-side="cams">Cameras</button>
           </div>
           <a class="btn-sm" href="data/top500_drains.csv" download>CSV</a>
         </div>
+        <input type="search" id="drawerSearch" placeholder="Filter places, streets, or cameras…">
         <div class="table-scroll" id="sideHot">
-          <table id="hotTable"><thead><tr><th class="r">#</th><th>Location</th><th class="r">Depth m</th><th class="r">311</th></tr></thead><tbody></tbody></table>
+          <table id="hotTable"><thead><tr><th class="r">#</th><th>Location</th><th class="r">Depth</th><th class="r">311</th></tr></thead><tbody></tbody></table>
         </div>
         <div class="table-scroll" id="sideZone" style="display:none">
-          <table id="zoneTable"><thead><tr><th>Neighborhood</th><th class="r">Top-500 Drains</th></tr></thead><tbody></tbody></table>
+          <table id="zoneTable"><thead><tr><th>Neighborhood</th><th class="r">Drains</th></tr></thead><tbody></tbody></table>
         </div>
+        <div class="table-scroll" id="sideCams" style="display:none">
+          <table id="camTable"><thead><tr><th>Camera</th><th class="r">Dist</th></tr></thead><tbody></tbody></table>
+        </div>
+      </aside>
+
+      <div class="map-hud-bottom" id="mapHudBottom">
+        <strong id="mapHudSpot">San Francisco</strong>
+        <span>Tap any marker for live camera preview or drain depth</span>
       </div>
     </div>
   </section>
@@ -513,7 +593,8 @@ const WATER_RE = /bridge|river|creek|bay|causeway|coast|beach|embarcadero|marina
 function switchTab(tab) {
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === `view-${tab}`));
-  if (tab === "map" && map) setTimeout(() => map.invalidateSize(), 60);
+  document.querySelector("main.wrap").classList.toggle("map-full", tab === "map");
+  if (tab === "map" && map) setTimeout(() => map.invalidateSize(), 80);
 }
 document.querySelectorAll(".tab-btn").forEach((b) => b.addEventListener("click", () => switchTab(b.dataset.tab)));
 $("openAllCamsBtn").addEventListener("click", () => switchTab("cams"));
@@ -522,7 +603,36 @@ document.querySelectorAll("[data-side]").forEach((b) => b.addEventListener("clic
   document.querySelectorAll("[data-side]").forEach((x) => x.classList.toggle("active", x === b));
   $("sideHot").style.display = b.dataset.side === "hot" ? "" : "none";
   $("sideZone").style.display = b.dataset.side === "zone" ? "" : "none";
+  $("sideCams").style.display = b.dataset.side === "cams" ? "" : "none";
 }));
+
+$("drawerToggleBtn").addEventListener("click", () => {
+  const collapsed = $("mapDrawer").classList.toggle("collapsed");
+  $("drawerToggleBtn").classList.toggle("on", !collapsed);
+});
+$("mapThemeBtn").addEventListener("click", () => {
+  const el = $("map");
+  const isNight = el.classList.contains("style-night");
+  el.classList.toggle("style-night", !isNight);
+  el.classList.toggle("style-day", isNight);
+  $("mapThemeBtn").textContent = isNight ? "Daylight" : "Night";
+});
+$("fullscreenBtn").addEventListener("click", () => {
+  const stage = $("mapStage");
+  if (!document.fullscreenElement) stage.requestFullscreen?.();
+  else document.exitFullscreen?.();
+});
+document.addEventListener("fullscreenchange", () => {
+  $("fullscreenBtn").classList.toggle("on", !!document.fullscreenElement);
+  if (map) setTimeout(() => map.invalidateSize(), 120);
+});
+$("drawerSearch").addEventListener("input", () => {
+  const q = $("drawerSearch").value.trim().toLowerCase();
+  ["hotTable", "zoneTable", "camTable"].forEach((id) => {
+    const tb = $(id)?.tBodies[0]; if (!tb) return;
+    Array.from(tb.rows).forEach((tr) => { tr.style.display = !q || tr.textContent.toLowerCase().includes(q) ? "" : "none"; });
+  });
+});
 
 // ---------- NOAA + NWS Forecast ----------
 const pacific = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(d).replace(",", "");
@@ -867,17 +977,20 @@ function initMap() {
   layers.hot = L.layerGroup(CITY.hotspots.map((h) => L.circleMarker([h.lat, h.lon], {
     radius: 6 + Math.sqrt(h.area_m2) / 45, color: "#fbbf24", weight: 2.5, fillColor: "#fbbf24", fillOpacity: 0.18
   }).bindPopup(`<b>Low spot #${h.rank}${h.name ? ": " + esc(h.name) : ""}</b><br>${esc(h.neighborhood)}<br>Depth ${h.max_depth_m.toFixed(2)} m · ${h.flood311_150m} past 311 reports`))).addTo(map);
-  document.querySelectorAll("#layers input").forEach((cb) => cb.addEventListener("change", () => toggleLayer(cb.dataset.l, cb.checked)));
+  document.querySelectorAll("#layers input").forEach((cb) => cb.addEventListener("change", () => {
+    cb.closest(".layer-chip")?.classList.toggle("on", cb.checked);
+    toggleLayer(cb.dataset.l, cb.checked);
+  }));
 }
 
 async function toggleLayer(name, on) {
   if (on && !layers[name]) {
     if (name === "f311") {
       const pts = await getJSON("data/flood311.json");
-      layers.f311 = L.layerGroup(pts.map(([lon, lat]) => L.circleMarker([lat, lon], { radius: 2, stroke: false, fillColor: "#f87171", fillOpacity: 0.5, interactive: false })));
+      layers.f311 = L.layerGroup(pts.map(([lon, lat]) => L.circleMarker([lat, lon], { radius: 2.5, stroke: false, fillColor: "#f87171", fillOpacity: 0.6, interactive: false })));
     } else if (name === "zone") {
       const gj = await getJSON("data/sfpuc_100yr.geojson");
-      layers.zone = L.geoJSON(gj, { style: { color: "#38a1ff", weight: 1, fillColor: "#38a1ff", fillOpacity: 0.22 }, interactive: false });
+      layers.zone = L.geoJSON(gj, { style: { color: "#818cf8", weight: 1.5, fillColor: "#818cf8", fillOpacity: 0.24 }, interactive: false });
     }
   }
   if (!layers[name]) return;
@@ -888,16 +1001,23 @@ function updateCameraMapLayer(cams) {
   if (!map) return;
   if (layers.cam) map.removeLayer(layers.cam);
   layers.cam = L.layerGroup(cams.map((c) => L.circleMarker([c.lat, c.lon], {
-    radius: 6, color: "#f0f5fa", weight: 2, fillColor: c.isUSGS ? "#2dd4bf" : "#34d399", fillOpacity: 0.92
-  }).bindPopup(`<div style="width:220px;color:#0f172a"><img src="${esc(c.img)}?t=${camTick}" style="width:100%;height:125px;object-fit:cover;border-radius:6px;margin-bottom:6px"><br><b>${esc(c.name)}</b><br>${esc(c.source)} · ${c.mi.toFixed(1)} mi${c.stream ? `<br><a href="${esc(c.stream)}" target="_blank" rel="noopener">Open live stream</a>` : ""}</div>`)));
+    radius: 7, color: "#070d14", weight: 2, fillColor: c.isUSGS ? "#2dd4bf" : "#34d399", fillOpacity: 0.96
+  }).bindPopup(`<div style="width:236px"><img src="${esc(c.img)}?t=${camTick}" style="width:100%;height:132px;object-fit:cover;border-radius:8px;margin-bottom:8px;border:1px solid rgba(148,184,224,0.25)"><div style="font-weight:700;font-size:.9rem;margin-bottom:2px">${esc(c.name)}</div><div style="font-size:.74rem;color:#8ea5be;font-family:monospace">${esc(c.source)} · ${c.mi.toFixed(1)} mi</div>${c.stream ? `<div style="margin-top:8px"><a href="${esc(c.stream)}" target="_blank" rel="noopener" style="color:#38a1ff;font-weight:600">Open live stream →</a></div>` : ""}</div>`)));
   const cb = document.querySelector('#layers input[data-l="cam"]');
   if (!cb || cb.checked) layers.cam.addTo(map);
+
+  const camTb = $("camTable")?.tBodies[0];
+  if (camTb) {
+    camTb.innerHTML = cams.slice(0, 40).map((c) => `<tr data-lat="${c.lat}" data-lon="${c.lon}"><td>${esc(c.name)}<div style="font-size:.68rem;color:#8ea5be">${esc(c.source)}</div></td><td class="r">${c.mi.toFixed(1)} mi</td></tr>`).join("");
+  }
+  if ($("mapHudSpot")) $("mapHudSpot").textContent = activeSpot.name;
 }
 
 function renderCity() {
   $("hotTable").tBodies[0].innerHTML = CITY.hotspots.map((h) => `<tr data-lat="${h.lat}" data-lon="${h.lon}"><td class="r">${h.rank}</td><td>${esc(h.name || h.neighborhood)}</td><td class="r">${h.max_depth_m.toFixed(2)}</td><td class="r">${h.flood311_150m}</td></tr>`).join("");
   $("zoneTable").tBodies[0].innerHTML = CITY.zones.map(([n, c]) => `<tr data-hood="${esc(n)}"><td>${esc(n)}</td><td class="r">${c}</td></tr>`).join("");
   $("hotTable").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-lat]"); if (tr && map) map.flyTo([+tr.dataset.lat, +tr.dataset.lon], 16); });
+  $("camTable").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-lat]"); if (tr && map) map.flyTo([+tr.dataset.lat, +tr.dataset.lon], 14); });
   $("zoneTable").addEventListener("click", (e) => {
     const tr = e.target.closest("tr[data-hood]"); if (!tr || !map) return;
     const D = CITY.drain_fields.indexOf.bind(CITY.drain_fields);
