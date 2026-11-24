@@ -5,7 +5,26 @@ import SwiftUI
 /// Shared state: where you are (GPS) or the spot you pinned on the map, and the report for it.
 @MainActor
 final class AppModel: NSObject, ObservableObject, CLLocationManagerDelegate {
-    enum Tab: Hashable { case here, map, ar }
+    enum Tab: Hashable { case here, map, cameras, ar }
+
+    struct QuickPlace: Identifiable, Hashable {
+        let id: String
+        let name: String
+        let lat: Double
+        let lon: Double
+        var coordinate: CLLocationCoordinate2D { CLLocationCoordinate2D(latitude: lat, longitude: lon) }
+    }
+
+    static let quickPlaces: [QuickPlace] = [
+        QuickPlace(id: "sf", name: "San Francisco", lat: 37.7636, lon: -122.4148),
+        QuickPlace(id: "sac", name: "Sacramento", lat: 38.5816, lon: -121.4944),
+        QuickPlace(id: "oak", name: "Oakland", lat: 37.8044, lon: -122.2712),
+        QuickPlace(id: "marin", name: "Marin / 101", lat: 37.8913, lon: -122.5177),
+        QuickPlace(id: "nola", name: "New Orleans", lat: 29.9511, lon: -90.0715),
+        QuickPlace(id: "miami", name: "Miami", lat: 25.7617, lon: -80.1918),
+        QuickPlace(id: "nyc", name: "New York", lat: 40.7033, lon: -74.0170),
+        QuickPlace(id: "houston", name: "Houston", lat: 29.7604, lon: -95.3698),
+    ]
 
     @Published var tab: Tab = .here
     @Published var gps: CLLocationCoordinate2D?

@@ -4,7 +4,7 @@ import SwiftUI
 /// camera. Turning a layer off anywhere turns it off everywhere (stored under "layersOff").
 enum Layer: String, CaseIterable, Identifiable {
     case rainWater = "Rain water", rivers = "Rivers", tide = "Tide", floodZones = "Flood zones", levees = "Levees", pumps = "Pumps"
-    case drains = "Drains", reports = "Reports", lowSpots = "Low spots", streetSensors = "Street sensors", higherGround = "Higher ground", lidar = "Lidar"
+    case drains = "Drains", reports = "Reports", lowSpots = "Low spots", streetSensors = "Street sensors", higherGround = "Higher ground", lidar = "Lidar", cameras = "Live cameras"
     var id: String { rawValue }
 
     var icon: String {
@@ -21,6 +21,7 @@ enum Layer: String, CaseIterable, Identifiable {
         case .streetSensors: return "sensor.fill"
         case .higherGround: return "figure.walk.motion"
         case .lidar: return "cube.transparent"
+        case .cameras: return "video.fill"
         }
     }
 
@@ -39,6 +40,7 @@ enum Layer: String, CaseIterable, Identifiable {
         case .streetSensors: return "Street flood sensors"
         case .higherGround: return "The nearest ground that stays dry"
         case .lidar: return "Lidar scenes on this phone"
+        case .cameras: return "Live Caltrans highway and bridge cameras"
         }
     }
 

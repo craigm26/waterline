@@ -1,15 +1,23 @@
 import SwiftUI
 import CoreLocation
+import MapKit
 
-/// The main screen: what flooding looks like at this spot, in words first, numbers second.
+/// The main live dashboard: quick spot switcher, at-a-glance risk/rain/tide/camera tiles,
+/// live verification camera strip, and detailed provenance-marked cards (2-column on iPad).
 struct HereView: View {
     @EnvironmentObject var model: AppModel
     @ObservedObject private var packs = PackStore.shared
+    @ObservedObject private var cameraStore = CaltransCameraStore.shared
+    @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var showInfo = false
+    @State private var showSearch = false
     @State private var allFindings = false
+    @State private var selectedCamera: CaltransCamera?
     #if DEBUG
     @State private var debug3D = false
     #endif
+
+    private var isWide: Bool { sizeClass == .regular }
 
     var body: some View {
         NavigationStack {
@@ -17,22 +25,35 @@ struct HereView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     whereBar
+                    quickPlaceStrip
                     if model.locationDenied && model.pinned == nil {
                         Card {
                             Text("Location is off").font(.headline)
-                            Text("Waterline needs your location to read the ground under you. Turn it on in Settings, or pick a spot on the Map tab.")
+                            Text("Waterline needs your location to read the ground under you. Turn it on in Settings, or tap any city above or Search address.")
                                 .font(.subheadline)
                             Button("Open Settings") { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
                         }
                     } else if let r = model.report {
+                        dashboardKPIs(r)
                         summary(r)
+                        liveCameraStrip(r)
                         nextDays(r)
                         seeIt(r)
                         lidarLink(r)
                         regionOffer(r)
-                        coast(r).id("coast")
-                        river(r).id("river")
-                        rain(r).id("rain")
+                        if isWide {
+                            LazyVGrid(columns: [GridItem(.flexible(), spacing: 14, alignment: .top), GridItem(.flexible(), spacing: 14, alignment: .top)], spacing: 14) {
+                                coast(r).id("coast")
+                                VStack(spacing: 14) {
+                                    river(r).id("river")
+                                    rain(r).id("rain")
+                                }
+                            }
+                        } else {
+                            coast(r).id("coast")
+                            river(r).id("river")
+                            rain(r).id("rain")
+                        }
                         if !r.actions.isEmpty { todo(r) }
                         ForEach(r.problems, id: \.self) { Text($0).font(.caption).foregroundStyle(.orange) }
                         footer
@@ -41,6 +62,8 @@ struct HereView: View {
                     }
                 }
                 .padding()
+                .frame(maxWidth: isWide ? 1120 : .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity)
             }
             #if DEBUG
             // Simulator screenshots: WL_SCROLL=coast|river|rain opens the Here tab on that card.
@@ -58,17 +81,136 @@ struct HereView: View {
             }
             #endif
             }
-            .refreshable { model.refresh(force: true) }
+            .refreshable {
+                model.refresh(force: true)
+                cameraStore.bumpSnapshots()
+            }
             .task { await PackStore.shared.load() }
+            .task(id: model.report?.coordinate.latitude) {
+                if let c = model.report?.coordinate {
+                    await cameraStore.ensureLoaded(near: c)
+                }
+            }
             .navigationTitle("Waterline")
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button { showSearch = true } label: { Image(systemName: "magnifyingglass") }
+                        .accessibilityLabel("Search address or city")
                     NavigationLink { DataPacksView() } label: { Image(systemName: "arrow.down.circle") }
                         .accessibilityLabel("Offline data")
                     Button { showInfo = true } label: { Image(systemName: "info.circle") }
                 }
             }
             .sheet(isPresented: $showInfo) { InfoView() }
+            .sheet(isPresented: $showSearch) { PlaceSearchSheet().environmentObject(model) }
+            .sheet(item: $selectedCamera) { cam in
+                CameraDetailSheet(camera: cam, origin: model.report?.coordinate ?? cam.coordinate)
+                    .environmentObject(model)
+            }
+        }
+    }
+
+    private var quickPlaceStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                Button {
+                    showSearch = true
+                } label: {
+                    Label("Search", systemImage: "magnifyingglass")
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color(.secondarySystemFill), in: Capsule())
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    model.unpin()
+                } label: {
+                    Label("My spot", systemImage: "location.fill")
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(!model.usingPin ? Color.accentColor : Color(.secondarySystemFill), in: Capsule())
+                        .foregroundStyle(!model.usingPin ? .white : .primary)
+                }
+                .buttonStyle(.plain)
+
+                ForEach(AppModel.quickPlaces) { place in
+                    let active = model.pinned.map { Geo.distance($0, place.coordinate) < 500 } ?? false
+                    Button {
+                        model.pin(place.coordinate)
+                    } label: {
+                        Text(place.name)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(active ? Color.accentColor : Color(.secondarySystemFill), in: Capsule())
+                            .foregroundStyle(active ? .white : .primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private func dashboardKPIs(_ r: SpotReport) -> some View {
+        let cols = Array(repeating: GridItem(.flexible(), spacing: 10), count: isWide ? 4 : 2)
+        let riskColor: Color = r.level == .high ? .red : r.level == .watch ? .orange : .green
+        let riskWord = r.level == .high ? "High" : r.level == .watch ? "Watch" : "Clear"
+        let rainText = r.rain.map { String(format: "%.2f in", $0.next72In) } ?? "—"
+        let tideText: String = {
+            if let m = r.coastalMarginFt { return String(format: "%+.1f ft", m) }
+            if let g = r.gauges.first, let obs = g.observed { return String(format: "%.1f ft", obs) }
+            return "—"
+        }()
+        let tideSub = r.coastalMarginFt != nil ? "Tide margin" : "Nearest river"
+        let nearCams = CaltransDistrict.nearest(to: r.coordinate) != nil ? cameraStore.nearestCameras(to: r.coordinate, limit: 12).count : 0
+
+        return LazyVGrid(columns: cols, spacing: 10) {
+            KPITile(title: "Risk now", value: riskWord, subtitle: r.placeLabel ?? "This spot", tint: riskColor, icon: "shield.lefthalf.filled")
+            KPITile(title: "Next 3 days rain", value: rainText, subtitle: r.next72.reaches ? "Water ponds here" : "NWS forecast", tint: .blue, icon: "cloud.rain.fill")
+            KPITile(title: tideSub, value: tideText, subtitle: r.tide?.stationName ?? "Official gauge", tint: .teal, icon: "water.waves")
+            Button {
+                model.tab = .cameras
+            } label: {
+                KPITile(title: "Live cameras", value: nearCams > 0 ? "\(nearCams) nearby" : "Browse CA", subtitle: "Caltrans visual check", tint: .indigo, icon: "video.fill")
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    @ViewBuilder
+    private func liveCameraStrip(_ r: SpotReport) -> some View {
+        if CaltransDistrict.nearest(to: r.coordinate) != nil {
+            let cams = cameraStore.nearestCameras(to: r.coordinate, limit: isWide ? 4 : 3)
+            Card {
+                HStack {
+                    Label("Verify on live cameras", systemImage: "video.fill")
+                        .font(.headline)
+                    Spacer()
+                    Button("See all") { model.tab = .cameras }
+                        .font(.subheadline)
+                }
+                if cams.isEmpty {
+                    HStack(spacing: 8) {
+                        ProgressView().controlSize(.small)
+                        Text("Loading nearest Caltrans cameras…").font(.caption).foregroundStyle(.secondary)
+                    }
+                } else {
+                    let cols = Array(repeating: GridItem(.flexible(), spacing: 10), count: isWide ? 4 : 3)
+                    LazyVGrid(columns: cols, spacing: 10) {
+                        ForEach(cams) { cam in
+                            Button {
+                                selectedCamera = cam
+                            } label: {
+                                CameraTile(camera: cam, origin: r.coordinate, refreshTick: cameraStore.refreshTick)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -379,6 +521,119 @@ struct InfoView: View {
             }
             .navigationTitle("About Waterline")
             .toolbar { Button("Done") { dismiss() } }
+        }
+    }
+}
+
+/// Compact glanceable KPI tile for the iPhone/iPad dashboard grid.
+struct KPITile: View {
+    let title: String
+    let value: String
+    let subtitle: String
+    let tint: Color
+    let icon: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 5) {
+                Image(systemName: icon).font(.caption).foregroundStyle(tint)
+                Text(title).font(.caption.weight(.medium)).foregroundStyle(.secondary)
+                Spacer()
+            }
+            Text(value)
+                .font(.title3.bold().monospacedDigit())
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            Text(subtitle)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(tint.opacity(0.35), lineWidth: 1))
+    }
+}
+
+/// Address and city search using MapKit's MKLocalSearch so users can check any
+/// street or landmark in seconds.
+struct PlaceSearchSheet: View {
+    @EnvironmentObject var model: AppModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var query = ""
+    @State private var results: [MKMapItem] = []
+    @State private var searching = false
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if query.isEmpty {
+                    Section("Quick cities") {
+                        ForEach(AppModel.quickPlaces) { place in
+                            Button {
+                                model.pin(place.coordinate)
+                                dismiss()
+                            } label: {
+                                Label(place.name, systemImage: "mappin.circle.fill")
+                            }
+                        }
+                    }
+                } else {
+                    Section("Results") {
+                        if searching {
+                            HStack(spacing: 8) {
+                                ProgressView().controlSize(.small)
+                                Text("Searching…").foregroundStyle(.secondary)
+                            }
+                        } else if results.isEmpty {
+                            Text("No places found for \"\(query)\".").foregroundStyle(.secondary)
+                        } else {
+                            ForEach(results, id: \.self) { item in
+                                Button {
+                                    model.pin(item.placemark.coordinate)
+                                    dismiss()
+                                } label: {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(item.name ?? "Place").font(.body.weight(.medium))
+                                        if let title = item.placemark.title {
+                                            Text(title).font(.caption).foregroundStyle(.secondary)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Check any spot")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Address, intersection, or city")
+            .onChange(of: query) { _, next in
+                Task { await runSearch(next) }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+            }
+        }
+    }
+
+    private func runSearch(_ text: String) async {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.count >= 2 else { results = []; return }
+        searching = true
+        defer { searching = false }
+        let req = MKLocalSearch.Request()
+        req.naturalLanguageQuery = trimmed
+        if let center = model.target {
+            req.region = MKCoordinateRegion(center: center, latitudinalMeters: 80_000, longitudinalMeters: 80_000)
+        }
+        do {
+            let resp = try await MKLocalSearch(request: req).start()
+            results = Array(resp.mapItems.prefix(10))
+        } catch {
+            results = []
         }
     }
 }

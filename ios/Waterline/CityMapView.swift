@@ -16,12 +16,21 @@ struct CityMapView: View {
     @State private var places: Places? = Places.shared
     @StateObject private var drainage = DrainageStore.shared
     @StateObject private var packs = PackStore.shared
+    @ObservedObject private var cameraStore = CaltransCameraStore.shared
     @AppStorage(Layer.storageKey) private var layersOff = Layer.defaultOff
     @AppStorage("storm") private var storm: StormCase = .next24
     @AppStorage("drainsWorking") private var drainsWorking = true
     private var showDrainage: Bool { on(.rainWater) }
     private func on(_ l: Layer) -> Bool { !Layer.off(layersOff).contains(l) }
     @State private var picked: POI?
+    @State private var pickedCamera: CaltransCamera?
+
+    private var visibleCameras: [CaltransCamera] {
+        guard on(.cameras), spanDeg < 0.35 else { return [] }
+        return Array(cameraStore.nearestCameras(to: center, limit: 30).filter {
+            abs($0.latitude - center.latitude) < spanDeg && abs($0.longitude - center.longitude) < spanDeg * 1.5
+        }.prefix(18))
+    }
     /// Rings and levees in view, capped so a coastal city's thousands of polygons don't stall the map.
     private var visibleRings: [[[Double]]] {
         guard on(.floodZones), let p = places else { return [] }
@@ -113,6 +122,20 @@ struct CityMapView: View {
                             MapPOIButton(poi: .lowSpot(s, in: places!), color: .orange, picked: $picked)
                         }
                     }
+                    ForEach(visibleCameras) { cam in
+                        Annotation(cam.route.isEmpty ? "Camera" : cam.route, coordinate: cam.coordinate) {
+                            Button {
+                                pickedCamera = cam
+                            } label: {
+                                Image(systemName: "video.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(.white, .blue)
+                                    .shadow(radius: 2)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Live camera \(cam.name)")
+                        }
+                    }
                     if let p = model.pinned {
                         Marker("Checking here", systemImage: "mappin", coordinate: p).tint(.red)
                     }
@@ -125,7 +148,11 @@ struct CityMapView: View {
                 .onMapCameraChange(frequency: .onEnd) { ctx in
                     center = ctx.region.center
                     spanDeg = ctx.region.span.latitudeDelta
-                    Task { await refreshLayers(); await refreshDrainage() }
+                    Task {
+                        await refreshLayers()
+                        await refreshDrainage()
+                        await cameraStore.ensureLoaded(near: center)
+                    }
                 }
                 .onTapGesture(coordinateSpace: .local) { pt in
                     if let hit = marker(at: pt, proxy) { picked = hit }
@@ -133,18 +160,27 @@ struct CityMapView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) { bottomCard }
-            .task { frameSpot(model.pinned ?? model.report?.coordinate ?? model.gps); await refreshLayers() }
+            .task {
+                let target = model.pinned ?? model.report?.coordinate ?? model.gps
+                frameSpot(target)
+                await refreshLayers()
+                if let t = target { await cameraStore.ensureLoaded(near: t) }
+            }
             .onReceive(model.$report) { r in frameSpot(r?.coordinate) }
             .onReceive(model.$gps) { frameSpot($0) }
             .navigationTitle("Map")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                LayerMenu(only: [.rainWater, .rivers, .tide, .streetSensors, .floodZones, .levees, .pumps, .drains, .reports, .lowSpots])
+                LayerMenu(only: [.cameras, .rainWater, .rivers, .tide, .streetSensors, .floodZones, .levees, .pumps, .drains, .reports, .lowSpots])
             }
             .onChange(of: layersOff) { _, _ in Task { await refreshDrainage() } }
             .onChange(of: storm) { _, _ in Task { await refreshDrainage() } }
             .onChange(of: drainsWorking) { _, _ in Task { await refreshDrainage() } }
             .sheet(item: $picked) { p in POIDetail(poi: p, report: model.report).presentationDetents([.medium, .large]) }
+            .sheet(item: $pickedCamera) { cam in
+                CameraDetailSheet(camera: cam, origin: center)
+                    .environmentObject(model)
+            }
         }
     }
 

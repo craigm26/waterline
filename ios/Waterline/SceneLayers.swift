@@ -51,6 +51,7 @@ enum SceneLayers {
         case .streetSensors: return .systemPink
         case .higherGround: return .systemGreen
         case .lidar: return .white
+        case .cameras: return .systemGreen
         }
     }
 

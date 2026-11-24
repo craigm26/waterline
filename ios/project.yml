@@ -9,8 +9,8 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     DEVELOPMENT_TEAM: WYGG3JXWMG
-    MARKETING_VERSION: "1.8"
-    CURRENT_PROJECT_VERSION: 2
+    MARKETING_VERSION: "1.9"
+    CURRENT_PROJECT_VERSION: 3
 targets:
   Waterline:
     type: application
@@ -20,7 +20,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.craigmerry.waterline
-        TARGETED_DEVICE_FAMILY: "1,7"
+        TARGETED_DEVICE_FAMILY: "1,2,7"
         CODE_SIGN_STYLE: Automatic
         # Answers export compliance at build time (HTTPS to NOAA only), so TestFlight
         # never holds the build on "Missing Compliance".
@@ -49,3 +49,8 @@ targets:
         UIFileSharingEnabled: true
         LSSupportsOpeningDocumentsInPlace: true
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        "UISupportedInterfaceOrientations~ipad":
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
