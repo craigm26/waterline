@@ -165,7 +165,7 @@ struct HereView: View {
             return "—"
         }()
         let tideSub = r.coastalMarginFt != nil ? "Tide margin" : "Nearest river"
-        let nearCams = CaltransDistrict.nearest(to: r.coordinate) != nil ? cameraStore.nearestCameras(to: r.coordinate, limit: 12).count : 0
+        let nearCams = cameraStore.nearestCameras(to: r.coordinate, limit: 12).count
 
         return LazyVGrid(columns: cols, spacing: 10) {
             KPITile(title: "Risk now", value: riskWord, subtitle: r.placeLabel ?? "This spot", tint: riskColor, icon: "shield.lefthalf.filled")
@@ -174,7 +174,7 @@ struct HereView: View {
             Button {
                 model.tab = .cameras
             } label: {
-                KPITile(title: "Live cameras", value: nearCams > 0 ? "\(nearCams) nearby" : "Browse CA", subtitle: "Caltrans visual check", tint: .indigo, icon: "video.fill")
+                KPITile(title: "Live cameras", value: nearCams > 0 ? "\(nearCams) nearby" : "Loading…", subtitle: "USGS · Caltrans · NYC", tint: .indigo, icon: "video.fill")
             }
             .buttonStyle(.plain)
         }
@@ -182,32 +182,30 @@ struct HereView: View {
 
     @ViewBuilder
     private func liveCameraStrip(_ r: SpotReport) -> some View {
-        if CaltransDistrict.nearest(to: r.coordinate) != nil {
-            let cams = cameraStore.nearestCameras(to: r.coordinate, limit: isWide ? 4 : 3)
-            Card {
-                HStack {
-                    Label("Verify on live cameras", systemImage: "video.fill")
-                        .font(.headline)
-                    Spacer()
-                    Button("See all") { model.tab = .cameras }
-                        .font(.subheadline)
+        let cams = cameraStore.nearestCameras(to: r.coordinate, limit: isWide ? 4 : 3)
+        Card {
+            HStack {
+                Label("Verify on live cameras", systemImage: "video.fill")
+                    .font(.headline)
+                Spacer()
+                Button("See all") { model.tab = .cameras }
+                    .font(.subheadline)
+            }
+            if cams.isEmpty {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text("Loading nearest USGS & DOT cameras…").font(.caption).foregroundStyle(.secondary)
                 }
-                if cams.isEmpty {
-                    HStack(spacing: 8) {
-                        ProgressView().controlSize(.small)
-                        Text("Loading nearest Caltrans cameras…").font(.caption).foregroundStyle(.secondary)
-                    }
-                } else {
-                    let cols = Array(repeating: GridItem(.flexible(), spacing: 10), count: isWide ? 4 : 3)
-                    LazyVGrid(columns: cols, spacing: 10) {
-                        ForEach(cams) { cam in
-                            Button {
-                                selectedCamera = cam
-                            } label: {
-                                CameraTile(camera: cam, origin: r.coordinate, refreshTick: cameraStore.refreshTick)
-                            }
-                            .buttonStyle(.plain)
+            } else {
+                let cols = Array(repeating: GridItem(.flexible(), spacing: 10), count: isWide ? 4 : 3)
+                LazyVGrid(columns: cols, spacing: 10) {
+                    ForEach(cams) { cam in
+                        Button {
+                            selectedCamera = cam
+                        } label: {
+                            CameraTile(camera: cam, origin: r.coordinate, refreshTick: cameraStore.refreshTick)
                         }
+                        .buttonStyle(.plain)
                     }
                 }
             }

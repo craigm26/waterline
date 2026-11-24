@@ -1,13 +1,23 @@
 import SwiftUI
 import CoreLocation
 
-/// Live verification camera wall: Caltrans CWWP2 highway, bridge, river, and
-/// coastal cameras for visual ground-truth verification on iPhone and iPad.
+/// Live verification camera wall across USGS HIVIS (nationwide river gauges),
+/// all 12 Caltrans Districts (CA), and NYC DOT (NYC), with automatic on-device
+/// Vision face blurring on every snapshot.
 struct LiveCamerasView: View {
+    enum SourceFilter: String, CaseIterable, Identifiable {
+        case all = "All nearby"
+        case usgs = "USGS Rivers"
+        case caltrans = "Caltrans CA"
+        case nyc = "NYC DOT"
+        var id: String { rawValue }
+    }
+
     @EnvironmentObject var model: AppModel
     @ObservedObject private var store = CaltransCameraStore.shared
     @Environment(\.horizontalSizeClass) private var sizeClass
 
+    @State private var sourceFilter: SourceFilter = .all
     @State private var selectedDistrict: CaltransDistrict = .d4
     @State private var filterWaterCorridors = false
     @State private var searchText = ""
@@ -24,12 +34,23 @@ struct LiveCamerasView: View {
     }
 
     private var visibleCameras: [CaltransCamera] {
-        let base = store.camerasByDistrict[selectedDistrict] ?? []
+        let base: [CaltransCamera]
+        switch sourceFilter {
+        case .all:
+            base = store.allLoadedCameras
+        case .usgs:
+            base = store.usgsCameras
+        case .caltrans:
+            base = store.camerasByDistrict[selectedDistrict] ?? []
+        case .nyc:
+            base = store.nycCameras
+        }
+
         let filtered = base.filter { cam in
             if filterWaterCorridors && !cam.isWaterCorridor { return false }
             if !searchText.isEmpty {
                 let q = searchText.lowercased()
-                let hay = "\(cam.name) \(cam.route) \(cam.county)".lowercased()
+                let hay = "\(cam.name) \(cam.route) \(cam.county) \(cam.source.rawValue)".lowercased()
                 if !hay.contains(q) { return false }
             }
             return true
@@ -45,15 +66,15 @@ struct LiveCamerasView: View {
                     if let err = store.lastError {
                         Text(err).font(.caption).foregroundStyle(.orange)
                     }
-                    if store.loadingDistricts.contains(selectedDistrict) && visibleCameras.isEmpty {
-                        ProgressView("Loading live Caltrans cameras…")
+                    if visibleCameras.isEmpty && (store.loadingUSGS || store.loadingNYC || !store.loadingDistricts.isEmpty) {
+                        ProgressView("Loading live public cameras…")
                             .frame(maxWidth: .infinity)
                             .padding(.top, 60)
                     } else if visibleCameras.isEmpty {
                         ContentUnavailableView(
                             "No cameras match",
                             systemImage: "video.slash",
-                            description: Text("Try clearing the search filter or switching Caltrans districts.")
+                            description: Text("Try clearing the search filter or choosing another feed.")
                         )
                     } else {
                         LazyVGrid(columns: columns, spacing: 12) {
@@ -71,7 +92,7 @@ struct LiveCamerasView: View {
                             }
                         }
                     }
-                    Text("Live official snapshots from Caltrans CWWP2 (cwwp2.dot.ca.gov). Tap any camera to zoom, watch its live stream, or check Waterline flood screening at that exact spot.")
+                    Label("Automatic on-device face blur is active on every snapshot (Apple Vision). Sources: USGS HIVIS (nationwide rivers), Caltrans CWWP2 (all 12 CA districts), and NYC DOT.", systemImage: "eye.slash.fill")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .padding(.top, 6)
@@ -79,7 +100,7 @@ struct LiveCamerasView: View {
                 .padding()
             }
             .navigationTitle("Live Cameras")
-            .searchable(text: $searchText, prompt: "Highway, bridge, river, or city")
+            .searchable(text: $searchText, prompt: "River, bridge, highway, or city")
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button {
@@ -94,7 +115,17 @@ struct LiveCamerasView: View {
                 if let target = model.target, let nearest = CaltransDistrict.nearest(to: target) {
                     selectedDistrict = nearest
                 }
-                await store.load(district: selectedDistrict)
+                await store.ensureLoaded(near: origin)
+            }
+            .onChange(of: sourceFilter) { _, next in
+                Task {
+                    switch next {
+                    case .all: await store.ensureLoaded(near: origin)
+                    case .usgs: await store.loadUSGS()
+                    case .caltrans: await store.load(district: selectedDistrict)
+                    case .nyc: await store.loadNYCDOT()
+                    }
+                }
             }
             .onChange(of: selectedDistrict) { _, next in
                 Task { await store.load(district: next) }
@@ -117,32 +148,53 @@ struct LiveCamerasView: View {
         VStack(alignment: .leading, spacing: 10) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach(CaltransDistrict.allCases) { dist in
+                    ForEach(SourceFilter.allCases) { f in
                         Button {
-                            selectedDistrict = dist
+                            sourceFilter = f
                         } label: {
-                            Text(dist.shortLabel)
+                            Text(f.rawValue)
                                 .font(.caption.weight(.semibold))
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
-                                .background(selectedDistrict == dist ? Color.accentColor : Color(.secondarySystemFill), in: Capsule())
-                                .foregroundStyle(selectedDistrict == dist ? .white : .primary)
+                                .background(sourceFilter == f ? Color.accentColor : Color(.secondarySystemFill), in: Capsule())
+                                .foregroundStyle(sourceFilter == f ? .white : .primary)
                         }
                         .buttonStyle(.plain)
                     }
                 }
             }
-            HStack(spacing: 12) {
+
+            if sourceFilter == .caltrans {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(CaltransDistrict.allCases) { dist in
+                            Button {
+                                selectedDistrict = dist
+                            } label: {
+                                Text(dist.shortLabel)
+                                    .font(.caption2.weight(.semibold))
+                                    .padding(.horizontal, 9)
+                                    .padding(.vertical, 5)
+                                    .background(selectedDistrict == dist ? Color.blue.opacity(0.2) : Color(.secondarySystemFill), in: Capsule())
+                                    .foregroundStyle(selectedDistrict == dist ? .blue : .primary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+
+            HStack(spacing: 10) {
                 Toggle("Water & bridges", isOn: $filterWaterCorridors)
                     .toggleStyle(.button)
                     .controlSize(.small)
-                Toggle("Auto-refresh 60s", isOn: $autoRefresh)
+                Toggle("Auto 60s", isOn: $autoRefresh)
                     .toggleStyle(.button)
                     .controlSize(.small)
                 Spacer()
-                Text("\(visibleCameras.count) live")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                Label("Face blur on", systemImage: "eye.slash")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.green)
             }
         }
     }
@@ -161,32 +213,26 @@ struct CameraTile: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             ZStack(alignment: .topTrailing) {
-                AsyncImage(url: camera.imageURL(cacheBust: refreshTick)) { phase in
-                    switch phase {
-                    case .success(let img):
-                        img.resizable().scaledToFill()
-                    case .failure:
-                        ZStack {
-                            Color(.tertiarySystemFill)
-                            Image(systemName: "video.slash").foregroundStyle(.secondary)
-                        }
-                    default:
-                        ZStack {
-                            Color(.tertiarySystemFill)
-                            ProgressView().controlSize(.small)
-                        }
-                    }
-                }
-                .frame(height: 112)
-                .frame(maxWidth: .infinity)
-                .clipped()
+                PrivacyBlurredCameraImage(url: camera.imageURL(cacheBust: refreshTick), contentMode: .fill)
+                    .frame(height: 112)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
 
-                Text(distanceMiles)
-                    .font(.caption2.monospacedDigit().bold())
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(.ultraThinMaterial, in: Capsule())
-                    .padding(6)
+                HStack(spacing: 4) {
+                    Text(camera.source.rawValue)
+                        .font(.caption2.bold())
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(camera.source == .usgs ? Color.teal.opacity(0.85) : Color.blue.opacity(0.85), in: Capsule())
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Text(distanceMiles)
+                        .font(.caption2.monospacedDigit().bold())
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.ultraThinMaterial, in: Capsule())
+                }
+                .padding(6)
             }
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
@@ -233,27 +279,22 @@ struct CameraDetailSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    AsyncImage(url: camera.imageURL(cacheBust: store.refreshTick)) { phase in
-                        switch phase {
-                        case .success(let img):
-                            img.resizable().scaledToFit()
-                        case .failure:
-                            ContentUnavailableView("Snapshot unavailable", systemImage: "video.slash")
-                                .frame(height: 220)
-                        default:
-                            ProgressView().frame(maxWidth: .infinity, minHeight: 220)
-                        }
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    PrivacyBlurredCameraImage(url: camera.imageURL(cacheBust: store.refreshTick), contentMode: .fit)
+                        .frame(maxWidth: .infinity, minHeight: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
 
                     VStack(alignment: .leading, spacing: 6) {
                         Text(camera.name).font(.title3.bold())
                         HStack(spacing: 10) {
+                            Label(camera.source.rawValue, systemImage: "video.fill")
                             if !camera.route.isEmpty { Label(camera.route, systemImage: "road.lanes") }
                             if !camera.county.isEmpty { Label(camera.county, systemImage: "mappin.and.ellipse") }
                         }
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        Label("On-device face blurring applied automatically via Apple Vision", systemImage: "eye.slash.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.green)
                     }
 
                     HStack(spacing: 10) {
@@ -277,13 +318,13 @@ struct CameraDetailSheet: View {
 
                     if let stream = camera.streamURL {
                         Link(destination: stream) {
-                            Label("Open live Caltrans video stream", systemImage: "play.rectangle.fill")
+                            Label(camera.source == .usgs ? "Open USGS HIVIS camera page" : "Open live video stream", systemImage: "play.rectangle.fill")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
                     }
 
-                    Text(String(format: "Coordinates: %.5f, %.5f · Source: Caltrans CWWP2 (Official)", camera.latitude, camera.longitude))
+                    Text(String(format: "Coordinates: %.5f, %.5f · Source: %@ (Official)", camera.latitude, camera.longitude, camera.source.rawValue))
                         .font(.caption2.monospaced())
                         .foregroundStyle(.secondary)
                 }

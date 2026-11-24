@@ -179,18 +179,32 @@ footer .wrap { display: grid; gap: 8px; }
 
 <section id="cameras" aria-labelledby="h-cameras">
   <div class="sec-head">
-    <p class="eyebrow">Visual verification · Caltrans CWWP2 live feeds</p>
-    <h2 id="h-cameras">Live highway, bridge, and river cameras</h2>
-    <p class="note">Official Caltrans CCTV snapshots fetched live in your browser from District 4 (SF Bay Area) and District 3 (Sacramento &amp; Rivers). Sorted by distance from your selected spot so you can visually verify standing water, fog, or bridge conditions in seconds.</p>
+    <p class="eyebrow">Visual verification · USGS HIVIS Rivers &amp; Caltrans D1–D12</p>
+    <h2 id="h-cameras">Live river, bridge, and highway cameras</h2>
+    <p class="note">Official public snapshots fetched live in your browser from USGS HIVIS (1,400+ nationwide river &amp; flood gauge cameras) and all 12 California Caltrans CWWP2 districts. Sorted by distance from your selected spot. Automatic client-side face blurring runs in-browser whenever supported.</p>
   </div>
   <div class="cam-controls">
-    <button type="button" class="chip active" data-dist="4">SF Bay Area (D4)</button>
-    <button type="button" class="chip" data-dist="3">Sacramento &amp; Rivers (D3)</button>
+    <button type="button" class="chip active" data-feed="all">All nearby (USGS + CA)</button>
+    <button type="button" class="chip" data-feed="usgs">USGS Rivers (US)</button>
+    <select id="caltransSelect" class="btn" aria-label="Caltrans District">
+      <option value="4" selected>Caltrans D4: SF Bay Area</option>
+      <option value="3">Caltrans D3: Sacramento &amp; Rivers</option>
+      <option value="1">Caltrans D1: North Coast (Eel / Russian)</option>
+      <option value="2">Caltrans D2: Redding / Shasta</option>
+      <option value="5">Caltrans D5: Central Coast</option>
+      <option value="6">Caltrans D6: Fresno / San Joaquin</option>
+      <option value="7">Caltrans D7: Los Angeles</option>
+      <option value="8">Caltrans D8: Inland Empire</option>
+      <option value="9">Caltrans D9: Eastern Sierra</option>
+      <option value="10">Caltrans D10: Stockton / Delta</option>
+      <option value="11">Caltrans D11: San Diego</option>
+      <option value="12">Caltrans D12: Orange County</option>
+    </select>
     <label style="display:flex;gap:6px;align-items:center;font-size:.84rem;cursor:pointer"><input type="checkbox" id="camWaterOnly" checked> Water, bridges &amp; low corridors</label>
     <label style="display:flex;gap:6px;align-items:center;font-size:.84rem;cursor:pointer"><input type="checkbox" id="camAutoRefresh" checked> Auto-refresh 60s</label>
-    <input type="search" id="camSearch" placeholder="Filter by highway, bridge, city…">
+    <input type="search" id="camSearch" placeholder="Filter by river, highway, bridge, city…">
     <button type="button" class="btn" id="camRefreshBtn">Refresh frames</button>
-    <span class="note mono" id="camStatus" style="font-size:.78rem">Loading Caltrans feeds…</span>
+    <span class="note mono" id="camStatus" style="font-size:.78rem">Loading USGS &amp; Caltrans feeds…</span>
   </div>
   <div class="cam-grid" id="camGrid"></div>
 </section>
@@ -521,11 +535,11 @@ function renderSources() {
     <span>Rain: <a href="${esc(s.rain.url)}">NWS gridpoint ${esc(s.rain.grid)}</a>${s.rain.updated ? `, updated ${esc(new Date(s.rain.updated).toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" }))}` : ""}</span>
     ${CITY ? Object.entries(CITY.sources).map(([k, v]) => `<span>${esc(k)}: ${esc(v)}</span>`).join("") : ""}
     <span>Thresholds: NOAA CO-OPS / NWS flood levels for 9414290</span>
-    <span>Live cameras: <a href="https://cwwp2.dot.ca.gov/data/d4/cctv/cctvStatusD04.json">Caltrans CWWP2 D4 (SF Bay)</a> &amp; <a href="https://cwwp2.dot.ca.gov/data/d3/cctv/cctvStatusD03.json">D3 (Sacramento)</a></span>
+    <span>Live cameras: <a href="https://api.waterdata.usgs.gov/nims/v0/cameras">USGS HIVIS Nationwide River Cameras</a> &amp; <a href="https://cwwp2.dot.ca.gov/data/d4/cctv/cctvStatusD04.json">Caltrans CWWP2 D1–D12</a></span>
     <span>Snapshot for apps: <a href="data/forecast.json">data/forecast.json</a> (scripts/refresh_live.py)</span>`;
 }
 
-// ---------- live Caltrans cameras + quick spots ----------
+// ---------- live USGS HIVIS + Caltrans D1-D12 cameras + client-side face blur ----------
 const SPOTS = {
   sf:    { name: "San Francisco",       lat: 37.7636, lon: -122.4148, zoom: 12, dist: 4 },
   sac:   { name: "Sacramento & Rivers", lat: 38.5816, lon: -121.4944, zoom: 11, dist: 3 },
@@ -535,7 +549,9 @@ const SPOTS = {
 };
 let activeSpot = { ...SPOTS.sf };
 let activeDist = 4;
+let activeFeed = "all";
 const camCache = {};
+let usgsCache = null;
 let camTick = Math.floor(Date.now() / 1000);
 const WATER_RE = /bridge|river|creek|bay|causeway|coast|beach|embarcadero|marina|harbor|pier|slough|delta|levee|channel|pocket|natomas|dumbarton|san mateo|golden gate|bayshore|tunnel|underpass|101|80|5\b/i;
 
@@ -544,6 +560,31 @@ function haversineMi(lat1, lon1, lat2, lon2) {
   const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function fetchUSGSCameras() {
+  if (usgsCache) return usgsCache;
+  const rows = await getJSON("https://api.waterdata.usgs.gov/nims/v0/cameras");
+  usgsCache = (rows || []).map((r) => {
+    if (r.hideCam || !r.camId) return null;
+    const lat = parseFloat(r.lat), lon = parseFloat(r.lng);
+    const dir = r.smallDir || r.thumbDir;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || !dir) return null;
+    return {
+      id: `usgs-${r.camId}`,
+      source: "USGS River",
+      dist: 0,
+      name: r.camName || r.camId,
+      route: r.nwisId ? `USGS ${r.nwisId}` : "USGS Gauge",
+      dir: r.stateAbrv || "",
+      county: r.stateAbrv || "",
+      lat, lon,
+      img: `${dir}${r.camId}_newest.jpg`,
+      stream: `https://apps.usgs.gov/hivis/camera/${encodeURIComponent(r.camId)}`,
+      water: true,
+    };
+  }).filter(Boolean);
+  return usgsCache;
 }
 
 async function fetchDistrictCameras(dist) {
@@ -558,6 +599,7 @@ async function fetchDistrictCameras(dist) {
     if (!Number.isFinite(lat) || !Number.isFinite(lon) || !st.currentImageURL) return null;
     return {
       id: `d${dist}-${c.index}`,
+      source: `Caltrans D${dist}`,
       dist,
       name: loc.locationName || "Caltrans Camera",
       route: loc.route || "",
@@ -573,25 +615,54 @@ async function fetchDistrictCameras(dist) {
   return list;
 }
 
+// Automatic client-side face blur on camera snapshots when browser FaceDetector + CORS allow canvas readback.
+async function blurFacesOnImage(imgEl) {
+  if (!("FaceDetector" in window)) return;
+  try {
+    const detector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 10 });
+    const faces = await detector.detect(imgEl);
+    if (!faces || !faces.length) return;
+    const w = imgEl.naturalWidth, h = imgEl.naturalHeight;
+    if (!w || !h) return;
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const ctx = c.getContext("2d");
+    ctx.drawImage(imgEl, 0, 0, w, h);
+    for (const f of faces) {
+      const b = f.boundingBox;
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(b.x + b.width / 2, b.y + b.height / 2, b.width * 0.65, b.height * 0.72, 0, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.filter = "blur(14px)";
+      ctx.drawImage(imgEl, 0, 0, w, h);
+      ctx.restore();
+    }
+    imgEl.src = c.toDataURL("image/jpeg", 0.88);
+  } catch (_) { /* cross-origin or unsupported: leave original image untouched */ }
+}
+
 function renderCameras() {
-  const list = camCache[activeDist] || [];
+  const calList = camCache[activeDist] || [];
+  const usgsList = usgsCache || [];
+  const base = activeFeed === "usgs" ? usgsList : activeFeed === "caltrans" ? calList : [...usgsList, ...calList];
   const waterOnly = $("camWaterOnly").checked;
   const q = $("camSearch").value.trim().toLowerCase();
-  const filtered = list
-    .filter((c) => (!waterOnly || c.water) && (!q || `${c.name} ${c.route} ${c.county}`.toLowerCase().includes(q)))
+  const filtered = base
+    .filter((c) => (!waterOnly || c.water) && (!q || `${c.name} ${c.route} ${c.county} ${c.source}`.toLowerCase().includes(q)))
     .map((c) => ({ ...c, mi: haversineMi(activeSpot.lat, activeSpot.lon, c.lat, c.lon) }))
     .sort((a, b) => a.mi - b.mi);
 
-  const totalLoaded = Object.values(camCache).reduce((s, a) => s + a.length, 0);
-  $("sCams").textContent = totalLoaded ? `${totalLoaded}` : "—";
-  $("camStatus").textContent = `Showing ${Math.min(12, filtered.length)} of ${filtered.length} matching cameras (D${activeDist} · sorted near ${activeSpot.name})`;
+  const totalLoaded = usgsList.length + Object.values(camCache).reduce((s, a) => s + a.length, 0);
+  $("sCams").textContent = totalLoaded ? `${totalLoaded.toLocaleString()}` : "—";
+  $("camStatus").textContent = `Showing ${Math.min(12, filtered.length)} of ${filtered.length.toLocaleString()} matching cameras (USGS + D${activeDist} · near ${activeSpot.name})`;
 
   const shown = filtered.slice(0, 12);
   $("camGrid").innerHTML = shown.map((c) => `
     <article class="cam-card">
       <div class="cam-img-wrap">
-        <img src="${esc(c.img)}?t=${camTick}" alt="${esc(c.name)}" loading="lazy">
-        <span class="cam-live-dot">LIVE</span>
+        <img src="${esc(c.img)}?t=${camTick}" alt="${esc(c.name)}" loading="lazy" crossorigin="anonymous">
+        <span class="cam-live-dot">${esc(c.source)}</span>
         <span class="cam-dist">${c.mi < 10 ? c.mi.toFixed(1) : Math.round(c.mi)} mi</span>
       </div>
       <div class="cam-body">
@@ -601,20 +672,27 @@ function renderCameras() {
         </div>
         <div class="cam-actions">
           <button type="button" class="btn" data-fly="${c.lat},${c.lon}">Map</button>
-          ${c.stream ? `<a class="btn" href="${esc(c.stream)}" target="_blank" rel="noopener">Live video</a>` : ""}
+          ${c.stream ? `<a class="btn" href="${esc(c.stream)}" target="_blank" rel="noopener">${c.source === "USGS River" ? "USGS page" : "Live video"}</a>` : ""}
         </div>
       </div>
     </article>`).join("") || `<p class="note">No cameras match that filter.</p>`;
 
-  updateCameraMapLayer(filtered.slice(0, 45));
+  $("camGrid").querySelectorAll("img").forEach((img) => {
+    img.addEventListener("error", () => {
+      if (img.crossOrigin) { img.removeAttribute("crossorigin"); img.src = img.src; }
+    }, { once: true });
+    img.addEventListener("load", () => blurFacesOnImage(img), { once: true });
+  });
+
+  updateCameraMapLayer(filtered.slice(0, 50));
 }
 
 function updateCameraMapLayer(cams) {
   if (!map) return;
   if (layers.cam) map.removeLayer(layers.cam);
   layers.cam = L.layerGroup(cams.map((c) =>
-    L.circleMarker([c.lat, c.lon], { radius: 6, color: "#e8eef3", weight: 2, fillColor: "#5fc48a", fillOpacity: 0.9 })
-      .bindPopup(`<div style="width:220px"><img src="${esc(c.img)}?t=${camTick}" alt="${esc(c.name)}" style="width:100%;height:125px;object-fit:cover;border-radius:4px;margin-bottom:6px"><br><b>${esc(c.name)}</b><br>${esc(c.route)} ${esc(c.dir)} · ${c.mi.toFixed(1)} mi away${c.stream ? `<br><a href="${esc(c.stream)}" target="_blank" rel="noopener">Open live video stream</a>` : ""}</div>`)
+    L.circleMarker([c.lat, c.lon], { radius: 6, color: "#e8eef3", weight: 2, fillColor: c.source === "USGS River" ? "#3aa0ff" : "#5fc48a", fillOpacity: 0.9 })
+      .bindPopup(`<div style="width:220px"><img src="${esc(c.img)}?t=${camTick}" alt="${esc(c.name)}" style="width:100%;height:125px;object-fit:cover;border-radius:4px;margin-bottom:6px"><br><b>${esc(c.name)}</b><br>${esc(c.source)} · ${esc(c.route)} · ${c.mi.toFixed(1)} mi away${c.stream ? `<br><a href="${esc(c.stream)}" target="_blank" rel="noopener">${c.source === "USGS River" ? "Open USGS HIVIS page" : "Open live video stream"}</a>` : ""}</div>`)
   ));
   const cb = document.querySelector('#layers input[data-l="cam"]');
   if (!cb || cb.checked) layers.cam.addTo(map);
@@ -622,15 +700,10 @@ function updateCameraMapLayer(cams) {
 
 async function selectDistrict(dist) {
   activeDist = dist;
-  document.querySelectorAll(".cam-controls .chip[data-dist]").forEach((b) => b.classList.toggle("active", +b.dataset.dist === dist));
-  $("camStatus").textContent = `Loading Caltrans D${dist} cameras…`;
-  try {
-    await fetchDistrictCameras(dist);
-    renderCameras();
-  } catch (e) {
-    console.warn("Caltrans fetch failed", e);
-    $("camStatus").textContent = `Could not load Caltrans D${dist} feed right now.`;
-  }
+  $("caltransSelect").value = String(dist);
+  $("camStatus").textContent = `Loading USGS & Caltrans D${dist} cameras…`;
+  await Promise.allSettled([fetchUSGSCameras(), fetchDistrictCameras(dist)]);
+  renderCameras();
 }
 
 $("camGrid").addEventListener("click", (e) => {
@@ -641,14 +714,23 @@ $("camGrid").addEventListener("click", (e) => {
   $("map").scrollIntoView({ behavior: "smooth", block: "center" });
 });
 
-document.querySelectorAll(".cam-controls .chip[data-dist]").forEach((b) =>
-  b.addEventListener("click", () => selectDistrict(+b.dataset.dist))
+document.querySelectorAll(".cam-controls .chip[data-feed]").forEach((b) =>
+  b.addEventListener("click", () => {
+    activeFeed = b.dataset.feed;
+    document.querySelectorAll(".cam-controls .chip[data-feed]").forEach((x) => x.classList.toggle("active", x === b));
+    renderCameras();
+  })
 );
+$("caltransSelect").addEventListener("change", () => {
+  activeFeed = "all";
+  document.querySelectorAll(".cam-controls .chip[data-feed]").forEach((x) => x.classList.toggle("active", x.dataset.feed === "all"));
+  selectDistrict(+$("caltransSelect").value);
+});
 $("camWaterOnly").addEventListener("change", renderCameras);
 $("camSearch").addEventListener("input", renderCameras);
 $("camRefreshBtn").addEventListener("click", () => { camTick = Math.floor(Date.now() / 1000); renderCameras(); });
 setInterval(() => {
-  if ($("camAutoRefresh").checked && camCache[activeDist]) {
+  if ($("camAutoRefresh").checked && (camCache[activeDist] || usgsCache)) {
     camTick = Math.floor(Date.now() / 1000);
     renderCameras();
   }
