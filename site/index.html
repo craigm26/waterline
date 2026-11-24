@@ -224,8 +224,6 @@ svg text { font-family: var(--mono); }
   background: #08121d; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
 }
 #map { width: 100%; height: 100%; z-index: 1; background: #08121d; }
-#map.style-night .leaflet-tile-pane { filter: invert(100%) hue-rotate(195deg) saturate(130%) brightness(86%) contrast(95%); }
-#map.style-day .leaflet-tile-pane { filter: saturate(108%) contrast(102%); }
 .leaflet-popup-content-wrapper {
   background: rgba(11, 21, 34, 0.95) !important; color: var(--fg) !important;
   border: 1px solid var(--border-strong); border-radius: 12px !important;
@@ -559,7 +557,7 @@ details summary { cursor: pointer; color: var(--fg); font-weight: 600; }
         </div>
 
         <div class="map-hud-group">
-          <button type="button" class="layer-chip on" id="mapThemeBtn">Night</button>
+          <button type="button" class="layer-chip on" id="mapThemeBtn">Dark Matter</button>
           <button type="button" class="layer-chip on" id="drawerToggleBtn">Places &amp; Zones</button>
           <button type="button" class="layer-chip" id="fullscreenBtn">Fullscreen</button>
         </div>
@@ -697,12 +695,22 @@ $("drawerToggleBtn").addEventListener("click", () => {
   const collapsed = $("mapDrawer").classList.toggle("collapsed");
   $("drawerToggleBtn").classList.toggle("on", !collapsed);
 });
+const CARTO_KEY = "cb1_5fi4_1_380cd6b6f2ca1ab025d4e522";
+const BASEMAPS = [
+  { id: "dark", label: "Dark Matter", url: `https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}` },
+  { id: "voyager", label: "Voyager", url: `https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}` },
+  { id: "positron", label: "Positron", url: `https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}` },
+];
+let basemapIdx = 0;
+let baseTileLayer = null;
+
 $("mapThemeBtn").addEventListener("click", () => {
-  const el = $("map");
-  const isNight = el.classList.contains("style-night");
-  el.classList.toggle("style-night", !isNight);
-  el.classList.toggle("style-day", isNight);
-  $("mapThemeBtn").textContent = isNight ? "Daylight" : "Night";
+  basemapIdx = (basemapIdx + 1) % BASEMAPS.length;
+  const bm = BASEMAPS[basemapIdx];
+  $("mapThemeBtn").textContent = bm.label;
+  if (map && baseTileLayer) {
+    baseTileLayer.setUrl(bm.url);
+  }
 });
 $("fullscreenBtn").addEventListener("click", () => {
   const stage = $("mapStage");
@@ -1073,8 +1081,9 @@ $("modalMapBtn").addEventListener("click", () => {
 // ---------- Map ----------
 function initMap() {
   map = L.map("map", { preferCanvas: true }).setView([37.7636, -122.4148], 12);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  baseTileLayer = L.tileLayer(BASEMAPS[0].url, {
+    maxZoom: 20,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
   }).addTo(map);
   const D = CITY.drain_fields.reduce((o, k, i) => ((o[k] = i), o), {});
   layers.drain = L.layerGroup(CITY.drains_top500.map((d) => L.circleMarker([d[D.lat], d[D.lon]], {
