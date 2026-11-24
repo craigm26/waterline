@@ -517,8 +517,9 @@ details summary { cursor: pointer; color: var(--fg); font-weight: 600; }
   <!-- TAB 2: LIVE CAMERAS -->
   <section id="view-cams" class="view">
     <div class="toolbar">
-      <button type="button" class="chip active" data-feed="all">All nearby (USGS + CA)</button>
+      <button type="button" class="chip active" data-feed="all">All nearby (USGS + Caltrans + AlertCA)</button>
       <button type="button" class="chip" data-feed="usgs">USGS Rivers (1,443 US)</button>
+      <button type="button" class="chip" data-feed="alertca">AlertCalifornia (1,310 CA)</button>
       <select id="caltransSelect" aria-label="Caltrans District">
         <option value="4" selected>Caltrans D4: SF Bay Area</option>
         <option value="3">Caltrans D3: Sacramento &amp; Rivers</option>
@@ -533,7 +534,7 @@ details summary { cursor: pointer; color: var(--fg); font-weight: 600; }
         <option value="11">Caltrans D11: San Diego</option>
         <option value="12">Caltrans D12: Orange County</option>
       </select>
-      <label class="pill-toggle"><input type="checkbox" id="camWaterOnly" checked> Water &amp; bridges</label>
+      <label class="pill-toggle"><input type="checkbox" id="camWaterOnly"> Water &amp; bridges only</label>
       <label class="pill-toggle"><input type="checkbox" id="camAutoRefresh" checked> Auto 60s</label>
       <input type="search" id="camSearch" placeholder="Search river, highway, bridge, city…">
       <button type="button" class="btn-sm primary" id="camRefreshBtn">Refresh frames</button>
@@ -670,9 +671,10 @@ let activeDist = 4;
 let activeFeed = "all";
 const camCache = {};
 let usgsCache = null;
+let alertCaCache = null;
 let camTick = Math.floor(Date.now() / 1000);
 let modalCam = null;
-const WATER_RE = /bridge|river|creek|bay|causeway|coast|beach|embarcadero|marina|harbor|pier|slough|delta|levee|channel|pocket|natomas|dumbarton|san mateo|golden gate|bayshore|tunnel|underpass|101|80|5\b/i;
+const WATER_RE = /bridge|river|creek|bay|causeway|coast|beach|embarcadero|marina|harbor|pier|slough|delta|levee|channel|pocket|natomas|dumbarton|san mateo|golden gate|bayshore|tunnel|underpass|alemany|cesar chavez|sutro|101|280|80|5\b/i;
 
 // ---------- Tab navigation ----------
 function switchTab(tab) {
@@ -916,6 +918,25 @@ async function fetchUSGSCameras() {
   return usgsCache;
 }
 
+async function fetchAlertCACameras() {
+  if (alertCaCache) return alertCaCache;
+  const data = await getJSON("https://cameras.alertcalifornia.org/public-camera-data/all_cameras-v3.json");
+  alertCaCache = (data.features || []).map((f) => {
+    const p = f.properties || {}, coords = f.geometry?.coordinates || [];
+    const lon = coords[0], lat = coords[1];
+    if (!p.id || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    return {
+      id: `alertca-${p.id}`, source: "AlertCalifornia", isUSGS: false, isAlertCA: true,
+      name: p.name || p.id, route: p.region || "Panoramic",
+      county: p.county || "CA", lat, lon,
+      img: `https://cameras.alertcalifornia.org/public-camera-data/${encodeURIComponent(p.id)}/latest-frame.jpg`,
+      stream: `https://ops.alertcalifornia.org/cam-console/${encodeURIComponent(p.id)}`,
+      water: true,
+    };
+  }).filter(Boolean);
+  return alertCaCache;
+}
+
 async function fetchDistrictCameras(dist) {
   if (camCache[dist]) return camCache[dist];
   const code = String(dist).padStart(2, "0");
@@ -965,8 +986,8 @@ function attachImgHandlers(root) {
 
 let currentCameras = [];
 function renderCameras() {
-  const calList = camCache[activeDist] || [], usgsList = usgsCache || [];
-  const base = activeFeed === "usgs" ? usgsList : [...usgsList, ...calList];
+  const calList = camCache[activeDist] || [], usgsList = usgsCache || [], alertList = alertCaCache || [];
+  const base = activeFeed === "usgs" ? usgsList : activeFeed === "alertca" ? alertList : [...calList, ...alertList, ...usgsList];
   const waterOnly = $("camWaterOnly").checked;
   const q = $("camSearch").value.trim().toLowerCase();
   const filtered = base
@@ -975,7 +996,7 @@ function renderCameras() {
     .sort((a, b) => a.mi - b.mi);
   currentCameras = filtered;
 
-  const total = usgsList.length + Object.values(camCache).reduce((s, a) => s + a.length, 0);
+  const total = usgsList.length + alertList.length + Object.values(camCache).reduce((s, a) => s + a.length, 0);
   $("sCams").textContent = total.toLocaleString();
   $("miniCamSub").textContent = `Nearest live feeds to ${activeSpot.name}`;
   $("camStatus").textContent = `Showing ${Math.min(18, filtered.length)} of ${filtered.length.toLocaleString()} matching cameras near ${activeSpot.name}`;
@@ -1010,13 +1031,13 @@ function renderCameras() {
         </div>
         <div class="cam-btns">
           <button type="button" class="btn-sm" data-fly="${c.lat},${c.lon}">Map</button>
-          ${c.stream ? `<a class="btn-sm primary" href="${esc(c.stream)}" target="_blank" rel="noopener">${c.isUSGS ? "USGS page" : "Live video"}</a>` : ""}
+          ${c.stream ? `<a class="btn-sm primary" href="${esc(c.stream)}" target="_blank" rel="noopener">${c.isUSGS ? "USGS page" : c.isAlertCA ? "AlertCA live" : "Live video"}</a>` : ""}
         </div>
       </div>
     </article>`).join("") || `<p class="card-sub">No cameras match that filter.</p>`;
   attachImgHandlers($("camGrid"));
 
-  updateCameraMapLayer(filtered.slice(0, 60));
+  updateCameraMapLayer(filtered.slice(0, 250));
 }
 
 function openModal(cam) {
@@ -1186,7 +1207,7 @@ function nearestGauge(lat, lon) {
 }
 
 function nearestCamera(lat, lon) {
-  const pool = [...(usgsCache || []), ...(camCache[activeDist] || [])];
+  const pool = [...(usgsCache || []), ...(alertCaCache || []), ...(camCache[activeDist] || [])];
   if (!pool.length) return null;
   let best = null, bestMi = Infinity;
   for (const c of pool) {
@@ -1390,7 +1411,7 @@ function renderSources() {
 async function selectDistrict(dist) {
   activeDist = dist;
   $("caltransSelect").value = String(dist);
-  await Promise.allSettled([fetchUSGSCameras(), fetchDistrictCameras(dist)]);
+  await Promise.allSettled([fetchUSGSCameras(), fetchAlertCACameras(), fetchDistrictCameras(dist)]);
   renderCameras();
 }
 
