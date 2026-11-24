@@ -318,22 +318,22 @@ details summary { cursor: pointer; color: var(--fg); font-weight: 600; }
       <div class="kpi">
         <div class="kpi-top"><span>Gauge vs prediction</span><span class="prov off">Official</span></div>
         <div class="kpi-val" id="sNow">—</div>
-        <div class="kpi-note">ft · NOAA CO-OPS 9414290</div>
+        <div class="kpi-note" id="sNowNote">ft · NOAA CO-OPS 9414290</div>
       </div>
       <div class="kpi">
         <div class="kpi-top"><span>30-day anomaly</span><span class="prov der">Derived</span></div>
         <div class="kpi-val" id="sAnom">—</div>
-        <div class="kpi-note">ft · El Niño / Kelvin baseline</div>
+        <div class="kpi-note" id="sAnomNote">ft · El Niño / Kelvin baseline</div>
       </div>
       <div class="kpi">
         <div class="kpi-top"><span>15-day peak tide</span><span class="prov der">Derived</span></div>
         <div class="kpi-val" id="sMax">—</div>
-        <div class="kpi-note">ft MLLW · prediction + anomaly</div>
+        <div class="kpi-note" id="sMaxNote">ft MLLW · prediction + anomaly</div>
       </div>
       <div class="kpi">
         <div class="kpi-top"><span>7-day rain forecast</span><span class="prov off">Official</span></div>
         <div class="kpi-val" id="sRain">—</div>
-        <div class="kpi-note">inches · NWS SF (17th &amp; Folsom)</div>
+        <div class="kpi-note" id="sRainNote">inches · NWS San Francisco</div>
       </div>
     </div>
 
@@ -483,7 +483,6 @@ details summary { cursor: pointer; color: var(--fg); font-weight: 600; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 "use strict";
-const STATION = "9414290", GRID = "MTR/85,105";
 const TH = { nws_minor: 7.04, nos_minor: 7.71, nos_moderate: 8.64, nos_major: 9.91 };
 const TH_LABEL = { nws_minor: "NWS minor", nos_minor: "NOS minor", nos_moderate: "NOS mod", nos_major: "NOS major" };
 const PLAZA = 10.04;
@@ -493,12 +492,13 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 const fmtFt = (v, sign) => (sign && v >= 0 ? "+" : "") + v.toFixed(2);
 
 let F = null, CITY = null, map = null, layers = {};
+const forecastCache = {};
 const SPOTS = {
-  sf:    { name: "San Francisco",        lat: 37.7636, lon: -122.4148, zoom: 12, dist: 4 },
-  sac:   { name: "Sacramento & Rivers",  lat: 38.5816, lon: -121.4944, zoom: 11, dist: 3 },
-  oak:   { name: "Oakland / East Bay",   lat: 37.8044, lon: -122.2712, zoom: 12, dist: 4 },
-  marin: { name: "Marin / Hwy 101",      lat: 37.8913, lon: -122.5177, zoom: 12, dist: 4 },
-  sj:    { name: "San Jose / South Bay", lat: 37.3382, lon: -121.8863, zoom: 11, dist: 4 },
+  sf:    { id: "sf",    name: "San Francisco",        lat: 37.7636, lon: -122.4148, zoom: 12, dist: 4, station: "9414290", stationName: "San Francisco (9414290)", grid: "MTR/85,105" },
+  sac:   { id: "sac",   name: "Sacramento & Rivers",  lat: 38.5816, lon: -121.4944, zoom: 11, dist: 3, station: "9415144", stationName: "Port Chicago / Delta (9415144)", grid: null, riverLid: "SACC1", riverName: "Sacramento River at I St" },
+  oak:   { id: "oak",   name: "Oakland / East Bay",   lat: 37.8044, lon: -122.2712, zoom: 12, dist: 4, station: "9414750", stationName: "Alameda / Oakland (9414750)", grid: null },
+  marin: { id: "marin", name: "Marin / Hwy 101",      lat: 37.8913, lon: -122.5177, zoom: 12, dist: 4, station: "9414290", stationName: "Golden Gate / Marin (9414290)", grid: null },
+  sj:    { id: "sj",    name: "San Jose / South Bay", lat: 37.3382, lon: -121.8863, zoom: 11, dist: 4, station: "9414523", stationName: "Redwood City / S. Bay (9414523)", grid: null },
 };
 let activeSpot = { ...SPOTS.sf };
 let activeDist = 4;
@@ -527,7 +527,7 @@ document.querySelectorAll("[data-side]").forEach((b) => b.addEventListener("clic
 // ---------- NOAA + NWS Forecast ----------
 const pacific = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(d).replace(",", "");
 const ymdhm = (d) => pacific(d).replace(/-/g, "").replace(" ", "%20");
-const coopsUrl = (product, begin, end, extra = "") => `${COOPS}?station=${STATION}&product=${product}&begin_date=${ymdhm(begin)}&end_date=${ymdhm(end)}&datum=MLLW&units=english&time_zone=lst_ldt&format=json&application=waterline${extra}`;
+const coopsUrl = (station, product, begin, end, extra = "") => `${COOPS}?station=${station}&product=${product}&begin_date=${ymdhm(begin)}&end_date=${ymdhm(end)}&datum=MLLW&units=english&time_zone=lst_ldt&format=json&application=waterline${extra}`;
 async function getJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error(url + " " + r.status); return r.json(); }
 
 function perDay(series, how) {
@@ -545,15 +545,29 @@ function perDay(series, how) {
   return acc;
 }
 
-async function liveForecast() {
+async function resolveNWSGrid(spot) {
+  if (spot.grid) return `https://api.weather.gov/gridpoints/${spot.grid}`;
+  const pt = await getJSON(`https://api.weather.gov/points/${spot.lat.toFixed(4)},${spot.lon.toFixed(4)}`);
+  return pt.properties.forecastGridData;
+}
+
+async function liveForecast(spot) {
   const now = new Date(), begin = new Date(now - 30 * 864e5), end = new Date(now.getTime() + 15 * 864e5);
+  const st = spot.station || "9414290";
+  const nwsUrl = await resolveNWSGrid(spot).catch(() => `https://api.weather.gov/gridpoints/MTR/85,105`);
   const urls = {
-    obs: coopsUrl("water_level", begin, now),
-    pred: coopsUrl("predictions", begin, now, "&interval=6"),
-    hilo: coopsUrl("predictions", now, end, "&interval=hilo"),
-    nws: `https://api.weather.gov/gridpoints/${GRID}`,
+    obs: coopsUrl(st, "water_level", begin, now),
+    pred: coopsUrl(st, "predictions", begin, now, "&interval=6"),
+    hilo: coopsUrl(st, "predictions", now, end, "&interval=hilo"),
+    nws: nwsUrl,
   };
-  const [obs, pred, hilo, nws] = await Promise.all([getJSON(urls.obs), getJSON(urls.pred), getJSON(urls.hilo), getJSON(urls.nws).catch(() => null)]);
+  const riverPromise = spot.riverLid
+    ? getJSON(`https://api.water.noaa.gov/nwps/v1/gauges/${spot.riverLid}`).catch(() => null)
+    : Promise.resolve(null);
+  const [obs, pred, hilo, nws, river] = await Promise.all([
+    getJSON(urls.obs), getJSON(urls.pred), getJSON(urls.hilo),
+    getJSON(urls.nws).catch(() => null), riverPromise
+  ]);
   const p = new Map(pred.predictions.map((r) => [r.t, +r.v]));
   const res = obs.data.filter((r) => r.v !== "" && p.has(r.t)).map((r) => [r.t, +r.v - p.get(r.t)]);
   if (!res.length) throw new Error("no matched water levels");
@@ -580,14 +594,30 @@ async function liveForecast() {
       rain_chance_pct: day in chance ? Math.round(chance[day]) : null,
     });
   }
-  return { generated_at: now.toISOString(), live: true, anomaly, days, hilo: hl,
-    sources: { tide_predictions: urls.hilo, water_level: urls.obs, rain: { url: urls.nws, grid: GRID } } };
+  const riverObs = river?.status?.observed?.primary;
+  const riverCat = river?.status?.observed?.floodCategory;
+  return {
+    spotName: spot.name, stationName: spot.stationName || `NOAA ${st}`,
+    river: Number.isFinite(riverObs) ? { name: spot.riverName || spot.riverLid, ft: riverObs, category: riverCat || "no_flooding" } : null,
+    generated_at: now.toISOString(), live: true, anomaly, days, hilo: hl,
+    sources: { tide_predictions: urls.hilo, water_level: urls.obs, rain: { url: urls.nws, grid: spot.name } }
+  };
 }
 
 async function loadForecast(forceLive) {
-  $("freshText").textContent = "Fetching live NOAA & NWS…";
-  try { F = await liveForecast(); }
-  catch { if (!F || !forceLive) F = await getJSON("data/forecast.json"); }
+  const key = `${activeSpot.id || activeSpot.name}-${activeSpot.station}`;
+  $("freshText").textContent = `Fetching live NOAA & NWS for ${activeSpot.name}…`;
+  if (!forceLive && forecastCache[key]) {
+    F = forecastCache[key];
+    renderForecast(); renderPrep(); renderBrief(); renderSources();
+    return;
+  }
+  try {
+    F = await liveForecast(activeSpot);
+    forecastCache[key] = F;
+  } catch {
+    if (!F || !forceLive) F = await getJSON("data/forecast.json");
+  }
   renderForecast(); renderPrep(); renderBrief(); renderSources();
 }
 
@@ -601,27 +631,32 @@ function windows(minFt) {
 function renderForecast() {
   const a = F.anomaly, week = F.days.slice(0, 7);
   const gen = new Date(F.generated_at);
-  $("freshText").textContent = (F.live ? "Live NOAA · " : "Snapshot · ") + gen.toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" }) + " PT";
+  $("freshText").textContent = `${F.spotName || activeSpot.name} · ` + (F.live ? "Live NOAA · " : "Snapshot · ") + gen.toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" }) + " PT";
   $("freshShort").textContent = F.live ? "Live NOAA" : "Snapshot";
   $("sNow").textContent = fmtFt(a.latest.residual_ft, true);
+  $("sNowNote").textContent = `ft · ${F.stationName || "NOAA CO-OPS"}`;
   $("sAnom").textContent = fmtFt(a.mean_30d_ft, true);
   const top = F.days.reduce((m, d) => (d.high.with_anomaly_ft > m.high.with_anomaly_ft ? d : m), F.days[0]);
   $("sMax").textContent = top.high.with_anomaly_ft.toFixed(2);
+  $("sMaxNote").textContent = `ft MLLW · ${F.stationName || "NOAA"}`;
   const rainDays = week.filter((d) => d.rain_in !== null);
   const rain7 = rainDays.reduce((s, d) => s + d.rain_in, 0);
   $("sRain").textContent = rainDays.length ? rain7.toFixed(2) : "n/a";
+  $("sRainNote").textContent = `inches · NWS ${F.spotName || activeSpot.name}`;
 
   const worst = (k) => week.filter((d) => d.over.includes(k));
   const nosMinor = worst("nos_minor"), nwsMinor = worst("nws_minor"), mod = worst("nos_moderate");
-  let cls = "calm", badge = "CLEAR", title = "No tide flood threshold reached this week";
-  if (mod.length) { cls = "act"; badge = "PREPARE"; title = "Moderate coastal flooding possible this week"; }
-  else if (nosMinor.length) { cls = "act"; badge = "PREPARE"; title = "Prepare the waterfront this week"; }
-  else if (nwsMinor.length) { cls = "watch"; badge = "WATCH"; title = "Watch low-lying waterfront areas this week"; }
+  const spotLabel = F.spotName || activeSpot.name;
+  let cls = "calm", badge = "CLEAR", title = `${spotLabel}: No tide flood threshold reached this week`;
+  if (mod.length) { cls = "act"; badge = "PREPARE"; title = `${spotLabel}: Moderate coastal flooding possible this week`; }
+  else if (nosMinor.length) { cls = "act"; badge = "PREPARE"; title = `${spotLabel}: Prepare the waterfront this week`; }
+  else if (nwsMinor.length) { cls = "watch"; badge = "WATCH"; title = `${spotLabel}: Watch low-lying waterfront areas this week`; }
 
   const items = [];
-  if (nwsMinor.length) items.push(`High tides reach NWS minor (7.04 ft) on ${nwsMinor.length} of the next 7 days with the ${fmtFt(a.mean_30d_ft, true)} ft anomaly: ${nwsMinor.map((d) => `${dayName(d.date)} ${hhmm(d.high.t)} (${d.high.with_anomaly_ft.toFixed(2)} ft)`).join(", ")}.`);
-  else items.push(`Peak high tide this week with the anomaly is ${Math.max(...week.map((d) => d.high.with_anomaly_ft)).toFixed(2)} ft (below NWS minor 7.04 ft).`);
-  if (rainDays.length) items.push(`NWS forecasts ${rain7.toFixed(2)} in of rain over the next ${rainDays.length} days.`);
+  if (F.river) items.push(`Live river gauge (${F.river.name}): ${F.river.ft.toFixed(2)} ft (${F.river.category.replace(/_/g, " ")}).`);
+  if (nwsMinor.length) items.push(`High tides at ${F.stationName || "NOAA"} reach NWS minor (7.04 ft) on ${nwsMinor.length} of the next 7 days with the ${fmtFt(a.mean_30d_ft, true)} ft anomaly: ${nwsMinor.map((d) => `${dayName(d.date)} ${hhmm(d.high.t)} (${d.high.with_anomaly_ft.toFixed(2)} ft)`).join(", ")}.`);
+  else items.push(`Peak high tide at ${F.stationName || "NOAA"} this week with the anomaly is ${Math.max(...week.map((d) => d.high.with_anomaly_ft)).toFixed(2)} ft (below NWS minor 7.04 ft).`);
+  if (rainDays.length) items.push(`NWS forecasts ${rain7.toFixed(2)} in of rain over the next ${rainDays.length} days for ${spotLabel}.`);
 
   $("verdict").className = `verdict-banner ${cls}`;
   $("verdictBadge").className = `badge ${cls}`;
@@ -920,7 +955,7 @@ document.querySelectorAll("#spotBar .chip[data-spot]").forEach((b) => b.addEvent
   document.querySelectorAll("#spotBar .chip").forEach((x) => x.classList.remove("active"));
   b.classList.add("active");
   if (map) map.flyTo([spot.lat, spot.lon], spot.zoom);
-  await selectDistrict(spot.dist);
+  await Promise.all([loadForecast(false), selectDistrict(spot.dist)]);
 }));
 
 $("geoBtn").addEventListener("click", () => {
@@ -928,12 +963,20 @@ $("geoBtn").addEventListener("click", () => {
   $("geoBtn").textContent = "Locating…";
   navigator.geolocation.getCurrentPosition(async (pos) => {
     const lat = pos.coords.latitude, lon = pos.coords.longitude;
-    const dist = haversineMi(lat, lon, SPOTS.sac.lat, SPOTS.sac.lon) < haversineMi(lat, lon, SPOTS.sf.lat, SPOTS.sf.lon) ? 3 : 4;
-    activeSpot = { name: "your location", lat, lon, zoom: 13, dist };
+    const isSac = haversineMi(lat, lon, SPOTS.sac.lat, SPOTS.sac.lon) < haversineMi(lat, lon, SPOTS.sf.lat, SPOTS.sf.lon);
+    const dist = isSac ? 3 : 4;
+    activeSpot = {
+      id: `geo-${lat.toFixed(2)},${lon.toFixed(2)}`,
+      name: "Your location",
+      lat, lon, zoom: 13, dist,
+      station: isSac ? "9415144" : "9414290",
+      stationName: isSac ? "Port Chicago / Delta (9415144)" : "San Francisco (9414290)",
+      grid: null,
+    };
     document.querySelectorAll("#spotBar .chip").forEach((x) => x.classList.remove("active"));
     $("geoBtn").classList.add("active"); $("geoBtn").textContent = "My location";
     if (map) map.flyTo([lat, lon], 13);
-    await selectDistrict(dist);
+    await Promise.all([loadForecast(false), selectDistrict(dist)]);
   }, () => { $("geoBtn").textContent = "Use my location"; });
 });
 
